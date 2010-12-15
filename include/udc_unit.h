@@ -17,11 +17,15 @@
  *
  */
 
+#ifndef _TIME_H
+#include <time.h>
+#endif
+
 typedef struct {
 	uint8_t[] pubkey;      // public key of the owner
 	time_t date;		   // transaction date
 	uint8_t[] signature;   // signature of the previous owner
-	sign_chain * next;     // null at the end of the chain
+	sign_chain * next;     // NULL at the end of the chain
 } udcchain_t ;
 
 typedef struct {
