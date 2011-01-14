@@ -1,0 +1,58 @@
+
+
+Each UDC node should have a dedicated irc channel.
+
+Name of the irc channel should indicate its position in the node tree and should be preficed "udc." to indicate it follow this specification.
+
+(For exemple the root node of the test and developpement currency named "dev" use the channel ##udc.dev on freenode irc network.)
+
+This channel should be moderate because only accepted children can send or receive money in the node and so need to send command in the irc channel (mode +v).
+Only accountant childrens should be moderator of the channels.
+
+Children that has high-availabilty (almost always connected) and enough good bandwith (ADSL or higher) can ask to be accountant of the node.
+A accountant have to verify and sign each transaction that happen on the node (and so on the irc channel).
+That means the accountants hold and synchronize the money repartition of the node. 
+The minimum number of accountant signatures to valid a transaction is one of the Node Parameters.
+Node Parameters are also stored by accountant database and must be signed by almost all children of the node.
+
+Any children is also able to create its own children node, but it is not recomended if you have only one computer that could make server to this node.
+
+UCD protocol define the following commands :
+
+ - HELP
+ - INFO
+ - SUSCRIBE
+ - UPDATE
+ - SEND
+ - CONFIRMATION
+ - DUMP
+ - WHEREIS
+ - EXCHANGE
+ - MARK
+ - RESET
+ - MERGE
+ - SPLIT
+
+Node name are case insensitive and have to use charset [0-9A-Za-z_-].
+As, on freenode irc network, maximum lenght of channel name is about 48 characters and the maximum lenght of nick is 16 characters, we recommend to limit Node name to 8 characters.
+UDC protocol define the reserved node name :
+
+ - "fund"  is reserved for the default children node. It can NOT have any children, but could be use to collect taxes (if any).
+ - "reset" should be reserved for responding to the RESET MARK MERGE and SPLIT commands. It can NOT have any children, NEITHER store any money.
+
+Alias children name MAY be allowed by a Node.
+
+Node MIGHT forbid any children to have the same name as him (its parent).
+
+The "\" charaters is used to identifie several accountant of a children node. For exemple nick fra\Paris and fra\05 on a channel indicate that node "Paris" and "05" are both acountant of the children node fra.
+
+
+Description of the commands :
+
+ - HELP (mandatory)
+
+ Without any argument it MUST list the available command accepted by a bot. In other case it must the describe the command passed as its first argument.
+
+  Eg, To show help about suscribing :
+  /msg ubot help suscribe
+
