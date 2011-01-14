@@ -26,7 +26,7 @@ typedef struct {
 	time_t date;		   // transaction date
 	uint8_t[] signature;   // signature of the previous owner
 	sign_chain * next;     // NULL at the end of the chain
-} udcchain_t ;
+} udcUchain_t ;
 
 typedef struct {
 	char * cur;             // currency name
@@ -36,7 +36,6 @@ typedef struct {
 	time_t cdate;           // creation date
 	uint8_t[] csign;        // creation signature
 	uint8_t chaine_version; // version of the signature chain
-	char * ename;           // emission name (transmitter)
 	sign_chain first;       // first owner in the chain
-} udcunit_t ;
+} udcUnit_t ;
 
