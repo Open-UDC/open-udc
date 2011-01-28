@@ -1,53 +1,112 @@
 
 
-Each UDC node should have a dedicated irc channel.
+  === Open-UDC Implementation (draft) ===
 
-Name of the irc channel should indicate its position in the node tree and should be preficed "udc." to indicate it follow this specification.
+  == Nodes ==
 
+ The terminology "node" refer to an entity from 1 to multiple individu, which has been accepted somewhere in a hierarchized nodes structure.
+
+ The Main Node is itself an entity of multiple nodes which belong to multiple humans, and anyone can see what happen in this node.
+
+ It is more exact and preferable to use the words "root node" instead of "main node" to design the top-level node.
+
+  == Nodes URI ==
+
+ Each Node have a unique identifier which look like DNS name :
+	- uni is the root node of the currency "uni"
+	- uni.oy could be the node used by almost all Faroe Islands habitants.
+    - uni.bel.bru could be the node mainly used by people living in Bruxelle (Belgium).
+	- uni.48_22 could be the node used mainly by people around the geographic coordinate N 48° E 22°
+
+  == Node Name Restriction ==
+ 
+ Node name are case insensitive and MUST use ASCII charset [0-9a-z_-].
+ Node names SHOULD be limited to 8 characters.
+
+ Some node name are RESERVED for specific use.
+	- "fund"  is reserved for the default children node. It can NOT have any children, but could be use to collect taxes (if any).
+	- "reset" is reserved for responding to the RESET MARK MERGE and SPLIT commands. It can NOT have any children, NEITHER store any money.
+
+ Alias children name MAY be allowed by a Node.
+
+ Node MUST forbid any children to have the same name as him (its parent).
+
+ The "\" charaters MUST be used only to identifie several accountant of a children node. For exemple nick fra\Paris and fra\05 on a channel indicate that node "Paris" and "05" are both accountant of the children node fra.
+
+
+  == Network ==
+
+ Each Node MUST have at least one way to broadcast all transactions in this node.
+ This could be a dedicated IRC channel or an XMMP salon (MUC) or a mailing list. Or all of them.
+
+ It is RECOMMENDED for a node to have at least one IRC channel AND at least one XMPP salon, AND to send daily digest to a mailing list.
+
+ A node SHOULD use only one way to broadcast transactions during a period, they other ways exist for backup only (if first ways broke).
+ So the backup IRC channels and XMPP salons MUST indicate the one which is active and used to broadcast transactions. That could be done using the topic of the channels or salons.
+
+ Name of the IRC channel or XMPP salon SHOULD be equal to its node URI, prefixed with "udc." to indicate it follow this specification.
 (For exemple the root node of the test and developpement currency named "dev" use the channel ##udc.dev on freenode irc network.)
 
-This channel should be moderate because only accepted children can send or receive money in the node and so need to send command in the irc channel (mode +v).
-Only accountant childrens should be moderator of the channels.
+IRC channel or XMMP salons SHOULD be moderated and structured like this :
+ - Accountants  - which have the operator or moderator status.
+ - Users        - which are able to send command in the broadcast channel.
+ - Visitors     - which are just able to listen the broadcast channel.
 
-Children that has high-availabilty (almost always connected) and enough good bandwith (ADSL or higher) can ask to be accountant of the node.
-A accountant have to verify and sign each transaction that happen on the node (and so on the irc channel).
-That means the accountants hold and synchronize the money repartition of the node. 
-The minimum number of accountant signatures to valid a transaction is one of the Node Parameters.
-Node Parameters are also stored by accountant database and must be signed by almost all children of the node.
+ * Accountants are the ones which verify and store all transactions in the node. Each accountants are coequal, and 
+  - MUST store the entire monney repartition of the node.
+  - MUST store all node parameters.
+  - MUST be present whith high availabilty on all communication channels of the node.
+  - MUST be able to verify and validate (eg. sign) quickly any transacations in the node.
+  - A minimal number or proportion of accountants MUST validate (sign) each transaction. That is a parameters which should be voted by the members of a node.
 
-Any children is also able to create its own children node, but it is not recomended if you have only one computer that could make server to this node.
+ * Users are typically the software used by almost everybody to declare or confirm transactions, and to vote for the different parameters of the node.
+Any node user can ask to be an accountant if it match accountant requirements, its acceptance SHOULD depend on a node vote.
 
-UCD protocol define the following commands :
+Accountants and Users are the members of a node. As validate member of a node, they are able to create their own children node, but it is not recommended if they don't match the accountant requirements AND don't have replicants.
+
+
+ == Commands ==
+
+ Open-UDC protocol define the REQUIRED following commands :
+
+_General Commands, usable outside the broadcast channels, as so by anybody to any open-udc applicant software :
 
  - HELP
+	This command MUST show and explain other command supported by the open-udc software.
  - INFO
+	This command SHOULD indicate the version of the open-udc software, the nodes in wich it has been accepted, and its public keys or certificats.
  - SUSCRIBE
- - UPDATE
- - SEND
- - CONFIRMATION
- - DUMP
+    This command SHOULD permit to a member of a node for entering one of its node.
  - WHEREIS
+	This command MUST say all the member of a node know about a(some) unit(s) of money. 
+ - DUMP
+	This command SHOULD dump all the money database of a member of a node.
+
+
+_Node Command, usable inside the broadcast channels.
+
+ - ASKVOTE
+	This Command is send by anyone who want to change a node parameter, introduce a new member in the node, or want to hold the accountant status.
+ - VOTE
+	This Command respond to an ASKVOTE command.
+ - UPDATE
+	This Command is sent by accountants which have been disconnected to incicate it have finish to retrieve the transactions it losts, and so is able to regain its accountant status.
+
+ - DECLARE
+	This Command is send by a node to declare a transaction. (money move from somewhere to somewhere else)
+ - CONFIRM
+	This Command respond to a DECLARE command
+
  - EXCHANGE
+	This Command is used to exchange money units (a unit with big value to mutiple money units with less value).
+
  - MARK
  - RESET
  - MERGE
  - SPLIT
 
-Node name are case insensitive and have to use charset [0-9A-Za-z_-].
-As, on freenode irc network, maximum lenght of channel name is about 48 characters and the maximum lenght of nick is 16 characters, we recommend to limit Node name to 8 characters.
-UDC protocol define the reserved node name :
 
- - "fund"  is reserved for the default children node. It can NOT have any children, but could be use to collect taxes (if any).
- - "reset" should be reserved for responding to the RESET MARK MERGE and SPLIT commands. It can NOT have any children, NEITHER store any money.
-
-Alias children name MAY be allowed by a Node.
-
-Node MIGHT forbid any children to have the same name as him (its parent).
-
-The "\" charaters is used to identifie several accountant of a children node. For exemple nick fra\Paris and fra\05 on a channel indicate that node "Paris" and "05" are both acountant of the children node fra.
-
-
-Description of the commands :
+ == Commands description ==
 
  - HELP (mandatory)
 
@@ -55,4 +114,13 @@ Description of the commands :
 
   Eg, To show help about suscribing :
   /msg ubot help suscribe
+
+
+
+
+ === Notes ===
+
+Maximum lenght of channel name and nickname are shortly limited on irc networks (48 chars max for channels and 16 chars max for nicknames on freenode).
+That is why node names SHOULD be limited to 8 characters.
+
 
