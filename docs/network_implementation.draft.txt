@@ -1,56 +1,134 @@
+Network Working Group                                       J.J. Brucker
+Request for Comments:									   Open-UDC Team 
 
 
-  === Open-UDC Implementation (draft) ===
+          ==== Open-UDC Network Implementation ====
 
-  == Nodes ==
+ === Status of This Memo ===
 
- The terminology "node" refer to an entity from 1 to multiple individu, which has been accepted somewhere in a hierarchized nodes structure.
+ (Today 28 jan 2011, it is still a draft).
 
- The Main Node is itself an entity of multiple nodes which belong to multiple humans, and anyone can see what happen in this node.
+ === Abstract ===
 
- It is more exact and preferable to use the words "root node" instead of "main node" to design the top-level node.
+ === Copyright Notice ===
 
-  == Nodes URI ==
+ === Table of Contents ===
 
- Each Node have a unique identifier which look like DNS name :
-	- uni is the root node of the currency "uni"
-	- uni.oy could be the node used by almost all Faroe Islands habitants.
-    - uni.bel.bru could be the node mainly used by people living in Bruxelle (Belgium).
-	- uni.48_22 could be the node used mainly by people around the geographic coordinate N 48° E 22°
+ 1. Introduction ....................................................
+ 2. Conventions Used in This Document ...............................
+ 3. Terminology .....................................................
+ 4. Global Description
+ 5. Node Description ................................................
+    5.1. Node URI (Uniform Ressource Identifier) ....................
+    5.2. Node Name Restriction ......................................
+    5.3. Node types .................................................
+		 5.3.1 Accountants ..........................................
+		 5.3.2 Users ................................................
+		 5.3.1 Fund .................................................
+		 5.3.1 Reset ................................................
+	5.4  Node Aliases ...............................................
+    5.5. Node parameters ............................................
+		 5.5.1 Taxe rate ............................................
+		 5.5.2 Taxe redistribution ..................................
+		 5.5.3 Redirections .........................................
+		 5.5.4 Vote parameters ......................................
+		 5.5.5 Suscribtion parameters ...............................
+		 5.5.6 Member List ..........................................
+		 5.5.7 Accountants List .....................................
+		 5.5.8 Individuals List .....................................
+ 6. Voting procedure ................................................
+ 7. Broadcast channels ..............................................
+    7.1. IRC and XMPP Use ...........................................
+    7.2. Mailing List Use ...........................................
+ 8. Command Summary .................................................
+    8.1 Global Commands .............................................
+    8.2 Node Commands ...............................................
+ 9. Individual certification.
 
-  == Node Name Restriction ==
+
+1.== Introduction ==
+
+2.== Conventions Used in This Document ==
+
+  The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+  "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+  document are to be interpreted as described in [RFC2119].
+
+3.== Terminology ==
+
+  A node refer to an entity composed with 1 to multiple udc-agent, which
+  has been accepted somewhere in a hierarchized nodes structure.
+
+  An "udc-agent" is anything that follow this specification ([RFCxxxx])
+  to communicate with other udc-agent. And that follow the Open-UDC
+  money description ([RFCxxxx]) to check validity of money units and
+  make transcations with them.
+
+  An udc-agent have to be accepted in at least one node to began
+  receiving and sending money.
+
+  Once a udc-agent have been accepted as a member of a node, it could
+  become himself, or with some other members of the node, a children
+  node.
+
+  That is why we prefer to use the term "node", to designate an
+  udc-agent as soon as it has been accepted as a member of a node.
+
+  The "root node" could be also called the "main node", or the
+  "top-level node", but we prefer the "root node" designation.
+
+  A individual is a living human, regardless it's age, sex, et cetera.
+
+4.== Global description ==
+
+  In a open-UDC architecture, the root node is itself an entity of
+  multiple nodes whith multiple individuals behind, and anyone SHOULD be
+  able to see what happen in this node.
+
+  A node MAY be associated with one or more individuals. But an
+  individual MUST be associated with only one node in the entire node
+  structure.
+
+  A node SHOULD publish at least one money public key, to facilitate
+  transaction to its fund.
+
+  By definition an udc-agent which has been accepted in a node is a
+  member of 2 filiated nodes : this node and itself.
+
+  But the udc-agent MAY be a member of any other node, and SHOULD watch
+  almost all node upon him in the hierarchized nodes structure.
+
+5.== Node Description ==
+
+5.1= Nodes URI  (Uniform Ressource Identifier) =
+
+  Each Node have a unique identifier which look like DNS name :
+    - uni         is the root node of the currency "uni"
+    - uni.oy      could be the node used by almost all Faroe Islands 
+                  habitants.
+    - uni.bel.bru could be the node mainly used by people living in
+                  Bruxelle (Belgium).
+    - uni.48_22   could be the node used mainly by people around the
+                  geographic coordinate N 48° E 22°
+
+5.2= Node Name Restriction =
  
- Node name are case insensitive and MUST use ASCII charset [0-9a-z_-].
- Node names SHOULD be limited to 8 characters.
+  Node name are case insensitive and MUST use ASCII charset [0-9a-z_-].
 
- Some node name are RESERVED for specific use.
-	- "fund"  is reserved for the default children node. It can NOT have any children, but could be use to collect taxes (if any).
-	- "reset" is reserved for responding to the RESET MARK MERGE and SPLIT commands. It can NOT have any children, NEITHER store any money.
+  Node names SHOULD be limited to 8 characters.
+
+  Some node name are RESERVED for specific use.
+    - "fund"  is reserved for the default children node. It can NOT have
+              any children, but could be use to collect taxes (if any).
+    - "reset" is reserved for responding to the RESET MARK MERGE and
+              SPLIT commands. It can NOT have any children, NEITHER
+              store any money.
 
  Alias children name MAY be allowed by a Node.
 
- Node MUST forbid any children to have the same name as him (its parent).
+ Node MUST forbid any children to have the same name as him (its parent), or it MUST be an alias to the "fund".
 
- The "\" charaters MUST be used only to identifie several accountant of a children node. For exemple nick fra\Paris and fra\05 on a channel indicate that node "Paris" and "05" are both accountant of the children node fra.
-
-
-  == Network ==
-
- Each Node MUST have at least one way to broadcast all transactions in this node.
- This could be a dedicated IRC channel or an XMMP salon (MUC) or a mailing list. Or all of them.
-
- It is RECOMMENDED for a node to have at least one IRC channel AND at least one XMPP salon, AND to send daily digest to a mailing list.
-
- A node SHOULD use only one way to broadcast transactions during a period, they other ways exist for backup only (if first ways broke).
- So the backup IRC channels and XMPP salons MUST indicate the one which is active and used to broadcast transactions. That could be done using the topic of the channels or salons.
-
- Name of the IRC channel or XMPP salon SHOULD be equal to its node URI, prefixed with "udc." to indicate it follow this specification.
-(For exemple the root node of the test and developpement currency named "dev" use the channel ##udc.dev on freenode irc network.)
-
-IRC channel or XMMP salons SHOULD be moderated and structured like this :
- - Accountants  - which have the operator or moderator status.
- - Users        - which are able to send command in the broadcast channel.
- - Visitors     - which are just able to listen the broadcast channel.
+5.3= Node Type =
 
  * Accountants are the ones which verify and store all transactions in the node. Each accountants are coequal, and 
   - MUST store the entire monney repartition of the node.
@@ -64,41 +142,80 @@ Any node user can ask to be an accountant if it match accountant requirements, i
 
 Accountants and Users are the members of a node. As validate member of a node, they are able to create their own children node, but it is not recommended if they don't match the accountant requirements AND don't have replicants.
 
+  == Node Aliases ==
+
+   The "\" charaters MUST be used only to identifie several accountant of
+  a children node. For exemple names fra\Paris and fra\05 on a channel
+  indicate that node "Paris" and "05" are both accountant of the
+  children node fra.
+
+  == Node parameters ==
+
+
+6.== Broadcast Channel ==
+
+  Each Node MUST have at least one way to broadcast all transactions in
+  this node.
+
+  This MAY be a dedicated IRC channel or an XMMP salon (MUC) or a
+  mailing list. Or all of them.
+
+6.1= IRC and XMPP use =
+
+  It is RECOMMENDED for a node to have at least one IRC channel AND at
+  least one XMPP salon, AND to send daily digest to a mailing list.
+
+  A node SHOULD use only one way to broadcast transactions during a
+  period, they other ways exist for backup only (if first ways broke).
+
+  The backup IRC channels and XMPP salons MUST indicate the one which
+  is active and used to broadcast transactions. That could be done using
+  the topic of the channels or salons.
+
+ Name of the IRC channel or XMPP salon SHOULD be equal to its node URI, prefixed with "udc." to indicate it follow this specification.
+(For exemple the root node of the test and developpement currency named "dev" use the channel ##udc.dev on freenode irc network.)
+
+IRC channel or XMMP salons SHOULD be moderated and structured like this :
+ - Accountants  - which have the operator or moderator status.
+ - Users        - which are able to send command in the broadcast channel.
+ - Visitors     - which are just able to listen the broadcast channel.
+
 
  == Commands ==
 
- Open-UDC protocol define the REQUIRED following commands :
+  An udc-agent MUST respond to all the following commands :
 
 _General Commands, usable outside the broadcast channels, as so by anybody to any open-udc applicant software :
 
  - HELP
-	This command MUST show and explain other command supported by the open-udc software.
+    This command MUST show and explain other command supported by the open-udc software.
  - INFO
-	This command SHOULD indicate the version of the open-udc software, the nodes in wich it has been accepted, and its public keys or certificats.
+    This command SHOULD indicate the version of the open-udc software, the nodes in wich it has been accepted, and its public keys or certificats.
  - SUSCRIBE
     This command SHOULD permit to a member of a node for entering one of its node.
  - WHEREIS
-	This command MUST say all the member of a node know about a(some) unit(s) of money. 
+    The udc-agent MUST answer EVERYTHING he know about the unit(s) of money given as parameter(s).
  - DUMP
-	This command SHOULD dump all the money database of a member of a node.
+    This command SHOULD dump all the money database of a member of a node.
+ - GETPARAMETER
 
 
 _Node Command, usable inside the broadcast channels.
 
  - ASKVOTE
-	This Command is send by anyone who want to change a node parameter, introduce a new member in the node, or want to hold the accountant status.
+    This Command is send by anyone who want to change a node parameter, introduce a new member in the node, or want to hold an accountant status.
  - VOTE
-	This Command respond to an ASKVOTE command.
+    This Command respond to an ASKVOTE command.
  - UPDATE
-	This Command is sent by accountants which have been disconnected to incicate it have finish to retrieve the transactions it losts, and so is able to regain its accountant status.
+    This Command is sent by accountants which have been disconnected to incicate it have finish to retrieve the transactions it losts, and so is able to regain its accountant status.
 
  - DECLARE
-	This Command is send by a node to declare a transaction. (money move from somewhere to somewhere else)
+    This Command is send by a node to declare a transaction. (money move from somewhere to somewhere else)
  - CONFIRM
-	This Command respond to a DECLARE command
+    This Command respond to a DECLARE command
 
  - EXCHANGE
-	This Command is used to exchange money units (a unit with big value to mutiple money units with less value).
+    This Command is used to exchange money units (a unit with big value to mutiple money units with less value).
 
  - MARK
  - RESET
