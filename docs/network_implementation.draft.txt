@@ -40,10 +40,11 @@ Request for Comments:                                      Open-UDC Team
  7. Broadcast channels ..............................................
     7.1. IRC and XMPP Use ...........................................
     7.2. Mailing List Use ...........................................
- 8. Command Summary .................................................
+ 8. Commands Summary ................................................
     8.1 Global Commands .............................................
     8.2 Node Commands ...............................................
- 9. Individual certification.
+ 9. Commands Description ............................................
+10. Individual certification ........................................
 
 
 1.== Introduction ==
@@ -124,27 +125,48 @@ Request for Comments:                                      Open-UDC Team
               SPLIT commands. It can NOT have any children, NEITHER
               store any money.
 
- Alias children name MAY be allowed by a Node.
+  Alias children name MAY be allowed by a Node.
 
- Node MUST forbid any children to have the same name as him (its parent), or it MUST be an alias to the "fund".
+  Node MUST forbid any children to have the same name as him.
+  e.g: Node URI like uni.oy.oy can NOT exist.
 
 5.3= Node Type =
 
- * Accountants are the ones which verify and store all transactions in the node. Each accountants are coequal, and 
-  - MUST store the entire monney repartition of the node.
-  - MUST store all node parameters.
-  - MUST be present whith high availabilty on all communication channels of the node.
-  - MUST be able to verify and validate (eg. sign) quickly any transacations in the node.
-  - A minimal number or proportion of accountants MUST validate (sign) each transaction. That is a parameters which should be voted by the members of a node.
+ * Accountants are the ones which verify and store all transactions in 
+   the node. Each accountants are coequal, and 
+   - MUST store the entire monney repartition of the node.
+   - MUST store all node parameters.
+   - MUST be present whith high availabilty on all communication
+          channels of the node.
+   - MUST be able to verify and validate (eg. sign) quickly any
+          transacations in the node.
+   - A minimal number or proportion of accountants MUST validate (sign)
+     each transaction. That is a parameters which should be voted by the
+     members of a node.
 
- * Users are typically the software used by almost everybody to declare or confirm transactions, and to vote for the different parameters of the node.
-Any node user can ask to be an accountant if it match accountant requirements, its acceptance SHOULD depend on a node vote.
+ * Users are typically the type used by almost everyone to declare or
+   confirm transactions, and to vote for the different parameters of the
+   node.
 
-Accountants and Users are the members of a node. As validate member of a node, they are able to create their own children node, but it is not recommended if they don't match the accountant requirements AND don't have replicants.
+  Any node user can ask to be an accountant if it match accountant
+  requirements, its acceptance SHOULD depend on a node vote.
+
+  Accountants and Users are the members of a node. As validate member of
+  a node, they are able to create their own children node, but it is not
+  recommended if they don't match the accountant requirements AND don't
+  have replicants.
+
+ * Fund
+
+  This specific node (...)
+
+ * Reset
+
+  This specific node is OPTIONAL (...)
 
   == Node Aliases ==
 
-   The "\" charaters MUST be used only to identifie several accountant of
+   The "\" charaters MUST be used only to identify several accountant of
   a children node. For exemple names fra\Paris and fra\05 on a channel
   indicate that node "Paris" and "05" are both accountant of the
   children node fra.
@@ -172,8 +194,11 @@ Accountants and Users are the members of a node. As validate member of a node, t
   is active and used to broadcast transactions. That could be done using
   the topic of the channels or salons.
 
- Name of the IRC channel or XMPP salon SHOULD be equal to its node URI, prefixed with "udc." to indicate it follow this specification.
-(For exemple the root node of the test and developpement currency named "dev" use the channel ##udc.dev on freenode irc network.)
+  Name of the IRC channel or XMPP salon SHOULD be equal to its node URI,
+  prefixed with "udc." to indicate it follow this specification.
+
+  Example: the root node of the test and developpement currency named
+  "dev" use the channel ##udc.dev on freenode irc network.
 
 IRC channel or XMMP salons SHOULD be moderated and structured like this :
  - Accountants  - which have the operator or moderator status.
@@ -183,18 +208,24 @@ IRC channel or XMMP salons SHOULD be moderated and structured like this :
 
  == Commands ==
 
-  An udc-agent MUST respond to all the following commands :
+  An udc-agent MUST respond to all the following commands : 
 
-_General Commands, usable outside the broadcast channels, as so by anybody to any open-udc applicant software :
+ .1= General Command =
+
+  General Commands are  usable outside the broadcast channels, as so by
+  anyone to any udc-agent :
 
  - HELP
-    This command MUST show and explain other command supported by the open-udc software.
+    This command MUST show and explain other command supported by the
+    udc-agent.
  - INFO
-    This command SHOULD indicate the version of the open-udc software, the nodes in wich it has been accepted, and its public keys or certificats.
+    This command SHOULD indicate the version of the open-udc software, 
+    the nodes in wich it has been accepted, and its public keys or certificats.
  - SUSCRIBE
     This command SHOULD permit to a member of a node for entering one of its node.
  - WHEREIS
-    The udc-agent MUST answer EVERYTHING he know about the unit(s) of money given as parameter(s).
+    The udc-agent MUST answer EVERYTHING he know about the unit(s) of
+    money given as parameter(s).
  - DUMP
     This command SHOULD dump all the money database of a member of a node.
  - GETPARAMETER
@@ -203,19 +234,24 @@ _General Commands, usable outside the broadcast channels, as so by anybody to an
 _Node Command, usable inside the broadcast channels.
 
  - ASKVOTE
-    This Command is send by anyone who want to change a node parameter, introduce a new member in the node, or want to hold an accountant status.
+      This Command is send by any individual who wants to change a node
+      parameter, introduce a new member in the node, or wants its
+      udc-agent to hold the accountant status.
  - VOTE
-    This Command respond to an ASKVOTE command.
+      This Command respond to an ASKVOTE command.
  - UPDATE
-    This Command is sent by accountants which have been disconnected to incicate it have finish to retrieve the transactions it losts, and so is able to regain its accountant status.
-
+      This Command is sent by accountants which have been disconnected
+      to incicate it have finish to retrieve the transactions it losts,
+      and so is able to regain its accountant status.
  - DECLARE
-    This Command is send by a node to declare a transaction. (money move from somewhere to somewhere else)
+      This Command is send by a node to declare a transaction. (money
+      move from somewhere to somewhere else)
  - CONFIRM
-    This Command respond to a DECLARE command
+      This Command respond to a DECLARE command
 
  - EXCHANGE
-    This Command is used to exchange money units (a unit with big value to mutiple money units with less value).
+      This Command is used to exchange money units (a unit with big
+      value to mutiple money units with less value).
 
  - MARK
  - RESET
@@ -227,7 +263,9 @@ _Node Command, usable inside the broadcast channels.
 
  - HELP (mandatory)
 
- Without any argument it MUST list the available command accepted by a bot. In other case it must the describe the command passed as its first argument.
+  Without any argument it MUST list the available command accepted by a
+  bot. In other case it must the describe the command passed as its
+  first argument.
 
   Eg, To show help about suscribing :
   /msg ubot help suscribe
@@ -237,7 +275,9 @@ _Node Command, usable inside the broadcast channels.
 
  === Notes ===
 
-Maximum lenght of channel name and nickname are shortly limited on irc networks (48 chars max for channels and 16 chars max for nicknames on freenode).
-That is why node names SHOULD be limited to 8 characters.
+  Maximum lenght of channel name and nickname are shortly limited on irc
+  networks (48 chars max for channels and 16 chars max for nicknames on
+  freenode).
+  That is why node names SHOULD be limited to 8 characters.
 
 
