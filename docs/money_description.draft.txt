@@ -1,0 +1,77 @@
+Network Working Group                                       J.J. Brucker
+Request for Comments:                                      Open-UDC Team 
+
+
+          ==== Open-UDC Money Description ====
+
+ === Abstract ===
+
+ === Status of This Memo ===
+
+ (Today 31 jan 2011, it is still a draft).
+
+ === Copyright Notice ===
+
+ === Table of Contents ===
+
+ 1. Introduction ....................................................
+ 2. Conventions Used in This Document ...............................
+ 3. udc-unit header .................................................
+ 4. udc-unit signing chain ..........................................
+ 5. udc-unit binary format ..........................................
+
+1.== Introduction ==
+
+  The Open-UDC project aims to provide a open, democratic and secure
+  monetary system, compatible with universal dividende.
+
+  This document describe the set of informations which can be exchanged
+  for goods and services.
+
+  We define as "udc-unit" this set of informations.
+
+2.== Conventions Used in This Document ==
+
+  The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+  "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+  document are to be interpreted as described in [RFC2119].
+
+3.== udc-unit header ==
+
+ (... The value and the creation date should considered of a part of 
+  the Serial Number. Which means the 64 bits field periodic counter should
+  be reseted monthly ...)
+
+4.== udc-unit signing chain ==
+
+
+5.== udc-unit binary format ==
+
+  Following present the binary construction of a udc-unit which version
+  is equal to 1.
+
+  This is also the recommended binary format to use through the network
+  or in storage systems (files, databases, ...).     
+
+5.1= header =
+
+   0      7 8     15 16    23 24    31 32                            63 
+  +--------+--------+--------+--------+--------------------------------+
+  |3-characters currency code| Version|             Value              |
+  +--------+--------+--------+--------+--------------------------------+
+  |         salt             |            Creation Date                |
+  +--------+--------+--------+--------+--------------------------------+
+  |                          Periodic Counter                          |
+  +--------+--------+--------+--------+--------------------------------+
+  |                                                                    |
+  +                                                                    +
+  |             Cryptographic Creation Signature                       |
+  +        (SHA-1 digest + RSA 1024 encryption => 128 bytes)           +
+  |                                                                    |
+  +                                                                    +
+  |                                                                    |
+  +--------+--------+--------+--------+--------------------------------+
+
+5.1= signing chain =
+
+

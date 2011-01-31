@@ -65,6 +65,9 @@ Request for Comments:                                      Open-UDC Team
   money description ([RFCxxxx]) to check validity of money units and
   make transcations with them.
 
+  An "udc-unit" are units of money as described in the Open-UDC money
+  description ([RFCxxxx]).
+
   An udc-agent have to be accepted in at least one node to began
   receiving and sending money.
 
@@ -245,7 +248,11 @@ _Node Command, usable inside the broadcast channels.
       and so is able to regain its accountant status.
  - DECLARE
       This Command is send by a node to declare a transaction. (money
-      move from somewhere to somewhere else)
+      have been sent directly from somewhere to somewhere else)
+ - SEND
+      This Command permit to use the broadcast channel to send money.
+      Its main difference with the DECLARE command, is that all the
+      udc-unit content is broadcasted instead of just its header.
  - CONFIRM
       This Command respond to a DECLARE command
 
