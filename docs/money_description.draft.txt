@@ -8,7 +8,7 @@ Request for Comments:                                      Open-UDC Team
 
  === Status of This Memo ===
 
- (Today 31 jan 2011, it is still a draft).
+ (Today 01 feb 2011, it is still a draft).
 
  === Copyright Notice ===
 
@@ -17,8 +17,21 @@ Request for Comments:                                      Open-UDC Team
  1. Introduction ....................................................
  2. Conventions Used in This Document ...............................
  3. udc-unit header .................................................
+    3.1 currency code ...............................................
+    3.2 version .....................................................
+    3.3 serial number ...............................................
+    3.4 additional info .............................................
+    3.5 signature ...................................................
  4. udc-unit signing chain ..........................................
+    4.1 overview ....................................................
+    4.2 beginning the chain .........................................
+    4.3 marking and shortcutting the chain ..........................
+    4.4 timestamp in the chain ......................................
+    4.5 gluing multiple header with one signing chain ............... 
+    4.6 Signature types ............................................. 
+    4.7 Canceling a payment .........................................
  5. udc-unit binary format ..........................................
+ 6. others udc-unit format ..........................................
 
 1.== Introduction ==
 
@@ -38,12 +51,62 @@ Request for Comments:                                      Open-UDC Team
 
 3.== udc-unit header ==
 
- (... The value and the creation date should considered of a part of 
-  the Serial Number. Which means the 64 bits field periodic counter should
-  be reseted monthly ...)
+3.1= currency code =
+
+    The currency code should be conformant to the ISO 4217 Currency Code
+    List.
+
+    There are still a lot of place in this list to create new
+    3-characters currency codes.
+
+3.2= version =
+
+    Adding a version information inside udc-units give them the ability
+    to evolve in the futur.
+
+    This RFC describe only the version 1 of udc-units.
+
+3.3= serial number =
+
+   (... The value and the creation date should considered of a part of 
+    the Serial Number. Which means the 64 bits field periodic counter should
+    be reseted monthly ...)
+
+3.4= additional info =
+3.5= signature =
 
 4.== udc-unit signing chain ==
 
+4.1= overview =
+4.2= beginning the chain =
+4.3= marking and shortcutting the chain =
+4.4= timestamp in the chain =
+4.5= gluing multiple header with one signing chain =
+
+4.6= Signature types =
+
+    This RFC define the following types of signature:
+        0 -> RSA 512 encryption on md5 digest.
+        1 -> RSA 512 encryption on sha-1 digest.
+        2 -> RSA 512 encryption on sha-256 digest.
+        4 -> RSA 1024 encryption on md5 digest.
+        5 -> RSA 1024 encryption on sha-1 digest.
+        6 -> RSA 1024 encryption on sha-256 digest.
+        8 -> RSA 1536 encryption on md5 digest.
+        9 -> RSA 1536 encryption on sha-1 digest.
+       10 -> RSA 1536 encryption on sha-256 digest.
+       12 -> RSA 2048 encryption on md5 digest.
+       13 -> RSA 2048 encryption on sha-1 digest.
+       14 -> RSA 2048 encryption on sha-256 digest.
+
+AND I HAVE HERE SOME QUESTIONS :
+
+        WHICH ELLIPTIC CURVE TO USE ?
+        WITH WICH PARAMETERS ?
+        HOW ?    
+        ...
+
+4.7= Canceling a payment =
 
 5.== udc-unit binary format ==
 
@@ -51,27 +114,65 @@ Request for Comments:                                      Open-UDC Team
   is equal to 1.
 
   This is also the recommended binary format to use through the network
-  or in storage systems (files, databases, ...).     
+  or in storage systems (files, databases, ...).
+
+  All integer values stored on more that 1 byte MUST use the little
+  endianness.     
 
 5.1= header =
 
-   0      7 8     15 16    23 24    31 32                            63 
-  +--------+--------+--------+--------+--------------------------------+
-  |3-characters currency code| Version|             Value              |
-  +--------+--------+--------+--------+--------------------------------+
-  |         salt             |            Creation Date                |
-  +--------+--------+--------+--------+--------------------------------+
-  |                          Periodic Counter                          |
-  +--------+--------+--------+--------+--------------------------------+
-  |                                                                    |
-  +                                                                    +
-  |             Cryptographic Creation Signature                       |
-  +        (SHA-1 digest + RSA 1024 encryption => 128 bytes)           +
-  |                                                                    |
-  +                                                                    +
-  |                                                                    |
-  +--------+--------+--------+--------+--------------------------------+
+   0     7 8    15 16   23 24    31 32                            63 
+  +-------+-------+-------+--------+--------+-------+-------+-------+
+  |(3-char) currency code | Version|             Value              |
+  +-------+-------+-------+--------+--------+-------+-------+-------+
+  |         Creation Date          |     Periodic Counter
+  +-------+-------+-------+--------+--------+-------+-------+-------+
+                  | Mult. |           Individual Number             |
+  +-------+-------+-------+--------+--------+-------+-------+-------+
+  |      Universal Dividende       |NbGlued | SType |  Init Key Id  |
+  +-------+-------+-------+--------+--------+-------+-------+-------+
+  +                                                                 +
+  +                                                                 +
+  +                                                                 +
+  +             Cryptographic Creation Signature                    +
+  +                   ( No digest needed )                          +
+  +               (RSA 1024 encryption => 128 bytes)                +
+  +                                                                 +
+  +                                                                 +
+  +-------+-------+-------+--------+--------+-------+-------+-------+
 
-5.1= signing chain =
+  Only the first 18 bytes (144 bits) are usefull to identify a unique
+  udc-unit.
+
+  Only the first 28 bytes (224 bits) are used to calculate the Creation
+  Signature.
+
+  To verify the signature you can use the openssl tool :
+  Passing the 128 bytes Creation Signature into the command:
+  " openssl rsautl -verify -pubin -inkey CreatorKey_date.pub "
+  MUST return the first 224 bits.
+
+  The 32 bits starting at bit 224 to bit 255 are used to init the
+  signing chain.
+
+
+5.2= signing chain =
+
+  0     7 8       15 16     23 24     31 32                          63 
+ +-------+---------+---------+---------+-------+-------+-------+------+
+ | Stype |Dest Code|Src Code | NbReset |      Transaction Date        |
+ +-------+---------+---------+---------+-------+-------+-------+------+
+ +                                                                    +
+ +            Public Key of the new owner of the udc-unit             +
+ .           (type and lenght depend of the Signature type)           .
+ +                                                                    +
+ +-------+---------+---------+---------+-------+-------+-------+------+
+ +                                                                    +
+ +             Cryptographic Transaction Signature                    +
+ .    To be verified with the previous public key in the chain        .
+ .   The public key of the first item of the chain is well know       .
+ .   and is referenced with the unit key ID in the header part.
+ +                                                                    +
+ +-------+---------+---------+---------+-------+-------+-------+------+
 
 

@@ -124,9 +124,8 @@ Request for Comments:                                      Open-UDC Team
   Some node name are RESERVED for specific use.
     - "fund"  is reserved for the default children node. It can NOT have
               any children, but could be use to collect taxes (if any).
-    - "reset" is reserved for responding to the RESET MARK MERGE and
-              SPLIT commands. It can NOT have any children, NEITHER
-              store any money.
+    - "init" is reserved for responding to the RESET and MARK commands.
+              It can NOT have any children, NEITHER store any money.
 
   Alias children name MAY be allowed by a Node.
 
@@ -163,7 +162,7 @@ Request for Comments:                                      Open-UDC Team
 
   This specific node (...)
 
- * Reset
+ * Init
 
   This specific node is OPTIONAL (...)
 
@@ -262,6 +261,7 @@ _Node Command, usable inside the broadcast channels.
 
  - MARK
  - RESET
+
  - MERGE
  - SPLIT
 
