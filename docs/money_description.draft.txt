@@ -25,11 +25,12 @@ Request for Comments:                                      Open-UDC Team
  4. udc-unit signing chain ..........................................
     4.1 overview ....................................................
     4.2 beginning the chain .........................................
-    4.3 marking and shortcutting the chain ..........................
-    4.4 timestamp in the chain ......................................
-    4.5 gluing multiple header with one signing chain ............... 
-    4.6 Signature types ............................................. 
-    4.7 Canceling a payment .........................................
+    4.3 offline transactions ........................................
+    4.4 shortcutting the chain ......................................
+    4.5 timestamp in the chain ......................................
+    4.6 gluing multiple header with one signing chain ............... 
+    4.7 Signature types ............................................. 
+    4.8 Canceling a payment .........................................
  5. udc-unit binary format ..........................................
  6. others udc-unit format ..........................................
 
@@ -73,7 +74,32 @@ Request for Comments:                                      Open-UDC Team
     be reseted monthly ...)
 
 3.4= additional info =
+
+    Open-UDC promote a monthly Universal Dividende. That means news
+    udc-units are created each months, for each living humans (also
+    called individuals) which adopt the money.
+
+    Additionnal info permit to know more about the udc-unit : it spreads
+    informations about monetary creation and so permit to detect the
+    legitimacy of each udc-units.
+
+    Example:
+    If for a given month, there is 250 individuals and the Universal
+    Dividende has been calculated to be 10052. The udc-units created
+    MUST look like :
+            250 x 2 udc-units of value 5000
+            250 x 5 udc-units of value   10
+            250 x 2 udc-units of value    1
+    (So udc-units of value 10 will be numbered 0 to 1249).
+
+    So the additional information in a udc-units SHOULD be :
+    1- The Universal Dividende for the month.
+    2- The number of individuals recorded for the month.
+    3- The number of units of the same value per individual.
+
 3.5= signature =
+
+    
 
 4.== udc-unit signing chain ==
 
@@ -85,19 +111,17 @@ Request for Comments:                                      Open-UDC Team
 
 4.6= Signature types =
 
-    This RFC define the following types of signature:
-        0 -> RSA 512 encryption on md5 digest.
-        1 -> RSA 512 encryption on sha-1 digest.
-        2 -> RSA 512 encryption on sha-256 digest.
-        4 -> RSA 1024 encryption on md5 digest.
-        5 -> RSA 1024 encryption on sha-1 digest.
-        6 -> RSA 1024 encryption on sha-256 digest.
-        8 -> RSA 1536 encryption on md5 digest.
-        9 -> RSA 1536 encryption on sha-1 digest.
-       10 -> RSA 1536 encryption on sha-256 digest.
-       12 -> RSA 2048 encryption on md5 digest.
-       13 -> RSA 2048 encryption on sha-1 digest.
-       14 -> RSA 2048 encryption on sha-256 digest.
+
+    This RFC define the 3 following types of digest :
+        0 -> md5 digest
+        1 -> sha-1 digest.
+        2 -> sha-256 digest.
+
+    This RFC define the following types of assymetrics keys :
+        1 -> RSA 512 encryption key.
+        2 -> RSA 1024 encryption key.
+        3 -> RSA 1536 encryption key.
+        4 -> RSA 2048 encryption key.
 
 AND I HAVE HERE SOME QUESTIONS :
 
@@ -129,7 +153,7 @@ AND I HAVE HERE SOME QUESTIONS :
   +-------+-------+-------+--------+--------+-------+-------+-------+
                   | Mult. |           Individual Number             |
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  |      Universal Dividende       |NbGlued | SType |  Init Key Id  |
+  |      Universal Dividende       |NbGlued   |KType|  Init Key Id  |
   +-------+-------+-------+--------+--------+-------+-------+-------+
   +                                                                 +
   +                                                                 +
@@ -158,9 +182,11 @@ AND I HAVE HERE SOME QUESTIONS :
 
 5.2= signing chain =
 
-  0     7 8       15 16     23 24     31 32                          63 
+  0     7 8       15 16    23 24     31 32                          63 
  +-------+---------+---------+---------+-------+-------+-------+------+
- | Stype |Dest Code|Src Code | NbReset |      Transaction Date        |
+ |Ktype|D|C|  RFU  | Ext len | NbReset |      Transaction Date        |
+ +-------+---------+---------+---------+-------+-------+-------+------+0
+ | In case of disconnected transaction to external node:  Node URI    |
  +-------+---------+---------+---------+-------+-------+-------+------+
  +                                                                    +
  +            Public Key of the new owner of the udc-unit             +
@@ -174,5 +200,21 @@ AND I HAVE HERE SOME QUESTIONS :
  .   and is referenced with the unit key ID in the header part.
  +                                                                    +
  +-------+---------+---------+---------+-------+-------+-------+------+
+
+    Ktype: Type of public key the recipient will use.
+
+    D: Digest used to Sign
+
+    C: Transaction Flag:
+       - bit 8: Connection flag:
+            - 1 the transaction has been sent and validated by the
+                 udc-node.
+            - 0 the transacation has been done in a disconnected status.
+                In this case the recipient of the transaction have to be
+                authenticated (as a member of a udc-node in the open-udc
+                certification tree).
+
+        
+
 
 
