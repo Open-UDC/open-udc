@@ -30,6 +30,8 @@ Request for Comments:                                      Open-UDC Team
     4.5 timestamp in the chain ......................................
     4.6 gluing multiple header with one signing chain ............... 
     4.7 Signature types ............................................. 
+        4.7.1 Digests ............................................... 
+        4.7.2 Assymetric encryptions ................................ 
     4.8 Canceling a payment .........................................
  5. udc-unit binary format ..........................................
  6. udc-unit JSON format ............................................
@@ -131,31 +133,68 @@ Request for Comments:                                      Open-UDC Team
 4.4= timestamp in the chain =
 4.5= gluing multiple header with one signing chain =
 
-4.6= Signature types =
+4.7= Signature types =
 
+4.7.1 Digests
 
     This RFC define the 3 following types of digest :
+
         0 -> md5 digest
         1 -> sha-1 digest.
         2 -> sha-256 digest.
 
+    An udc-client MUST support this 3 digests.
+
+4.7.2 Assymetric encryptions
+
     This RFC define the following types of assymetrics keys :
-        1 -> RSA 512 encryption key.
-        2 -> RSA 1024 encryption key.
-        3 -> RSA 1536 encryption key.
-        4 -> RSA 2048 encryption key.
+    
+       1 -> RSA 512 encryption key.
+       2 -> RSA 1024 encryption key.
+       3 -> RSA 1536 encryption key.
+       4 -> RSA 2048 encryption key.
 
-AND I HAVE HERE SOME QUESTIONS :
+       8 -> secp160r2 : SECG/WTLS curve over a 160 bit prime field
+       9 -> prime192v1: NIST/X9.62/SECG curve over a 192 bit prime field
+      10 -> secp224r1 : NIST/SECG curve over a 224 bit prime field
+      11 -> prime256v1: X9.62/SECG curve over a 256 bit prime field
+      12 -> secp384r1 : NIST/SECG curve over a 384 bit prime field
+      13 -> secp521r1 : NIST/SECG curve over a 521 bit prime field
+      14 -> sect233r1 : NIST/SECG/WTLS curve over a 233 bit binary field
 
-        WHICH ELLIPTIC CURVE TO USE ?
+    An udc-client MUST support verificating a signature done with all
+    of this key.
+
+    An udc-client MUST support signing with any RSA key and SHOULD
+    support signing with a key based on elliptic curve.
+    
+
+AND I STILL HAVE O LOT OF QUESTIONS ABOUT ELLIPTIC CURVES :
+
+        WHICH ELLIPTIC CURVE ARE "BEST" ?
         WITH WICH PARAMETERS ?
-        HOW ?    
+        HOW TO USE ? WHAT ARE THE PERFS ?   
         ...
 
-4.7= Canceling a payment =
+4.8= Canceling a transaction =
+
+    A transaction can not be canceled.
+
+    A transaction is valid or is not.
+
+    If the transaction datas in the signature chain are incorrect, the
+    transacation is invalid and :
+    - the udc-unit MUST be rejected.
+    - the udc-client that make an error MUST be notified that its
+      transaction have been rejected.
+
+    If the transaction is valid but, as a recipient, you don't want the
+    money (to own the udc-unit(s)), you have to make an new transaction
+    back, i.e. to sign the key before your in the udc-unit.
+
 
 5.== udc-unit binary format ==
-
+ 
   Following present the binary construction of a udc-unit which version
   is equal to 1.
 
@@ -164,6 +203,19 @@ AND I HAVE HERE SOME QUESTIONS :
 
   All integer values stored on more that 1 byte MUST use the little
   endianness.     
+
+  All data with variable size, MUST be 0-padded to a multiple of 64 bits
+  (16 bytes) 
+    - Node URI
+    - Public key to sign
+    - Signature
+
+  All date are formated as number of seconds since 00:00:00 UTC on
+  Thursday, 1 January 1970. That means the limit date is at year 2106.
+
+  However be aware that on almost all 32 bits POSIX system, the time is
+  signed and so is limited to 19 January 2038 if it is stored upon only
+  one 32-bit integer.
 
 5.1= header =
 
@@ -201,12 +253,11 @@ AND I HAVE HERE SOME QUESTIONS :
   The 32 bits starting at bit 224 to bit 255 are used to init the
   signing chain.
 
-
 5.2= signing chain =
 
   0     7 8      15 16     23 24     31 32                          63 
  +-------+---------+---------+---------+-------+-------+-------+------+
- |Ktype|D|C|  RFU  | URI len | NbReset |      Transaction Date        |
+ |Ktype|D|    NbReset      |C| URI len |      Transaction Date        |
  +-------+---------+---------+---------+-------+-------+-------+------+
  |     In case of disconnected transaction : recipient Node URI       |
  +-------+---------+---------+---------+-------+-------+-------+------+
@@ -227,6 +278,11 @@ AND I HAVE HERE SOME QUESTIONS :
 
     D: Digest used to Sign
 
+    NbReset count the time the signing chain has been shortcuted at
+    this point.
+    As Shortcutting CAN NOT be done offline, this value MUST be equal
+    to 0 if the Connection flag (C) is not set.
+
     C: Transaction Flag:
        - bit 8: Connection flag:
             - 1 the transaction has been sent and validated by the
@@ -236,7 +292,6 @@ AND I HAVE HERE SOME QUESTIONS :
                 authenticated (as a member of a udc-node in the open-udc
                 certification tree).
 
-        
 
 6.== udc-unit JSON format ==
 
@@ -244,6 +299,7 @@ AND I HAVE HERE SOME QUESTIONS :
 7.== Security concerns ==
 
 7.1= offline transactions =
+ 
 
 7.2= creation signature =
 
@@ -252,7 +308,6 @@ AND I HAVE HERE SOME QUESTIONS :
       and garant the uniqueness of the localization of a udc-unit.
     - The additional informations in udc-units which MUST be
       identicals on many of them.
-
     The authentication provided by the creation signature is ultimately
     not so important.
 
@@ -266,12 +321,16 @@ AND I HAVE HERE SOME QUESTIONS :
       chances to trace back to the ugly one.
 
     However, it MUST still take the following precautions:
+
     - The creation of udc-unit MUST be done by an entity strictly 
       separated from the init entities.
+
     - The creation private key MUST be stay encrypted on at most two
       machines isolated from any network.
+
     - The creation key SHOULD change regularly, and its public key
       SHOULD be announced at least two weeks before it's use.
+
 
 7.3= init chain signature =
 
