@@ -33,7 +33,7 @@ Request for Comments:                                      Open-UDC Team
     4.8 Canceling a payment .........................................
  5. udc-unit binary format ..........................................
  6. udc-unit JSON format ............................................
- 7. Security concern ................................................
+ 7. Security concerns ...............................................
     7.1 offline transactions ........................................
     7.2 creation signature ..........................................
     7.3 init chain signature ........................................
@@ -47,6 +47,9 @@ Request for Comments:                                      Open-UDC Team
   for goods and services.
 
   We define as "udc-unit" this set of informations.
+
+  We define as "udc-client" any application wich manipulate udc-units
+  according exactly to this specification ([RFCxxxx]).
 
 2.== Conventions Used in This Document ==
 
@@ -73,9 +76,21 @@ Request for Comments:                                      Open-UDC Team
 
 3.3= serial number =
 
-   (... The value and the creation date should considered of a part of 
-    the Serial Number. Which means the 64 bits field periodic counter should
-    be reseted monthly ...)
+    The serial number of a udc-unit is composed of 3 informations :
+
+    - Its value, which SHOULD follow the convention mainly adopted
+      worldwide: 1,2,5,10,20,50,100,200,500,1000 ...
+
+    - Its creation date, which MUST be identical for a block of
+      udc-units. As it is more convenient to use a date formated as
+      number of seconds since 00:00:00 UTC on Thursday, 1 January 1970,
+      a monthly creation date SHOULD be at 10:00:00 UTC on first day of
+      each month.
+
+    - Its number in the series (of the month).
+
+    These 3 data are used to create unique information to identify one
+    udc-unit of a given currency.
 
 3.4= additional info =
 
@@ -106,32 +121,6 @@ Request for Comments:                                      Open-UDC Team
   The creation signature permit 
     - to detect error in the udc-unit (CRC use).
     - to authenticate the udc-unit.
-
-  
-
-  Due to:
-    - The node certification tree which maintain the monetary mass
-      and garant the uniqueness of the localization of a udc-unit.
-    - The additional informations in udc-units which MUST be
-      identicals on many of them.
-
-  The authentication provided by the creation signature is ultimately
-  not so important.
-
-  If the private creation key is found, the consequences are minors, 
-  because to use a non-legitimate udc-unit :
-    - Transaction have to be done offline.
-    - One of the valid (not revoked) init key must also have been found.
-    - It should pass through legitimacy verification that any
-      udc-clients may easily implement (due to additional informations).
-    - As transactions are nearly journalized in udc-units, there are
-      chances to trace back to the ugly one.
-
-  However, it MUST still take the following precautions:
-    - The creation of udc-unit MUST be done by an entity strictly separated
-      from the init entities.
-    - The creation private key MUST be stay encrypted on a machine isolated
-      from any network. 
 
 4.== udc-unit signing chain ==
 
@@ -186,7 +175,7 @@ AND I HAVE HERE SOME QUESTIONS :
   +-------+-------+-------+--------+--------+-------+-------+-------+
                   | Mult. |           Individual Number             |
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  |      Universal Dividende       |NbGlued   |KType|  Init Key Id  |
+  |      Universal Dividende       | NbGlued  |KType|  Init Key Id  |
   +-------+-------+-------+--------+--------+-------+-------+-------+
   +                                                                 +
   +                                                                 +
@@ -217,7 +206,7 @@ AND I HAVE HERE SOME QUESTIONS :
 
   0     7 8      15 16     23 24     31 32                          63 
  +-------+---------+---------+---------+-------+-------+-------+------+
- |Ktype|D|C|  RFU  | Ext len | NbReset |      Transaction Date        |
+ |Ktype|D|C|  RFU  | URI len | NbReset |      Transaction Date        |
  +-------+---------+---------+---------+-------+-------+-------+------+
  |     In case of disconnected transaction : recipient Node URI       |
  +-------+---------+---------+---------+-------+-------+-------+------+
@@ -249,7 +238,40 @@ AND I HAVE HERE SOME QUESTIONS :
 
         
 
-6.== udc-unit binary format ==
+6.== udc-unit JSON format ==
 
 
-7.== udc-unit binary format ==
+7.== Security concerns ==
+
+7.1= offline transactions =
+
+7.2= creation signature =
+
+    Due to:
+    - The node certification tree which maintain the monetary mass
+      and garant the uniqueness of the localization of a udc-unit.
+    - The additional informations in udc-units which MUST be
+      identicals on many of them.
+
+    The authentication provided by the creation signature is ultimately
+    not so important.
+
+    If the private creation key is found, the consequences are minors, 
+    because to use a non-legitimate udc-unit :
+    - Transaction have to be done offline.
+    - One of the valid (not revoked) init key must also have been found.
+    - It should pass through legitimacy verification that any
+      udc-clients may easily implement (due to additional informations).
+    - As transactions are nearly journalized in udc-units, there are
+      chances to trace back to the ugly one.
+
+    However, it MUST still take the following precautions:
+    - The creation of udc-unit MUST be done by an entity strictly 
+      separated from the init entities.
+    - The creation private key MUST be stay encrypted on at most two
+      machines isolated from any network.
+    - The creation key SHOULD change regularly, and its public key
+      SHOULD be announced at least two weeks before it's use.
+
+7.3= init chain signature =
+

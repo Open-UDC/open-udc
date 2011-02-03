@@ -57,16 +57,17 @@ Request for Comments:                                      Open-UDC Team
 
 3.== Terminology ==
 
-  A node refer to an entity composed with 1 to multiple udc-agent, which
-  has been accepted somewhere in a hierarchized nodes structure.
+  An "udc-client" is anything that follow the Open-UDC money description
+  ([RFCxxxx]) to check validity of money units and manipulate them.
 
-  An "udc-agent" is anything that follow this specification ([RFCxxxx])
-  to communicate with other udc-agent. And that follow the Open-UDC
-  money description ([RFCxxxx]) to check validity of money units and
-  make transcations with them.
+  An "udc-agent" is a valid udc-client wich follow this specification
+  ([RFCxxxx]) to communicate with other udc-agent.
 
   An "udc-unit" are units of money as described in the Open-UDC money
   description ([RFCxxxx]).
+
+  A node refer to an entity composed with 1 to multiple udc-agent, which
+  has been accepted somewhere in a hierarchized nodes structure.
 
   An udc-agent have to be accepted in at least one node to began
   receiving and sending money.
@@ -75,7 +76,7 @@ Request for Comments:                                      Open-UDC Team
   become himself, or with some other members of the node, a children
   node.
 
-  That is why we prefer to use the term "node", to designate an
+  That is why we sometime use the term "node", to designate an
   udc-agent as soon as it has been accepted as a member of a node.
 
   The "root node" could be also called the "main node", or the
@@ -259,7 +260,6 @@ _Node Command, usable inside the broadcast channels.
       This Command is used to exchange money units (a unit with big
       value to mutiple money units with less value).
 
- - MARK
  - RESET
 
  - MERGE
