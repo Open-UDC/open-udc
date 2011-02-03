@@ -21,7 +21,7 @@ Request for Comments:                                      Open-UDC Team
     3.2 version .....................................................
     3.3 serial number ...............................................
     3.4 additional info .............................................
-    3.5 signature ...................................................
+    3.5 creation signature ..........................................
  4. udc-unit signing chain ..........................................
     4.1 overview ....................................................
     4.2 beginning the chain .........................................
@@ -32,7 +32,11 @@ Request for Comments:                                      Open-UDC Team
     4.7 Signature types ............................................. 
     4.8 Canceling a payment .........................................
  5. udc-unit binary format ..........................................
- 6. others udc-unit format ..........................................
+ 6. udc-unit JSON format ............................................
+ 7. Security concern ................................................
+    7.1 offline transactions ........................................
+    7.2 creation signature ..........................................
+    7.3 init chain signature ........................................
 
 1.== Introduction ==
 
@@ -83,6 +87,11 @@ Request for Comments:                                      Open-UDC Team
     informations about monetary creation and so permit to detect the
     legitimacy of each udc-units.
 
+    The additional information in a udc-units MUST be :
+    1- The Universal Dividende for the month.
+    2- The number of individuals recorded for the month.
+    3- The number of units of the same value per individual.
+
     Example:
     If for a given month, there is 250 individuals and the Universal
     Dividende has been calculated to be 10052. The udc-units created
@@ -90,22 +99,46 @@ Request for Comments:                                      Open-UDC Team
             250 x 2 udc-units of value 5000
             250 x 5 udc-units of value   10
             250 x 2 udc-units of value    1
-    (So udc-units of value 10 will be numbered 0 to 1249).
-
-    So the additional information in a udc-units SHOULD be :
-    1- The Universal Dividende for the month.
-    2- The number of individuals recorded for the month.
-    3- The number of units of the same value per individual.
+    And so udc-units of value 10 will be numbered 0 to 1249 this month.
 
 3.5= signature =
 
-    
+  The creation signature permit 
+    - to detect error in the udc-unit (CRC use).
+    - to authenticate the udc-unit.
+
+  
+
+  Due to:
+    - The node certification tree which maintain the monetary mass
+      and garant the uniqueness of the localization of a udc-unit.
+    - The additional informations in udc-units which MUST be
+      identicals on many of them.
+
+  The authentication provided by the creation signature is ultimately
+  not so important.
+
+  If the private creation key is found, the consequences are minors, 
+  because to use a non-legitimate udc-unit :
+    - Transaction have to be done offline.
+    - One of the valid (not revoked) init key must also have been found.
+    - It should pass through legitimacy verification that any
+      udc-clients may easily implement (due to additional informations).
+    - As transactions are nearly journalized in udc-units, there are
+      chances to trace back to the ugly one.
+
+  However, it MUST still take the following precautions:
+    - The creation of udc-unit MUST be done by an entity strictly separated
+      from the init entities.
+    - The creation private key MUST be stay encrypted on a machine isolated
+      from any network. 
 
 4.== udc-unit signing chain ==
 
 4.1= overview =
 4.2= beginning the chain =
-4.3= marking and shortcutting the chain =
+4.3= offline transactions =
+4.3= shortcutting the chain =
 4.4= timestamp in the chain =
 4.5= gluing multiple header with one signing chain =
 
@@ -182,22 +215,22 @@ AND I HAVE HERE SOME QUESTIONS :
 
 5.2= signing chain =
 
-  0     7 8       15 16    23 24     31 32                          63 
+  0     7 8      15 16     23 24     31 32                          63 
  +-------+---------+---------+---------+-------+-------+-------+------+
  |Ktype|D|C|  RFU  | Ext len | NbReset |      Transaction Date        |
- +-------+---------+---------+---------+-------+-------+-------+------+0
- | In case of disconnected transaction to external node:  Node URI    |
+ +-------+---------+---------+---------+-------+-------+-------+------+
+ |     In case of disconnected transaction : recipient Node URI       |
  +-------+---------+---------+---------+-------+-------+-------+------+
  +                                                                    +
- +            Public Key of the new owner of the udc-unit             +
- .           (type and lenght depend of the Signature type)           .
+ +            Public Key of the recipient of the udc-unit             +
+ .              (lenght depend of the Signature type)                 .
  +                                                                    +
  +-------+---------+---------+---------+-------+-------+-------+------+
  +                                                                    +
  +             Cryptographic Transaction Signature                    +
  .    To be verified with the previous public key in the chain        .
  .   The public key of the first item of the chain is well know       .
- .   and is referenced with the unit key ID in the header part.
+ .   and is referenced with the unit key ID in the header part        .
  +                                                                    +
  +-------+---------+---------+---------+-------+-------+-------+------+
 
@@ -216,5 +249,7 @@ AND I HAVE HERE SOME QUESTIONS :
 
         
 
+6.== udc-unit binary format ==
 
 
+7.== udc-unit binary format ==
