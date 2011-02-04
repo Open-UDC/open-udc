@@ -192,6 +192,10 @@ Request for Comments:                                      Open-UDC Team
     udc-units of a given currency, and MAY be democratically
     calculated.
 
+    If the offline parameters requirements are not meet, the transaction
+    is invalid. That means people CAN'T spend offline udc-units which
+    reach offline parameters.
+
     We recommend the number of 42 as the maximum following offline
     transactions.
 
@@ -257,6 +261,8 @@ AND I STILL HAVE O LOT OF QUESTIONS ABOUT ELLIPTIC CURVES :
     - the udc-unit MUST be rejected.
     - the udc-client that make an error MUST be notified that its
       transaction have been rejected.
+    - the udc-unit still belongs to the owner of the last valid
+      transaction.
 
     If the transaction is valid but, as a recipient, you don't want the
     money (to own the udc-unit(s)), you have to make an new transaction
