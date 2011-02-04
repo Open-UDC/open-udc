@@ -24,8 +24,8 @@ Request for Comments:                                      Open-UDC Team
     3.5 creation signature ..........................................
  4. udc-unit signing chain ..........................................
     4.1 overview ....................................................
-    4.2 beginning the chain .........................................
-    4.3 offline transactions ........................................
+    4.2 offline transactions ........................................
+    4.3 beginning the chain .........................................
     4.4 shortcutting the chain ......................................
     4.5 timestamp in the chain ......................................
     4.6 gluing multiple header with one signing chain ............... 
@@ -127,11 +127,81 @@ Request for Comments:                                      Open-UDC Team
 4.== udc-unit signing chain ==
 
 4.1= overview =
-4.2= beginning the chain =
-4.3= offline transactions =
-4.3= shortcutting the chain =
-4.4= timestamp in the chain =
-4.5= gluing multiple header with one signing chain =
+
+    Like in the BitCoin system: an udc-unit contain a chain of digital
+    signatures. Each owner transfers the udc-unit to the next by
+    digitally signing a digest of the previous transaction and the
+    public key of the next owner and adding these to the end of the
+    udc-unit. A payee can verify the signatures to verify the chain of
+    ownership.
+
+    And as the bitcoin designer said: the problem of course is the payee
+    can't verify that one of the owners did not double-spend the udc-unit.
+
+    And that the point where we diverge from bitcoin.
+
+    Bitcoins want to avoid any third party to checks for transactions,
+    and the solution they found to avoid third party involve more bad
+    things that it prevents: the race for CPUs, fee for the benefit of
+    the most powerful, freeze of transactions as the number of pairs
+    increase...
+
+    We (Open-udc) believe that third party MAY exist but HAVE TO be 
+    democratic and transparent.
+
+    So we split this third party into a tree of certified nodes, each
+    node being composed of differents entities.
+    Nodes are free to be democratic or not. But we give to the node the
+    tools for democracy, and we believe that the succes of a node will
+    depend on its transparency and its democracy level.
+
+    Node architecture and mecanisms are described in the RFC named
+    "Open-UDC Network Implementation" ([RFCxxxx]).
+
+    First implementation of Open-UDC system MAY start with a third-party
+    limited to only one server. Which is a GREAT DANGER for transparency
+    and democracy.
+
+4.2= offline transactions =
+
+    The double-spending problem is solved by declaring each transaction
+    to the node tree (the third-party autority). That is what we
+    call the connected mode.
+
+    But connected mode is not always possible in the real world:
+    How to buy a camel in desert without internet connection ?
+    
+    By verifying the identity of the vendor, and also signing the URI
+    of the node it belongs.
+
+    Indeed, the vendor MUST show a node certificate wich contain its
+    udc-units public key and which is signed by its node accountants.
+    Its node accountants are themselves signed by the accountants of the
+    parents nodes... until the main node where accountants
+    are auto-signed and which the certificate is widely published and
+    know-by-everyone.
+
+    Offline udc-units MUST be connected regularly to:
+    - possibly be shortened. 
+    - be replayed and pay taxes if there are somes in the crossed nodes.
+    - check it have not been double-spended and identify the bad guy if
+      have been. 
+
+    The offline parameters (maximum time since a connected transaction,
+    maximum following offline transactions) MUST be the same for all
+    udc-units of a given currency, and MAY be democratically
+    calculated.
+
+    We recommend the number of 42 as the maximum following offline
+    transactions.
+
+4.3= beginning the chain =
+
+4.4= shortcutting the chain =
+
+4.5= timestamp in the chain =
+
+4.6= gluing multiple header with one signing chain =
 
 4.7= Signature types =
 
@@ -205,7 +275,7 @@ AND I STILL HAVE O LOT OF QUESTIONS ABOUT ELLIPTIC CURVES :
   endianness.     
 
   All data with variable size, MUST be 0-padded to a multiple of 64 bits
-  (16 bytes) 
+  (16 bytes). This concerns:
     - Node URI
     - Public key to sign
     - Signature
@@ -299,7 +369,12 @@ AND I STILL HAVE O LOT OF QUESTIONS ABOUT ELLIPTIC CURVES :
 7.== Security concerns ==
 
 7.1= offline transactions =
- 
+
+    As it has been mentioned, offline udc-units MUST be connected
+    regularly.
+
+    If not, fraud detection will become harder, which mean fraud will
+    become easier.
 
 7.2= creation signature =
 
