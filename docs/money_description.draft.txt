@@ -86,7 +86,7 @@ Request for Comments:                                      Open-UDC Team
     - Its creation date, which MUST be identical for a block of
       udc-units. As it is more convenient to use a date formated as
       number of seconds since 00:00:00 UTC on Thursday, 1 January 1970,
-      a monthly creation date SHOULD be at 10:00:00 UTC on first day of
+      a monthly creation date SHOULD be at 23:00:00 UTC on first day of
       each month.
 
     - Its number in the series (of the month).
@@ -159,8 +159,8 @@ Request for Comments:                                      Open-UDC Team
     "Open-UDC Network Implementation" ([RFCxxxx]).
 
     First implementation of Open-UDC system MAY start with a third-party
-    limited to only one server. Which is a GREAT DANGER for transparency
-    and democracy.
+    limited to only one server. Which means only one entity and is a
+    GREAT DANGER for transparency and democracy.
 
 4.2= offline transactions =
 
