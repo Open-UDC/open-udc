@@ -1,0 +1,49 @@
+Network Working Group                                       J.J. Brucker
+Request for Comments:                                      Open-UDC Team 
+
+
+          ==== Open-UDC Authentication Mechanisms  ====
+
+ === Abstract ===
+
+ === Status of This Memo ===
+
+ (Today 17 feb 2011, it is still a draft).
+
+ === Copyright Notice ===
+
+ === Table of Contents ===
+
+ 1. Introduction ....f................................................
+ 2. Conventions Used in This Document ...............................
+ 3. Human Authentication ............................................
+    3.1 OpenPGP certificat ..........................................
+    3.2 Proof of identity ..........................................
+    3.3 Proof of life ..............................................
+    3.4 Money keys ..............................................
+ 4. Node Authentication ..........................................
+ 5. Chain initialization keys .......................................
+
+1.== Introduction ==
+
+  The Open-UDC project aims to provide a open, democratic and secure
+  monetary system, compatible with universal dividende.
+
+  This document describe the authentication mechanisms used in the
+  Open-UDC implementation.
+
+  This document also describe how to use the OpenPGP standard [RFC4880]
+  in order to conform to the Open-UDC specifications.
+
+2.== Conventions Used in This Document ==
+
+  The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+  "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+  document are to be interpreted as described in [RFC2119].
+
+3.== Human Authentication ==
+
+3.1= OpenPGP certificate =
+
+3.2= Proof of identity =
+

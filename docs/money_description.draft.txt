@@ -213,7 +213,6 @@ Request for Comments:                                      Open-UDC Team
 
     This RFC define the 3 following types of digest :
 
-        0 -> md5 digest
         1 -> sha-1 digest.
         2 -> sha-256 digest.
 
@@ -223,32 +222,21 @@ Request for Comments:                                      Open-UDC Team
 
     This RFC define the following types of assymetrics keys :
     
-       1 -> RSA 512 encryption key.
        2 -> RSA 1024 encryption key.
        3 -> RSA 1536 encryption key.
        4 -> RSA 2048 encryption key.
+       6 -> RSA 3072 encryption key.
+       8 -> RSA 4096 encryption key.
 
-       8 -> secp160r2 : SECG/WTLS curve over a 160 bit prime field
-       9 -> prime192v1: NIST/X9.62/SECG curve over a 192 bit prime field
-      10 -> secp224r1 : NIST/SECG curve over a 224 bit prime field
-      11 -> prime256v1: X9.62/SECG curve over a 256 bit prime field
-      12 -> secp384r1 : NIST/SECG curve over a 384 bit prime field
-      13 -> secp521r1 : NIST/SECG curve over a 521 bit prime field
-      14 -> sect233r1 : NIST/SECG/WTLS curve over a 233 bit binary field
+      11 -> NIST P-256
+      12 -> NIST P-384
+      13 -> NIST P-521
 
     An udc-client MUST support verificating a signature done with all
     of this key.
 
     An udc-client MUST support signing with any RSA key and SHOULD
     support signing with a key based on elliptic curve.
-    
-
-AND I STILL HAVE O LOT OF QUESTIONS ABOUT ELLIPTIC CURVES :
-
-        WHICH ELLIPTIC CURVE ARE "BEST" ?
-        WITH WICH PARAMETERS ?
-        HOW TO USE ? WHAT ARE THE PERFS ?   
-        ...
 
 4.8= Canceling a transaction =
 

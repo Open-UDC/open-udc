@@ -191,8 +191,8 @@ Request for Comments:                                      Open-UDC Team
 
 6.1= IRC and XMPP use =
 
-  It is RECOMMENDED for a node to have at least one IRC channel AND at
-  least one XMPP salon, AND to send daily digest to a mailing list.
+  It is RECOMMENDED for a node to have at least one XMPP salon, AND to
+  send daily digest to a mailing list.
 
   A node SHOULD use only one way to broadcast transactions during a
   period, they other ways exist for backup only (if first ways broke).
