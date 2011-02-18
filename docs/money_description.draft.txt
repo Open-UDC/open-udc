@@ -398,7 +398,7 @@ Request for Comments:                                      Open-UDC Team
       machines isolated from any network.
 
     - The creation key SHOULD change regularly, and its public key
-      SHOULD be announced at least two weeks before it's use.
+      SHOULD be announced at least 1 months before it's use.
 
 
 7.3= init chain signature =
