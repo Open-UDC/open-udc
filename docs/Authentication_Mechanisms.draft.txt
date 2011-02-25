@@ -16,13 +16,14 @@ Request for Comments:                                      Open-UDC Team
 
  1. Introduction ....................................................
  2. Conventions Used in This Document ...............................
- 3. Human Authentication ............................................
-    3.1 OpenPGP Human certificat ....................................
-    3.2 Proof of identity ..........................................
-    3.3 Proof of life ..............................................
-    3.4 Money keys ..............................................
- 4. Node Authentication ..........................................
- 5. Chain initialization keys .......................................
+ 3. Using OpenPGP certificates ......................................
+ 4. Human Authentication ............................................
+    4.1 OpenPGP Human certificat ....................................
+    4.2 Proof of identity ..........................................
+    4.3 Proof of life ..............................................
+    4.4 Money keys ..............................................
+ 5. Node Authentication ..........................................
+ 6. Chain initialization keys .......................................
 
 1.== Introduction ==
 
@@ -41,30 +42,30 @@ Request for Comments:                                      Open-UDC Team
   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
   document are to be interpreted as described in [RFC2119].
 
-3.== OpenPGP certificate ==
+3.== Using OpenPGP certificates ==
+
+3.1= specific uid =
 
   Open-UDC use widely OpenPGP standards for all authentications.
 
   An Open-UDC certificate is an OpenPGP certificate on which the comment
-  field of one of its uid MUST be a special string.
+  field of one of its uid MUST begin with a special string.
 
   As the Open-UDC characterization only use uid in an OpenPGP certifcate
   it is more accurate to speak about Open-UDC uid (inside an OpenPGP
   certificate) instead of Open-UDC certificate.
 
-  The special string recognized by Open-UDC implementation is a sum of
+  The special string recognized by Open-UDC implementations is a sum of
   fields which MUST be separated by a semicolon ';'.
   Each field MAY contain multiple subfields separated by a comma ','.
 
-  The back-slash character '\' MAY also be use as a special character to
-  escape the semicolon, the comma and itself.
+  The string MUST use only US-ASCII charset (without the comma and the 
+  semicolon which are reserved for separation of fields).
 
-  The string MUST use only US-ASCII charset.
+  First field (a.k.a. header field) indicate the meaning and the number
+  of its following fields.
 
-  First field act as an header which specify the meaning of its
-  following fields.
-
-  Open-UDC specifies the 3 following headers in uid comment :
+  Open-UDC specifies the 4 following headers field in uid comment :
 
     - "udid1"
             Used for Human Authentication.
@@ -76,25 +77,31 @@ Request for Comments:                                      Open-UDC Team
             Used to create the udc-units.
 
   The charaters after the last recognized field in the string SHOULD be
-  ignored and MAY use other charset (like UTF-8). They MAY be use to add
+  ignored and MAY use other charset (UTF-8...). They MAY be use to add
   informations in a non-universal language.
 
+3.2= Key Types =
+
+3.3= signing policy=
+
+3.4= exporting     
+
   
-3.== Human Authentication ==
+4.== Human Authentication ==
 
   Each human which want to use an Open-UDC currency and receive a
   Universal Dividende (or an other basic income) MUST have a OpenPGP
   certificate in accordance with the following specification.  
 
-3.1.= OpenPGP Human certificate =
+4.1.= OpenPGP Human certificate =
 
 
     This string look like :
 
   udid1;Brucker;Jean-Jacques,Pascal;1297787885;45.433 4.434; 
 
-3.1.1. Universal Digital IDentity
+4.1.1. Universal Digital IDentity
 
 
-3.2= Proof of identity =
+4.2= Proof of identity =
 
