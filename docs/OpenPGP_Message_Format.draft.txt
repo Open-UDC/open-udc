@@ -5,8 +5,8 @@
 
 
 Network Working Group                                          J. Callas
-Request for Comments: 4880                               PGP Corporation
-Obsoletes: 1991, 2440                                     L. Donnerhacke
+Request for Comments:                                    PGP Corporation
+Obsoletes: 1991, 2440, 4880                               L. Donnerhacke
 Category: Standards Track                                       IKS GmbH
                                                                H. Finney
                                                          PGP Corporation
@@ -1867,8 +1867,14 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
        0x20 - This key may be used for authentication.
 
+       0x40 - This key may be used in a signing chain.
+
        0x80 - The private component of this key may be in the
               possession of more than one person.
+
+       Second octet:
+
+       0x01 - This key may be used to sign a money unit signing chain.
 
    Usage notes:
 
