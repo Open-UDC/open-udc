@@ -100,6 +100,8 @@ Request for Comments:                                      Open-UDC Team
 
   udid1;Brucker;Jean-Jacques,Pascal;1297787885;45.433 4.434; 
 
+  The main key of the certificate should expired in less than 11 years after its creation.
+
 4.1.1. Universal Digital IDentity
 
 

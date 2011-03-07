@@ -211,12 +211,12 @@ Request for Comments:                                      Open-UDC Team
 
 4.7.1 Digests
 
-    This RFC define the 3 following types of digest :
+    This RFC define the 2 following types of digest :
 
         1 -> sha-1 digest.
         2 -> sha-256 digest.
 
-    An udc-client MUST support this 3 digests.
+    An udc-client MUST support this 2 digests.
 
 4.7.2 Assymetric encryptions
 
@@ -303,19 +303,47 @@ Request for Comments:                                      Open-UDC Team
   +                                                                 +
   +-------+-------+-------+--------+--------+-------+-------+-------+
 
-  Only the first 18 bytes (144 bits) are usefull to identify a unique
-  udc-unit.
+    Only the first 18 bytes (144 bits) are usefull to identify a unique
+    udc-unit.
 
-  Only the first 28 bytes (224 bits) are used to calculate the Creation
-  Signature.
+    Only the first 28 bytes (224 bits) are used to calculate the
+    Creation Signature.
 
-  To verify the signature you can use the openssl tool :
-  Passing the 128 bytes Creation Signature into the command:
-  " openssl rsautl -verify -pubin -inkey CreatorKey_date.pub "
-  MUST return the first 224 bits.
+    To verify the signature you can use the openssl tool :
+    Passing the 128 bytes Creation Signature into the command:
+    " openssl rsautl -verify -pubin -inkey CreatorKey_date.pub "
+    MUST return the first 224 bits.
 
-  The 32 bits starting at bit 224 to bit 255 are used to init the
-  signing chain.
+    The 32 bits starting at bit 224 to bit 255 are used to init the
+    signing chain.
+
+
+    Detail:
+
+    bits 0 to 23 (currency code):
+        3 ASCII chars to identify a currency (cf. section 3.1).
+
+    bits 24 to 31 (Version):
+        Version byte. This document only describe version 1.
+
+    bits 32 to 63 (Value):
+        Value of the udc-unit. 
+
+    bits 64 to 95 (Creation Date):
+    
+    bits 96 to 143 (Periodic Counter):
+
+    bits 144 to 151 (Mult.):
+
+    bits 152 to 191 (Individual Number):
+
+    bits 192 to 223 (Universal Dividende):
+
+    bits 224 to 233 (NbGlued):
+
+    bits 234 to 239 (Ktype):
+
+    bits 240 to 255 (Init Key Id):
 
 5.2= signing chain =
 
@@ -338,23 +366,56 @@ Request for Comments:                                      Open-UDC Team
  +                                                                    +
  +-------+---------+---------+---------+-------+-------+-------+------+
 
-    Ktype: Type of public key the recipient will use.
+    Detail:
 
-    D: Digest used to Sign
+    bits 0 to 5 (Ktype) :
+        Type of the recipient's public key (cf. section 4.7.2).
 
-    NbReset count the time the signing chain has been shortcuted at
-    this point.
-    As Shortcutting CAN NOT be done offline, this value MUST be equal
-    to 0 if the Connection flag (C) is not set.
+    bits 6 to 7 (D) :
+        Digest used to Sign (cf. section 4.7.1).
 
-    C: Transaction Flag:
-       - bit 8: Connection flag:
+    bits 8 to 22 (NbReset):
+        Counter which increase each time the signing chain has been
+        shortcuted at this point.
+    
+        As Shortcutting CAN NOT be done offline, this value MUST be
+        equal to 0 if the Connection flag (C) is not set.
+
+    bits 23 (C):
+        Connection Flag:
             - 1 the transaction has been sent and validated by the
                  udc-node.
             - 0 the transacation has been done in a disconnected status.
                 In this case the recipient of the transaction have to be
                 authenticated (as a member of a udc-node in the open-udc
                 certification tree).
+
+    bits 24 to 31 (URI len):
+        Lenght of the Node URI in case of a disconnected transaction.
+        
+        It MUST be equal to 0 in case of connected transaction (C=1) and
+        different to 0 in case of disconnected transaction (C=0).
+
+    bits 32 to 64 (Transaction Date):
+        Date of the transaction. It MUST be always strictly greater than
+        previous transaction date.
+
+        When connected (C flag) the transaction date MUST be striclty
+        lesser than the date of each traversed node.
+
+        If there is a doubt on the date when disconnected transaction,
+        implementations SHOULD sign a date equal of the previous date
+        increased by 1. Or it may freeze the udc-unit until the signed
+        date is reached.
+
+        If in a disconnected transaction, a buyer has signed a date too
+        far in the futur, as a vendor you can : 
+            - give his money back more far in the futur (... and ping
+              pong until offline transaction maximum number is reached
+              ...  =>  bad idea).
+            - ask him to come back getting the things he have paid after  
+              the date he have signed (best idea).
+            - Ask for money unit re-initialization (not to abuse).
 
 
 6.== udc-unit JSON format ==
