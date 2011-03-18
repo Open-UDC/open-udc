@@ -327,23 +327,37 @@ Request for Comments:                                      Open-UDC Team
         Version byte. This document only describe version 1.
 
     bits 32 to 63 (Value):
-        Value of the udc-unit. 
+        uint32_t. Value of the udc-unit. (cf. section 3.3).
 
     bits 64 to 95 (Creation Date):
+        MUST be identical for a given period (cf. section 3.3).
     
     bits 96 to 143 (Periodic Counter):
+        6 unsigned bytes. The Amount of udc-units of this value created
+        for the given period.
 
     bits 144 to 151 (Mult.):
+        uint8_t. The number of udc-units of this value per individual,
+        created for the given period.
 
     bits 152 to 191 (Individual Number):
+        5 unsigned bytes. The number of registered unique individual for
+        the given period.
 
     bits 192 to 223 (Universal Dividende):
+        uint32_t. The amount of money created per individual for the
+        given period.
 
     bits 224 to 233 (NbGlued):
+        10 bits defining the number of header "glued" and signed once.
 
     bits 234 to 239 (Ktype):
+        6 bits defining the type of key used for initiating the signing
+        chain.
 
     bits 240 to 255 (Init Key Id):
+        uint16_t. The signing chain initialization Key Identifier.
+
 
 5.2= signing chain =
 
@@ -400,8 +414,8 @@ Request for Comments:                                      Open-UDC Team
         Date of the transaction. It MUST be always strictly greater than
         previous transaction date.
 
-        When connected (C flag) the transaction date MUST be striclty
-        lesser than the date of each traversed node.
+        When connected (C flag) the transaction date MUST be lesser than
+        the date of each traversed node.
 
         If there is a doubt on the date when disconnected transaction,
         implementations SHOULD sign a date equal of the previous date
@@ -464,3 +478,8 @@ Request for Comments:                                      Open-UDC Team
 
 7.3= init chain signature =
 
+    The initialization of the signing chain required all attention
+    because it holds the crucial security part during offline
+    transaction.
+
+    
