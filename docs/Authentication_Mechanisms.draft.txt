@@ -73,8 +73,6 @@ Request for Comments:                                      Open-UDC Team
             Used for Node Authentication.
     - "udcinit"
             Used for the initialization of udc-unit signing chain.
-    - "udcsource" 
-            Used to create the udc-units.
 
   The charaters after the last recognized field in the string SHOULD be
   ignored and MAY use other charset (UTF-8...). They MAY be use to add
@@ -98,12 +96,45 @@ Request for Comments:                                      Open-UDC Team
 
     This string look like :
 
-  udid1;Brucker;Jean-Jacques,Pascal;1297787885;45.433 4.434; 
+  udid1;Brucker;Jean-Jacques,Pascal;1297787885;+45.433+4.434; 
 
-  The main key of the certificate should expired in less than 11 years after its creation.
+  The main key of the certificate should expired in less than 11 years
+  after its creation.
 
 4.1.1. Universal Digital IDentity
 
+    The "udid1;" header MUST be followed by 4 fields which MUST define :
+
+        1- The last names of the individual, separated by a comma.
+
+        2- The fornames of the individual, separated by a comma.
+
+        3- The date of birth, formated as number of seconds since
+           00:00:00 UTC on Thursday, 1 January 1970.
+           For people born before this date, the string will indicate a
+           negative number prefixed with a charater '-'.
+           If the hour of birth is unknow, it SHOULD be fixed at 
+           12:00:00 UTC.
+
+        4- The location of birth, defined as terrestrial coordinates.
+           The first number MUST be the latitude and MUST be prefixed by
+           'N' or '+' if in the Northern hemispheres, and prefixed by 
+           'S' or '-' if in the Southern hemispheres.
+           The second number MUST be the longitude and MUST be prefixed
+           by 'E' or '+' in the east from the Greenwich meridian, and
+           by 'W' or '-' in the west from the Greenwich meridian.
+
+           Latitude and longitude MUST have at least 1 digit after the
+           decimal point, and at most 6 digits after the decimal point.
+
+           Accepted range for latitude is [-90.0;+90.0].
+           Accepted range for longitude is [-179.999999;+180.0].
+
+           Second subfield is optionnal and may be use to define
+           non-terrestrial birth.
 
 4.2= Proof of identity =
+
+5.== Node Authentication ==
+
 
