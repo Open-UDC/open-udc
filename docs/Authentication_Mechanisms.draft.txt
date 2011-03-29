@@ -65,7 +65,7 @@ Request for Comments:                                      Open-UDC Team
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
-  Open-UDC specifies the 4 following headers field in uid comment :
+  Open-UDC specifies the 3 following headers field in uid comment :
 
     - "udid1"
             Used for Human Authentication.

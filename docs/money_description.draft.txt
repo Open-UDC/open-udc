@@ -8,7 +8,7 @@ Request for Comments:                                      Open-UDC Team
 
  === Status of This Memo ===
 
- (Today 01 feb 2011, it is still a draft).
+ (Today 29 mar 2011, it is still a draft).
 
  === Copyright Notice ===
 
@@ -16,34 +16,39 @@ Request for Comments:                                      Open-UDC Team
 
  1. Introduction ....................................................
  2. Conventions Used in This Document ...............................
- 3. udc-unit header .................................................
-    3.1 currency code ...............................................
-    3.2 version .....................................................
-    3.3 signing chain metadata ......................................
- 4. udc-bill 
-    4.1 serial number ...............................................
-    4.2 additional info .............................................
-    4.3 control hash ................................................
- 5. udc-unit signing chain ..........................................
-    5.1 overview ....................................................
-    5.2 offline transactions ........................................
-    5.3 beginning the chain .........................................
-    5.4 shortcutting the chain ......................................
-    5.5 timestamp in the chain ......................................
-    5.6 gluing multiple header with one signing chain ............... 
-    5.7 Signature types ............................................. 
-        5.7.1 Digests ............................................... 
-        5.7.2 Assymetric encryptions ................................ 
-    5.8 Canceling a payment .........................................
- 6. udc-unit binary format ..........................................
-    6.1 header ....................................................
-    6.2 bill ....................................................
-    6.3 signing chain ....................................................
- 7. udc-unit JSON format ............................................
- 8. Security concerns ...............................................
-    8.1 offline transactions ........................................
-    8.2 creation signature ..........................................
-    8.3 init chain signature ........................................
+ 3. udc-unit overview ...............................................
+    3.1 header ......................................................
+    3.2 bills .......................................................
+    3.3 signing chain ...............................................
+        3.3.1 make transaction ......................................
+        3.3.2 differences compared to BitCoin .......................
+        3.3.3 offline transactions ..................................
+        3.3.4 beginning the chain ...................................
+        3.3.5 shortcutting the chain ................................
+        3.3.6 timestamp in the chain ................................
+        3.3.7 cancel a transaction ..................................
+    3.4 Money creation procedure ....................................
+ 4. udc-unit header description .....................................
+    4.1 currency code ...............................................
+    4.2 version .....................................................
+    4.3 signing chain initialization ................................
+    4.4 number of udc-bills ........................................
+ 5. udc-bill description ............................................
+    5.1 serial number ...............................................
+    5.2 coding the value ............................................
+    5.3 additional informations .....................................
+ 6. udc-unit signing chain description ..............................
+    6.1 Signature types ............................................. 
+        6.1.1 Digests ............................................... 
+        6.1.2 Assymetric cryptographic keys ......................... 
+ 7. udc-unit binary format ..........................................
+    7.1 header ......................................................
+    7.2 bills .......................................................
+    7.3 signing chain ...............................................
+ 8. udc-unit JSON format ............................................
+ 9. Security concerns ...............................................
+    9.1 offline transactions ........................................
+    9.2 init chain signature ........................................
 
 1.== Introduction ==
 
@@ -67,133 +72,93 @@ Request for Comments:                                      Open-UDC Team
   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
   document are to be interpreted as described in [RFC2119].
 
-3.== udc-unit header ==
+3.== udc-unit overview ==
 
-3.1= currency code =
+3.1= header =
 
-    The currency code should be conformant to the ISO 4217 Currency Code
-    List.
+  The header define:
+    - the currency.
+    - the version of the udc-unit.
+    - which initialization key is used.
+    - how many udc-bills the udc-unit contain.
 
-    There are still a lot of place in this list to create new
-    3-characters currency codes.
+3.2= udc-bills =
 
-3.2= version =
+  An udc-bill is few single and undivisible data which indicate a value.
 
-    Adding a version information inside udc-units give them the ability
-    to evolve in the futur.
+  Udc-bills are data whithout any mechanism of authenticity and should
+  not be directly exchange. "copying is not theft".
 
-    This RFC describe only the version 1 of udc-units.
+  Udc-bills contain:
+    - A number to define the value
+    - A serial number.
+    - Information about its created set.
 
-3.3= serial number =
+  An udc-unit may contain up to 2^16-1 udc-bills.
 
-    The serial number of a udc-unit is composed of 3 informations :
+3.3= signing chain =
 
-    - Its value, which follow the convention mainly adopted
-      worldwide: 1,2,5,10,20,50,100,200,500,1000 ...
+  Like in the BitCoin system: an udc-unit contain a chain of digital
+  signatures. And that is the main mechanism of udc-unit authenticity.
+  The second one beeing provided by the network (cf. [RFCXXXX]).
 
-    - Its creation date, which MUST be identical for a block of
-      udc-units. As it is more convenient to use a date formated as
-      number of seconds since 00:00:00 UTC on Thursday, 1 January 1970,
-      a monthly creation date SHOULD be at 23:00:00 UTC on first day of
-      each month.
+3.3.1 make transaction
 
-    - Its number in the series (of the month).
+    To make a transaction, ie. to pay or make a donation, people first
+    need to own some udc-unit. Which means you hold the secret (the
+    private key) associated to the last pubkey in the signature chain.
 
-    These 3 data are used to create unique information to identify one
-    udc-unit of a given currency.
+    Then transaction is done by :
+    1- Adding to end of the udc-unit some metadata and the public key of
+       the next owner.
+    2- Digitally signing (with the pivate key associated to previous 
+       public key) the digest of this udc-unit concatened with some
+       metadata and the next owner public key.
+    3- Adding this signature to the end of the udc-unit.
 
-3.4= coding the value =
+    A payee can verify the signatures to verify the chain of ownership.
 
-    As the value of a udc unit follow the 1,2,5,10,20... sequence, it
-    may be coded up to the value 5*10^63 with only one byte and to the
-    value 5*10^7 with only 5 bits :
+3.3.2 differences compared to BitCoin
 
-    +  -  -  -  -  -  -  -  +
-    |  x10 Multiplier | ind +
-    +  -  -  -  -  -  -  -  +
-
-    The first 3 bits are reserved to describe scalability (cf. 5.1).
-    The next 3 bits are used to define the multiplier, so up to 10^7.
-    The last 2 bits define the value of the base :
-                            01 -> 1
-                            10 -> 2
-                            11 -> 5
-
-    Examples:
-        * an udc-unit of value 5 wich is equal to 5 * 10^0 is binary
-          encoded 0 0011.
-        * an udc-unit of value 100 wich is equal to 1 * 10^2 is binary
-          encoded 0 1001.
-
-3.5= additional info =
-
-    Open-UDC promote a monthly Universal Dividende. That means news
-    udc-units are created each months, for each living humans (also
-    called individuals) which adopt the money.
-
-    Additionnal info permit to know more about the udc-unit : it spreads
-    informations about monetary creation and so permit to detect the
-    legitimacy of each udc-units.
-
-    The additional information in a udc-units MUST be :
-    1- The Universal Dividende for the month.
-    2- The number of individuals recorded for the month.
-    3- The number of units of the same value per individual.
-
-    Example:
-    If for a given month, there is 250 individuals and the Universal
-    Dividende has been calculated to be 10052. The udc-units created
-    MUST look like :
-            250 x 2 udc-units of value 5000
-            250 x 5 udc-units of value   10
-            250 x 2 udc-units of value    1
-    And so udc-units of value 10 will be numbered 0 to 1249 this month.
-
-3.6= signature =
-
-  The creation signature permit 
-    - to detect error in the udc-unit (CRC use).
-    - to authenticate the udc-unit.
-
-4.== udc-unit signing chain ==
-
-4.1= overview =
-
-    Like in the BitCoin system: an udc-unit contain a chain of digital
-    signatures. Each owner transfers the udc-unit to the next by
-    digitally signing a digest of the previous transaction and the
-    public key of the next owner and adding these to the end of the
-    udc-unit. A payee can verify the signatures to verify the chain of
-    ownership.
-
-    And as the bitcoin designer said: the problem of course is the payee
-    can't verify that one of the owners did not double-spend the udc-unit.
+    As the bitcoin designer said: the problem of course is how the payee
+    can verify that one of the previous owners did not double-spend the
+    udc-unit ?
 
     And that the point where we diverge from bitcoin.
 
     Bitcoins want to avoid any third party to checks for transactions,
     and the solution they found to avoid third party involve more bad
     things that it prevents: the race for CPUs, fee for the benefit of
-    the most powerful, freeze of transactions as the number of pairs
-    increase...
+    the most powerful, slowness of transactions which increase with the
+    number of pairs...
 
-    We (Open-udc) believe that third party MAY exist but HAVE TO be 
-    democratic and transparent.
+    You may notice that, as you have to be connected to make a BitCoin
+    transaction, there is actually a third party for BitCoins : it is 
+    the entire network.
 
-    So we split this third party into a tree of certified nodes, each
-    node being composed of differents entities.
-    Nodes are free to be democratic or not. But we give to the node the
-    tools for democracy, and we believe that the succes of a node will
-    depend on its transparency and its democracy level.
+    We believe that the most important concepts to provide equity is not
+    the hierarchized (or not) structure of the third party. But its
+    level of, human-based, democracy and transparency.
 
-    Node architecture and mecanisms are described in the RFC named
-    "Open-UDC Network Implementation" ([RFCxxxx]).
+    That kind of democracy and transparency have been especially met
+    in some broadcast channels like newgroups, irc channels, or XMPP 
+    Multi User Chatroom.
+
+    So we choose to use XMPP chatroom as a first third party to check
+    transactions. And we allow and encourage any group of people to make
+    their own sub-chatroom as the number of members or transactions
+    inside the first chatroom increase.
+   
+    Growing up, the third party should be split into a tree of node.
+
+    Node architecture, mecanisms and tools are described in the RFC
+    named "Open-UDC Network Implementation" ([RFCxxxx]).
 
     First implementation of Open-UDC system MAY start with a third-party
-    limited to only one server. Which means only one entity and is a
-    GREAT DANGER for transparency and democracy.
+    with only one server to check transactions. Which means only one
+    entity and is a GREAT DANGER for transparency and democracy.
 
-4.2= offline transactions =
+3.3.3 offline transactions
 
     The double-spending problem is solved by declaring each transaction
     to the node tree (the third-party autority). That is what we
@@ -212,35 +177,147 @@ Request for Comments:                                      Open-UDC Team
     are auto-signed and which the certificate is widely published and
     know-by-everyone.
 
-    Offline udc-units MUST be connected regularly to:
+    Offline udc-units SHOULD be connected regularly to:
     - possibly be shortened. 
     - be replayed and pay taxes if there are somes in the crossed nodes.
     - check it have not been double-spended and identify the bad guy if
       have been. 
 
     The offline parameters (maximum time since a connected transaction,
-    maximum following offline transactions) MUST be the same for all
+    maximum following offline transactions) SHOULD be the same for all
     udc-units of a given currency, and MAY be democratically
     calculated.
 
     If the offline parameters requirements are not meet, the transaction
-    is invalid. That means people CAN'T spend offline udc-units which
-    reach offline parameters.
+    SHOULD BE invalid. That means people MAY NOT spend offline udc-units
+    which reach offline parameters.
 
     We recommend the number of 42 as the maximum following offline
     transactions.
 
-4.3= beginning the chain =
+3.3.4 beginning the chain
 
-4.4= shortcutting the chain =
+3.3.5 shortcutting the chain
 
-4.5= timestamp in the chain =
+3.3.6 timestamp in the chain
 
-4.6= gluing multiple header with one signing chain =
+3.3.7 cancel a transaction
 
-4.7= Signature types =
+    A transaction can not be canceled.
 
-4.7.1 Digests
+    A transaction is valid or is not.
+
+    If the transaction datas in the signature chain are incorrect, the
+    transacation is invalid and :
+    - the udc-unit MUST be rejected.
+    - the udc-client that make an error MUST be notified that its
+      transaction is invalid and have been rejected.
+    - the udc-unit still belongs to the owner of the last valid
+      transaction.
+
+    If the transaction is valid but, as a recipient, you don't want the
+    money (to own the udc-unit(s)), you have to make an new transaction
+    back, i.e. to sign the key before your in the udc-unit.
+
+3.4= Money creation procedure =
+
+4.== udc-unit header description ==
+
+4.1= currency code =
+
+    The currency code should be conformant to the ISO 4217 Currency Code
+    List.
+
+    There are still a lot of place in this list to create new
+    3-characters currency codes.
+
+4.2= version =
+
+    Adding a version information inside udc-units give them the ability
+    to evolve in the futur.
+
+    This RFC describe only the version 0 of udc-units.
+
+4.3= signing chain initialization =
+4.4= number of udc-bills =
+
+5.== udc-bill description ==
+
+5.1= serial number =
+
+    The serial number of a udc-bill is composed of 3 informations :
+
+    - Its value, which follow the convention mainly adopted
+      worldwide: 1,2,5,10,20,50,100,200,500,1000 ...
+
+    - Its creation date, which is identical for a created set
+      udc-units. As it is more convenient to use a date formated as
+      number of seconds since 00:00:00 UTC on Thursday, 1 January 1970,
+      a monthly creation date SHOULD be at 23:00:00 UTC on first day of
+      each month.
+
+    - Its number in the series (of the period).
+
+    These 3 data are used to create unique information to identify one
+    udc-unit of a given currency.
+
+5.2= coding the value =
+
+    As the value of a udc unit follow the 1,2,5,10,20... sequence, it
+    may be coded up to the value 5*10^63 with only one octet and to the
+    value 5*10^15 with only 6 bits :
+
+    +  -  -  -  -  -  -  -  +
+    |  x10 Multiplier | ind +
+    +  -  -  -  -  -  -  -  +
+
+    Inside udc-bill we only use 6 bits :
+    .The first 4 bits are used to define the multiplier, so up to 10^15.
+    .The last 2 bits define the value of the base :
+                            01 -> 1
+                            10 -> 2
+                            11 -> 5
+
+    Examples:
+        * an udc-bill of value 5 wich is equal to 5 * 10^0 is binary
+          encoded 00 0011.
+        * an udc-bill of value 100 wich is equal to 1 * 10^2 is binary
+          encoded 00 1001.
+
+5.3= additional informations =
+
+    Open-UDC promote a monthly Universal Dividende. That means news
+    udc-bills are created (each months), for each living humans (also
+    called individuals) which adopt the money.
+
+    Additional informations permit to know more about the udc-bill :
+    it spreads the quantity and distribution about monetary creation and
+    so permit to detect the legitimacy of each udc-bills.
+
+    The additional information inside udc-bill are :
+    1- The number of individuals recorded for the created set.
+    2- The Universal Dividende and its distribution among the
+       possible udc-bill values for the created set.
+
+    Example:
+    If for a given month, there is 250 individuals and the Universal
+    Dividende has been calculated to be 10052. The new udc-bills
+    may look like :
+            250 x 2 udc-units of value 5000
+            250 x 5 udc-units of value   10
+            250 x 2 udc-units of value    1
+    And so udc-units of value 10 will be numbered 0 to 1249 this month.
+
+    This additional information for each created set MUST be know by
+    at least all udc-unit initializers.
+
+6.== udc-unit signing chain ==
+
+6.1= Signature types =
+
+6.1.1 Digests
+
+    This metadata describe what digest is used to sign.
 
     This RFC define the 2 following types of digest :
 
@@ -249,7 +326,10 @@ Request for Comments:                                      Open-UDC Team
 
     An udc-client MUST support this 2 digests.
 
-4.7.2 Assymetric encryptions
+6.1.2 Assymetric encryptions
+
+    This metadata describe what type of key will be signed. It also
+    permit to know the key size wich depend on its type.
 
     This RFC define the following types of assymetrics keys :
     
@@ -269,26 +349,7 @@ Request for Comments:                                      Open-UDC Team
     An udc-client MUST support signing with any RSA key and SHOULD
     support signing with a key based on elliptic curve.
 
-4.8= Canceling a transaction =
-
-    A transaction can not be canceled.
-
-    A transaction is valid or is not.
-
-    If the transaction datas in the signature chain are incorrect, the
-    transacation is invalid and :
-    - the udc-unit MUST be rejected.
-    - the udc-client that make an error MUST be notified that its
-      transaction have been rejected.
-    - the udc-unit still belongs to the owner of the last valid
-      transaction.
-
-    If the transaction is valid but, as a recipient, you don't want the
-    money (to own the udc-unit(s)), you have to make an new transaction
-    back, i.e. to sign the key before your in the udc-unit.
-
-
-6.== udc-unit binary format ==
+7.== udc-unit binary format ==
  
   Following present the binary construction of a udc-unit which version
   is equal to 1.
@@ -296,23 +357,23 @@ Request for Comments:                                      Open-UDC Team
   This is also the recommended binary format to use through the network
   or in storage systems (files, databases, ...).
 
-  All integer values stored on more that 1 byte MUST use the little
+  All integer values stored on more that 1 octet MUST use the little
   endianness.     
 
   All data with variable size, MUST be 0-padded to a multiple of 64 bits
-  (16 bytes). This concerns:
+  (16 octets). This concerns:
     - Node URI
     - Public key to sign
     - Signature
 
   All date are formated as number of seconds since 00:00:00 UTC on
-  Thursday, 1 January 1970. That means the limit date is at year 2106.
+  Thursday, 1 January 1970.
 
+  That means the limit date is at year 2106 with a 32-bit integer.
   However be aware that on almost all 32 bits POSIX system, the time is
-  signed and so is limited to 19 January 2038 if it is stored upon only
-  one 32-bit integer.
+  signed and so is limited to 19 January 2038.
 
-6.1= header =
+7.1= header =
 
    0     7 8    15 16   23 24    31 32                            63 
   +-------+-------+-------+--------+--------+-------+-------+-------+
@@ -325,7 +386,7 @@ Request for Comments:                                      Open-UDC Team
         3 ASCII chars to identify a currency (cf. section 3.1).
 
     bits 24 to 26 (Version):
-        Version byte. This document only describe version 0.
+        Version bits. This document only describe version 0.
 
     bits 25 to 31 (Ktype):
         6 bits defining the type of key used for initiating the signing
@@ -338,54 +399,56 @@ Request for Comments:                                      Open-UDC Team
         uint16_t. Define the number of udc-bill "glued" and signed once.
 
 
-6.2= udc-bill =
+7.2= udc-bill =
 
    0     7 8    15 16   23 24    31 32                            63 
   +-------+-------+-------+--------+--------+-------+-------+-------+
   |Value| Time Counter|    bill number of this value for the period |
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  |          RFU          |         Number of Individuals           |
+  | Magic |         Number of Individuals           |   ;   ;   ;...
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  | Factors of the Universal Dividend  (eg: ... +h*10+p*5+q*2+n*1 ) |
+  ...Factors of the Universal Dividend  (eg: ...+h*10+p*5+q*2+n*1 )..
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  |        ...    ; h ; p ;  q ; n |         
+  ...they are 16*3 possible bills, factors are encoded on quartets...
   +-------+-------+-------+--------+--------+-------+-------+-------+
-            SHA-1 (160 bits)                                        
-  +-------+-------+-------+--------+--------+-------+-------+-------+
-            SHA-1 (160 bits)                                        |
+  ... (so 16*3*4 = 192 bits)   ;   ;  h ; p ; q ; n |  CRC 16 (BSD) |
   +-------+-------+-------+--------+--------+-------+-------+-------+
 
-    Only the first 8 bytes (64 bits) are usefull to identify a unique
+    Only the first 8 octets (64 bits) are usefull to identify a unique
     udc-bill.
 
     Detail:
 
-    bits 0 to 4 (Value):
+    bits 0 to 5 (Value):
         Value of the udc-unit. (cf. section ).
 
-    bits 5 to 19 (Time counter):
-        Unsigned. MUST be increase each time a set of money is created
-        (usually each month).
+    bits 6 to 19 (Time counter):
+        14 bits, unsigned. MUST be increase each time a set of money is
+         created (usually each month).
     
     bits 20 to 63 (number):
-        Unsigned. The bill number of this value in the created set.
+        44 bits, unsigned. The bill number of this value in the created
+        set.
 
-    bits 87 to 127 (Individual Number):
-        5 unsigned bytes. The number of registered unique individual for
+    bits 64 to 71 (Magic):
+        This octet may be use as a magic number. Why not 42 ?
+
+    bits 72 to 111 (Individual Number):
+        40 bits, unsigned. The number of registered unique individual for
         the given period.
 
-    bits 128 to 223 (Universal Dividende):
+    bits 112 to 303 (Universal Dividende):
         The amount of each udc-bill created per individual for the
         given period: 
-      bits 128 to 131 : the amount of udc-bill of value 5*10^7 created in
+      bits 112 to 115 : the amount of udc-bill of value 5*10^15 created in
                         this set
       (...)
-      bits 220 to 223 : the amount of udc-bill with value 1*10^0 created in
+      bits 320 to 303 : the amount of udc-bill with value 1*10^0 created in
                         this set
 
-    bits 224 to 383 : SHA-1 (...)
+    bits 304 to 319 : BSD compatible CRC of the 304 previous bits.
 
-6.3= signing chain =
+7.3= signing chain =
 
   0     7 8      15 16     23 24     31 32                          63 
  +-------+---------+---------+---------+-------+-------+-------+------+
@@ -458,12 +521,12 @@ Request for Comments:                                      Open-UDC Team
             - Ask for money unit re-initialization (not to abuse).
 
 
-7.== udc-unit JSON format ==
+8.== udc-unit JSON format ==
 
 
-8.== Security concerns ==
+9.== Security concerns ==
 
-8.1= offline transactions =
+9.1= offline transactions =
 
     As it has been mentioned, offline udc-units MUST be connected
     regularly.
@@ -471,41 +534,23 @@ Request for Comments:                                      Open-UDC Team
     If not, fraud detection will become harder, which mean fraud will
     become easier.
 
-8.2= creation signature =
-
-    Due to:
-    - The node certification tree which maintain the monetary mass
-      and garant the uniqueness of the localization of a udc-unit.
-    - The additional informations in udc-units which MUST be
-      identicals on many of them.
-    The authentication provided by the creation signature is ultimately
-    not so important.
-
-    If the private creation key is found, the consequences are minors, 
-    because to use a non-legitimate udc-unit :
-    - Transaction have to be done offline.
-    - One of the valid (not revoked) init key must also have been found.
-    - It should pass through legitimacy verification that any
-      udc-clients may easily implement (due to additional informations).
-    - As transactions are nearly journalized in udc-units, there are
-      chances to trace back to the ugly one.
-
-    However, it MUST still take the following precautions:
-
-    - The creation of udc-unit MUST be done by an entity strictly 
-      separated from the init entities.
-
-    - The creation private key MUST be stay encrypted on at most two
-      machines isolated from any network.
-
-    - The creation key SHOULD change regularly, and its public key
-      SHOULD be announced at least 1 months before it's use.
-
-
-8.3= init chain signature =
+9.2= signing chain initialization =
 
     The initialization of the signing chain required all attention
     because it holds the crucial security part during offline
     transaction.
 
-    
+    All the initializers are identified by a number, and their public
+    keys should be known by everyone.
+
+    All initialization MUST be done online and in the root node of the
+    currency.
+    (So with the connection flag set.)
+
+    If an udc-units which have not been recorded by the network appears,
+    which means the associated initializer have done something nasty or
+    its key have been corrupted, the initialization certificat will be
+    revoked, Network should investigate about the fraud, and all the
+    udc-units provided by this initializer will have to be initialized
+    by the other initializers.
+
