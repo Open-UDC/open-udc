@@ -201,6 +201,30 @@ Request for Comments:                                      Open-UDC Team
 
 3.3.6 timestamp in the chain
 
+    Recording the transaction dates inside the chain has 2 purposes :
+
+      - to make statisctics and help investigate on fraud.
+
+      - to limit the use of udc-units by speculation computers.
+
+    Indeed: the date of transaction are formated as the number of
+    seconds since 00:00:00 UTC on Thursday, 1 January 1970. And a
+    date of transaction MUST be always strictly greater than the
+    previous transaction date.
+
+    If there is a doubt on the date (should occurs only for disconnected
+    transactions) implementations SHOULD sign a date equal of the
+    previous date increased by 1.
+
+    If in a buyer has signed a date too far in the futur, as a vendor
+    you can : 
+        - give his money back more far in the futur (... and ping
+          pong until offline transaction maximum number is reached
+          ...  =>  bad idea).
+        - ask him to come back getting the things he have paid after  
+          the date he have signed (best idea).
+        - Ask for money unit re-initialization (not to abuse).
+
 3.3.7 cancel a transaction
 
     A transaction can not be canceled.
@@ -221,6 +245,7 @@ Request for Comments:                                      Open-UDC Team
 
 3.4= Money creation procedure =
 
+
 4.== udc-unit header description ==
 
 4.1= currency code =
@@ -239,7 +264,15 @@ Request for Comments:                                      Open-UDC Team
     This RFC describe only the version 0 of udc-units.
 
 4.3= signing chain initialization =
+
+    The header contain the ID number of the initializer and a metadata
+    to precise the type of key used by the initializer.
+
 4.4= number of udc-bills =
+
+    The header specifie the number of udc-bills the udc-unit may
+    contain. The value of an udc-unit is the calculated sum of the
+    udc-bills it contains.
 
 5.== udc-bill description ==
 
@@ -250,13 +283,10 @@ Request for Comments:                                      Open-UDC Team
     - Its value, which follow the convention mainly adopted
       worldwide: 1,2,5,10,20,50,100,200,500,1000 ...
 
-    - Its creation date, which is identical for a created set
-      udc-units. As it is more convenient to use a date formated as
-      number of seconds since 00:00:00 UTC on Thursday, 1 January 1970,
-      a monthly creation date SHOULD be at 23:00:00 UTC on first day of
-      each month.
+    - A counter which increases each time a set of money is created.
+      (monthly creation is recommended).
 
-    - Its number in the series (of the period).
+    - Its number in the set of its value (of the period).
 
     These 3 data are used to create unique information to identify one
     udc-unit of a given currency.
@@ -501,28 +531,12 @@ Request for Comments:                                      Open-UDC Team
 
     bits 32 to 64 (Transaction Date):
         Date of the transaction. It MUST be always strictly greater than
-        previous transaction date.
+        previous transaction date. (cf. section 3.3.6).
 
         When connected (C flag) the transaction date MUST be lesser than
         the date of each traversed node.
 
-        If there is a doubt on the date when disconnected transaction,
-        implementations SHOULD sign a date equal of the previous date
-        increased by 1. Or it may freeze the udc-unit until the signed
-        date is reached.
-
-        If in a disconnected transaction, a buyer has signed a date too
-        far in the futur, as a vendor you can : 
-            - give his money back more far in the futur (... and ping
-              pong until offline transaction maximum number is reached
-              ...  =>  bad idea).
-            - ask him to come back getting the things he have paid after  
-              the date he have signed (best idea).
-            - Ask for money unit re-initialization (not to abuse).
-
-
 8.== udc-unit JSON format ==
-
 
 9.== Security concerns ==
 
