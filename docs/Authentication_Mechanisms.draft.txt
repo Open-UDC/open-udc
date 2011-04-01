@@ -65,12 +65,14 @@ Request for Comments:                                      Open-UDC Team
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
-  Open-UDC specifies the 2 following headers field in uid comment :
+  Open-UDC specifies the 3 following headers field in uid comment :
 
     - "udid1"
             Used for Human Authentication.
-    - "udcinit"
+    - "udcini1"
             Used for the initialization of udc-unit signing chain.
+    - "udnode1"
+            Used for Node Authentication.
 
   The charaters after the last recognized field in the string SHOULD be
   ignored and MAY use other charset (UTF-8...). They MAY be use to add

@@ -155,8 +155,8 @@ Request for Comments:                                      Open-UDC Team
     named "Open-UDC Network Implementation" ([RFCxxxx]).
 
     First implementation of Open-UDC system MAY start with a third-party
-    with only one server to check transactions. Which means only one
-    entity and is a GREAT DANGER for transparency and democracy.
+    with only one entity to check transactions. Which is a GREAT DANGER
+    for transparency and democracy.
 
 3.3.3 offline transactions
 
@@ -167,11 +167,16 @@ Request for Comments:                                      Open-UDC Team
     But connected mode is not always possible in the real world:
     How to buy a camel in desert without internet connection ?
     
-    By verifying the identity of the vendor, and also signing the URI
-    of the node it belongs.
+    By verifying the identity of the vendor, and also signing his
+    identity or the identity of the node he belongs (its "udid1" or one
+    of its "udnode1", cf [RFCxxxx]). 
 
-    Indeed, the vendor MUST show a node certificate wich contain its
-    udc-units public key and which is signed by its node accountants.
+(TO UPDATE !)
+
+    Indeed, the vendor MUST show a OpenPGP certificate wich contain one
+    of its signing chain public key and MUST verify the certficate of the
+    buyer : If its OpenPGP "web of trust" don't reach the buyer identityudid ts universal identity string
+    (udid1) or one of its udnode1 signed by its node accountants.
     Its node accountants are themselves signed by the accountants of the
     parents nodes... until the main node where accountants
     are auto-signed and which the certificate is widely published and
@@ -480,11 +485,11 @@ Request for Comments:                                      Open-UDC Team
 
 7.3= signing chain =
 
+(TO UPDATE !)
+
   0     7 8      15 16     23 24     31 32                          63 
  +-------+---------+---------+---------+-------+-------+-------+------+
- |Ktype|D|    NbReset      |C| URI len |      Transaction Date        |
- +-------+---------+---------+---------+-------+-------+-------+------+
- |     In case of disconnected transaction : recipient Node URI       |
+ |Ktype|D|    NbReset      |C|   len   |      Transaction Date        |
  +-------+---------+---------+---------+-------+-------+-------+------+
  +                                                                    +
  +            Public Key of the recipient of the udc-unit             +
@@ -497,6 +502,8 @@ Request for Comments:                                      Open-UDC Team
  .   The public key of the first item of the chain is well know       .
  .   and is referenced with the unit key ID in the header part        .
  +                                                                    +
+ +-------+---------+---------+---------+-------+-------+-------+------+
+ |  In case of disconnected transaction : Buyer udid1 or udnode1      |
  +-------+---------+---------+---------+-------+-------+-------+------+
 
     Detail:
