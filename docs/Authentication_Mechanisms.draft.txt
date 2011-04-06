@@ -62,6 +62,8 @@ Request for Comments:                                      Open-UDC Team
   The string MUST use only US-ASCII charset (without the comma and the 
   semicolon which are reserved for separation of fields).
 
+  The string size MUST NOT exceed 255 octets.
+
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
