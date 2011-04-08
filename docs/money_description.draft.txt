@@ -348,41 +348,8 @@ Request for Comments:                                      Open-UDC Team
 
 6.== udc-unit signing chain ==
 
-6.1= Signature types =
-
-6.1.1 Digests
-
-    This metadata describe what digest is used to sign.
-
-    This RFC define the 2 following types of digest :
-
-        1 -> sha-1 digest.
-        2 -> sha-256 digest.
-
-    An udc-client MUST support this 2 digests.
-
-6.1.2 Assymetric encryptions
-
-    This metadata describe what type of key will be signed. It also
-    permit to know the key size wich depend on its type.
-
-    This RFC define the following types of assymetrics keys :
-    
-       2 -> RSA 1024 encryption key.
-       3 -> RSA 1536 encryption key.
-       4 -> RSA 2048 encryption key.
-       6 -> RSA 3072 encryption key.
-       8 -> RSA 4096 encryption key.
-
-      11 -> NIST P-256
-      12 -> NIST P-384
-      13 -> NIST P-521
-
-    An udc-client MUST support verificating a signature done with all
-    of this key.
-
-    An udc-client MUST support signing with any RSA key and SHOULD
-    support signing with a key based on elliptic curve.
+  The signing chain is almost compatible with the section 5.2.3. of the 
+  [RFC4880] but use some specific Open-UDC enhancements.
 
 7.== udc-unit binary format ==
  
@@ -395,11 +362,11 @@ Request for Comments:                                      Open-UDC Team
   All integer values stored on more that 1 octet MUST use the little
   endianness.     
 
-  All data with variable size, MUST be 0-padded to a multiple of 64 bits
+(  All data with variable size, MUST be 0-padded to a multiple of 64 bits
   (16 octets). This concerns:
     - Node URI
     - Public key to sign
-    - Signature
+    - Signature (.... TO UPDATE cf [RFC4880] ) )
 
   All date are formated as number of seconds since 00:00:00 UTC on
   Thursday, 1 January 1970.
@@ -412,23 +379,17 @@ Request for Comments:                                      Open-UDC Team
 
    0     7 8    15 16   23 24    31 32                            63 
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  |(3-char) currency code |V.|KType|  Init Key Id   |   Nb Glued    |
+  |            currency code                |Version|   Nb Glued    |
   +-------+-------+-------+--------+--------+-------+-------+-------+
 
     Detail:
 
-    bits 0 to 23 (currency code):
-        3 ASCII chars to identify a currency (cf. section 3.1).
+    bits 0 to 39 (currency code):
+        3 to 5 NULL-padded ASCII chars to identify a currency
+        (cf. section 3.1).
 
-    bits 24 to 26 (Version):
-        Version bits. This document only describe version 0.
-
-    bits 25 to 31 (Ktype):
-        6 bits defining the type of key used for initiating the signing
-        chain.
-
-    bits 32 to 47 (Init Key Id):
-        uint16_t. The signing chain initialization Key Identifier.
+    bits 40 to 47 (Version):
+        Version bits. This document only describe version 1.
 
     bits 48 to 63 (NbGlued):
         uint16_t. Define the number of udc-bill "glued" and signed once.
@@ -485,63 +446,11 @@ Request for Comments:                                      Open-UDC Team
 
 7.3= signing chain =
 
-(TO UPDATE !)
 
-  0     7 8      15 16     23 24     31 32                          63 
- +-------+---------+---------+---------+-------+-------+-------+------+
- |Ktype|D|    NbReset      |C|   len   |      Transaction Date        |
- +-------+---------+---------+---------+-------+-------+-------+------+
- +                                                                    +
- +            Public Key of the recipient of the udc-unit             +
- .              (lenght depend of the Signature type)                 .
- +                                                                    +
- +-------+---------+---------+---------+-------+-------+-------+------+
- +                                                                    +
- +             Cryptographic Transaction Signature                    +
- .    To be verified with the previous public key in the chain        .
- .   The public key of the first item of the chain is well know       .
- .   and is referenced with the unit key ID in the header part        .
- +                                                                    +
- +-------+---------+---------+---------+-------+-------+-------+------+
- |  In case of disconnected transaction : Buyer udid1 or udnode1      |
- +-------+---------+---------+---------+-------+-------+-------+------+
+  The signing chain use some Open-UDC enhancements of the section
+  5.2.3. of the [RFC4880]
 
-    Detail:
-
-    bits 0 to 5 (Ktype) :
-        Type of the recipient's public key (cf. section 4.7.2).
-
-    bits 6 to 7 (D) :
-        Digest used to Sign (cf. section 4.7.1).
-
-    bits 8 to 22 (NbReset):
-        Counter which increase each time the signing chain has been
-        shortcuted at this point.
-    
-        As Shortcutting CAN NOT be done offline, this value MUST be
-        equal to 0 if the Connection flag (C) is not set.
-
-    bits 23 (C):
-        Connection Flag:
-            - 1 the transaction has been sent and validated by the
-                 udc-node.
-            - 0 the transacation has been done in a disconnected status.
-                In this case the recipient of the transaction have to be
-                authenticated (as a member of a udc-node in the open-udc
-                certification tree).
-
-    bits 24 to 31 (URI len):
-        Lenght of the Node URI in case of a disconnected transaction.
-        
-        It MUST be equal to 0 in case of connected transaction (C=1) and
-        different to 0 in case of disconnected transaction (C=0).
-
-    bits 32 to 64 (Transaction Date):
-        Date of the transaction. It MUST be always strictly greater than
-        previous transaction date. (cf. section 3.3.6).
-
-        When connected (C flag) the transaction date MUST be lesser than
-        the date of each traversed node.
+(TO CONTINUE... !)
 
 8.== udc-unit JSON format ==
 
