@@ -17,7 +17,7 @@ Request for Comments:                                      Open-UDC Team
  1. Introduction ....................................................
  2. Conventions Used in This Document ...............................
  3. udc-unit overview ...............................................
-    3.1 header ......................................................
+    3.1 header/footer ...............................................
     3.2 bills .......................................................
     3.3 signing chain ...............................................
         3.3.1 make transaction ......................................
@@ -31,8 +31,7 @@ Request for Comments:                                      Open-UDC Team
  4. udc-unit header description .....................................
     4.1 currency code ...............................................
     4.2 version .....................................................
-    4.3 signing chain initialization ................................
-    4.4 number of udc-bills ........................................
+    4.3 number of udc-bills ........................................
  5. udc-bill description ............................................
     5.1 serial number ...............................................
     5.2 coding the value ............................................
@@ -74,13 +73,14 @@ Request for Comments:                                      Open-UDC Team
 
 3.== udc-unit overview ==
 
-3.1= header =
+3.1= header and footer =
 
-  The header define:
+  The header and footer define:
     - the currency.
     - the version of the udc-unit.
-    - which initialization key is used.
     - how many udc-bills the udc-unit contain.
+
+  They frame the udc-bills.
 
 3.2= udc-bills =
 
@@ -109,14 +109,13 @@ Request for Comments:                                      Open-UDC Team
     private key) associated to the last pubkey in the signature chain.
 
     Then transaction is done by :
-    1- Adding to end of the udc-unit some metadata and the public key of
-       the next owner.
-    2- Digitally signing (with the pivate key associated to previous 
+    1- Digitally signing (with the pivate key associated to previous 
        public key) the digest of this udc-unit concatened with some
-       metadata and the next owner public key.
-    3- Adding this signature to the end of the udc-unit.
+       metadata containing the next owner public key.
+    2- Adding this signature to the beginning of the udc-unit.
 
-    A payee can verify the signatures to verify the chain of ownership.
+    A payee should verify the signatures to verify the chain of
+    ownership.
 
 3.3.2 differences compared to BitCoin
 
@@ -202,8 +201,21 @@ Request for Comments:                                      Open-UDC Team
 
 3.3.4 beginning the chain
 
+    Only a few number of keys should be allowed to initiate the signing
+    chain of a udc-unit. They should be trustfull, well-known and
+    initialization have to be declared in the main node to be check by
+    the network.
+
+    Key ID collision are not allowed for this keys.
+
 3.3.5 shortcutting the chain
 
+    If a udc-unit get back to one of its previous owner, the previous
+    owner MAY shortcut the chain to the previous signature containing
+    its Key ID.
+
+    But it MUST be declared and registered by the network.
+    
 3.3.6 timestamp in the chain
 
     Recording the transaction dates inside the chain has 2 purposes :
@@ -261,19 +273,17 @@ Request for Comments:                                      Open-UDC Team
     There are still a lot of place in this list to create new
     3-characters currency codes.
 
+    By the way, the currency code in udc-unit (version 1) MAY have a
+    length up to 5 characters.
+
 4.2= version =
 
     Adding a version information inside udc-units give them the ability
     to evolve in the futur.
 
-    This RFC describe only the version 0 of udc-units.
+    This RFC describe only the version 1 of udc-units.
 
-4.3= signing chain initialization =
-
-    The header contain the ID number of the initializer and a metadata
-    to precise the type of key used by the initializer.
-
-4.4= number of udc-bills =
+4.3= number of udc-bills =
 
     The header specifie the number of udc-bills the udc-unit may
     contain. The value of an udc-unit is the calculated sum of the
@@ -362,12 +372,6 @@ Request for Comments:                                      Open-UDC Team
   All integer values stored on more that 1 octet MUST use the little
   endianness.     
 
-(  All data with variable size, MUST be 0-padded to a multiple of 64 bits
-  (16 octets). This concerns:
-    - Node URI
-    - Public key to sign
-    - Signature (.... TO UPDATE cf [RFC4880] ) )
-
   All date are formated as number of seconds since 00:00:00 UTC on
   Thursday, 1 January 1970.
 
@@ -375,11 +379,11 @@ Request for Comments:                                      Open-UDC Team
   However be aware that on almost all 32 bits POSIX system, the time is
   signed and so is limited to 19 January 2038.
 
-7.1= header =
+7.1= header and footer =
 
    0     7 8    15 16   23 24    31 32                            63 
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  |            currency code                |Version|   Nb Glued    |
+  |            currency code                |Ver|P| |   Nb Glued    |
   +-------+-------+-------+--------+--------+-------+-------+-------+
 
     Detail:
@@ -388,8 +392,18 @@ Request for Comments:                                      Open-UDC Team
         3 to 5 NULL-padded ASCII chars to identify a currency
         (cf. section 3.1).
 
-    bits 40 to 47 (Version):
+    bits 40 to 43 (Version):
         Version bits. This document only describe version 1.
+
+    bits 44 (Position):
+        This bit define the location of udc-bills:
+            - if 0 the udc-bills are following
+            - if 1 the udc-bills are previous
+        This may be usefull to indicate the Number of udc-bill in both
+        extremities to be able to read them forward or backward.
+
+    bits 45 to 47 (Unused):
+        Reserved for futur use.
 
     bits 48 to 63 (NbGlued):
         uint16_t. Define the number of udc-bill "glued" and signed once.
@@ -470,8 +484,8 @@ Request for Comments:                                      Open-UDC Team
     because it holds the crucial security part during offline
     transaction.
 
-    All the initializers are identified by a number, and their public
-    keys should be known by everyone.
+    All the initializers are identified by their Key ID, and their
+    OpenPGP certificate should be known by everyone.
 
     All initialization MUST be done online and in the root node of the
     currency.
