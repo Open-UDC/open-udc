@@ -137,7 +137,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
                   5.2.3.25. Signature Target .........................36
                   5.2.3.26. Embedded Signature .......................37
                   5.2.3.27. Recipient
-                  5.2.3.28. Open-UDC ID
+                  5.2.3.28. Open-UDC buyer/donor ID
            5.2.4. Computing Signatures ...............................37
                   5.2.4.1. Subpacket Hints ...........................38
       5.3. Symmetric-Key Encrypted Session Key Packets (Tag 3) .......38
@@ -1433,7 +1433,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
            31 = Signature Target
            32 = Embedded Signature
            33 = Recipient
-           34 = Open-UDC ID 
+           34 = Open-UDC buyer/donor ID
    100 To 110 = Private or experimental
 
    An implementation SHOULD ignore any subpacket of a type that it does
@@ -2048,7 +2048,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
    subpacket data set. This subpacket may be used many times if there
    are different recipients.
 
-5.2.3.28.  Open-UDC ID
+5.2.3.28.  Open-UDC buyer/donor ID
 
     (String)
     

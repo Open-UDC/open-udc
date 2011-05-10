@@ -49,7 +49,7 @@ Request for Comments:                                      Open-UDC Team
   Open-UDC use widely OpenPGP standards for all authentications.
 
   An Open-UDC certificate is an OpenPGP certificate on which the comment
-  field of one of its uid MUST begin with a special string.
+  field of one of its uid begin with the special string know as "udid1". 
 
   As the Open-UDC characterization only use uid in an OpenPGP certifcate
   it is more accurate to speak about Open-UDC uid (inside an OpenPGP
@@ -82,11 +82,20 @@ Request for Comments:                                      Open-UDC Team
 
 3.2= Key Types =
 
-3.3= signing policy=
+    We recommended to use a big main key of for the OpenPGP certificate,
+    and at least 2 subkeys in it : 
+    - 1 for encryption.
+    - at least one for signing udc-unit signing chain. As smallest key
+      implie smallest signature, it is recommended to use ECC Keys.
 
-3.4= exporting     
+3.3= exporting =
 
-  
+    Certificates MUST be exported to some well-know sks key servers.
+
+    Sks servers MAY be enhanced to register only Open-UDC certificate,
+    and to unregister automatically Open-UDC certificate wich are not
+    validated periodically by some other certificate.
+
 4.== Human Authentication ==
 
   Each human which want to use an Open-UDC currency and receive a
@@ -98,10 +107,10 @@ Request for Comments:                                      Open-UDC Team
 
     This string look like :
 
-  udid1;Brucker;Jean-Jacques,Pascal;1297787885;+45.433+4.434; 
+    udid1;Brucker;Jean-Jacques,Pascal;1297787885;+45.433+4.434; 
 
-  The main key of the certificate should expired in less than 11 years
-  after its creation.
+    The main key of the certificate should expired in less than 11 years
+    after its creation.
 
 4.1.1. Universal Digital IDentity
 
@@ -137,6 +146,10 @@ Request for Comments:                                      Open-UDC Team
 
 4.2= Proof of identity =
 
+    The identity is trusted by using the OpenPGP web of trust.
+
 5.== Node Authentication ==
+
+    
 
 

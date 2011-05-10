@@ -27,7 +27,6 @@ Request for Comments:                                      Open-UDC Team
         3.3.5 shortcutting the chain ................................
         3.3.6 timestamp in the chain ................................
         3.3.7 cancel a transaction ..................................
-    3.4 Money creation procedure ....................................
  4. udc-unit header description .....................................
     4.1 currency code ...............................................
     4.2 version .....................................................
@@ -35,7 +34,7 @@ Request for Comments:                                      Open-UDC Team
  5. udc-bill description ............................................
     5.1 serial number ...............................................
     5.2 coding the value ............................................
-    5.3 additional informations .....................................
+    5.3 creation informations .....................................
  6. udc-unit signing chain description ..............................
     6.1 Signature types ............................................. 
         6.1.1 Digests ............................................... 
@@ -64,6 +63,12 @@ Request for Comments:                                      Open-UDC Team
 
   We define as "udc-client" any application wich manipulate udc-units
   according exactly to this specification ([RFCxxxx]).
+
+  "udid" and "udnode" are defined in the draft named "Open-UDC
+   Authentication Mechanisms" ([RFCxxxx]).
+
+  Udc-unit use signing chain which are an extension of the OpenPGP
+  standard described in the [RFC4880] "OpenPGP Message Format".
 
 2.== Conventions Used in This Document ==
 
@@ -100,7 +105,7 @@ Request for Comments:                                      Open-UDC Team
 
   Like in the BitCoin system: an udc-unit contain a chain of digital
   signatures. And that is the main mechanism of udc-unit authenticity.
-  The second one beeing provided by the network (cf. [RFCXXXX]).
+  The second one beeing provided by the network.
 
 3.3.1 make transaction
 
@@ -150,12 +155,15 @@ Request for Comments:                                      Open-UDC Team
    
     Growing up, the third party should be split into a tree of node.
 
-    Node architecture, mecanisms and tools are described in the RFC
-    named "Open-UDC Network Implementation" ([RFCxxxx]).
+    Notes:
 
-    First implementation of Open-UDC system MAY start with a third-party
-    with only one entity to check transactions. Which is a GREAT DANGER
-    for transparency and democracy.
+    * Recommended node architecture, mecanisms and tools are
+    described in the draft named "Open-UDC Network Implementation"
+    ([RFCxxxx]).
+
+    * First implementation of an Open-UDC system MAY start with a
+      third-party with only one entity to check transactions. Which is
+      a GREAT DANGER for transparency and democracy.
 
 3.3.3 offline transactions
 
@@ -166,20 +174,25 @@ Request for Comments:                                      Open-UDC Team
     But connected mode is not always possible in the real world:
     How to buy a camel in desert without internet connection ?
     
-    By verifying the identity of the vendor, and also signing his
-    identity or the identity of the node he belongs (its "udid1" or one
-    of its "udnode1", cf [RFCxxxx]). 
+    By verifying the identity of each part of the transaction :
 
-(TO UPDATE !)
+      As in connected transaction, the vendor show first an OpenPGP
+      certificate wich contain at least its udid or one udnode
+      and one of its signing chain public key.
 
-    Indeed, the vendor MUST show a OpenPGP certificate wich contain one
-    of its signing chain public key and MUST verify the certficate of the
-    buyer : If its OpenPGP "web of trust" don't reach the buyer identityudid ts universal identity string
-    (udid1) or one of its udnode1 signed by its node accountants.
-    Its node accountants are themselves signed by the accountants of the
-    parents nodes... until the main node where accountants
-    are auto-signed and which the certificate is widely published and
-    know-by-everyone.
+      But before to sign the KeyID of the vendor on the udc-unit, the
+      buyer SHOULD verify that the vendor is validated by its OpenPGP
+      web of trust, and vice-versa. So vendor and buyer SHOULD exchange
+      missing certificates to reach one of their common denominator
+      wich are, ultimately, the accountants of the root node.
+    
+    As KeyID collision may occurs, the udc-unit need, to be check and 
+    replayed by the network, to contain the "udid1" or a "udnode1" of
+    the buyer in the signing chain.
+
+    So the vendor MUST use an the Open-UDC ID subpacket in the signed
+    part of its signature or add it in the non-signed part of the previous
+    signature (cf section 5.2.3.1. of the [RFC4880]).
 
     Offline udc-units SHOULD be connected regularly to:
     - possibly be shortened. 
@@ -188,16 +201,16 @@ Request for Comments:                                      Open-UDC Team
       have been. 
 
     The offline parameters (maximum time since a connected transaction,
-    maximum following offline transactions) SHOULD be the same for all
-    udc-units of a given currency, and MAY be democratically
-    calculated.
+    maximum following offline transactions, multiple recipient...)
+    SHOULD be the same for all udc-units of a given currency, and MAY be
+    democratically calculated.
 
-    If the offline parameters requirements are not meet, the transaction
-    SHOULD BE invalid. That means people MAY NOT spend offline udc-units
-    which reach offline parameters.
+    By the way, an offline vendor is free to decide its parameters to
+    suspect or accept the money given to him.
 
-    We recommend the number of 42 as the maximum following offline
-    transactions.
+    Note about OpenPGP KeyID collision : 2^64 possible OpenPGP KeyID,
+    today there are about 2^33 human which may use about 2^6 key in
+    there life.
 
 3.3.4 beginning the chain
 
@@ -220,7 +233,7 @@ Request for Comments:                                      Open-UDC Team
 
     Recording the transaction dates inside the chain has 2 purposes :
 
-      - to make statisctics and help investigate on fraud.
+      - to make statistics and help investigate on fraud.
 
       - to limit the use of udc-units by speculation computers.
 
@@ -259,8 +272,6 @@ Request for Comments:                                      Open-UDC Team
     If the transaction is valid but, as a recipient, you don't want the
     money (to own the udc-unit(s)), you have to make an new transaction
     back, i.e. to sign the key before your in the udc-unit.
-
-3.4= Money creation procedure =
 
 
 4.== udc-unit header description ==
@@ -329,17 +340,17 @@ Request for Comments:                                      Open-UDC Team
         * an udc-bill of value 100 wich is equal to 1 * 10^2 is binary
           encoded 00 1001.
 
-5.3= additional informations =
+5.3= creation informations =
 
     Open-UDC promote a monthly Universal Dividende. That means news
     udc-bills are created (each months), for each living humans (also
     called individuals) which adopt the money.
 
-    Additional informations permit to know more about the udc-bill :
+    Creation informations permit to know more about the udc-bill :
     it spreads the quantity and distribution about monetary creation and
     so permit to detect the legitimacy of each udc-bills.
 
-    The additional information inside udc-bill are :
+    The creation informations inside udc-bill are :
     1- The number of individuals recorded for the created set.
     2- The Universal Dividende and its distribution among the
        possible udc-bill values for the created set.
@@ -353,8 +364,8 @@ Request for Comments:                                      Open-UDC Team
             250 x 2 udc-units of value    1
     And so udc-units of value 10 will be numbered 0 to 1249 this month.
 
-    This additional information for each created set MUST be know by
-    at least all udc-unit initializers.
+    This informations about each created set MUST be know by at least
+    all udc-unit initializers.
 
 6.== udc-unit signing chain ==
 
@@ -430,7 +441,7 @@ Request for Comments:                                      Open-UDC Team
     Detail:
 
     bits 0 to 5 (Value):
-        Value of the udc-unit. (cf. section ).
+        Value of the udc-unit. (cf. section 5.2).
 
     bits 6 to 19 (Time counter):
         14 bits, unsigned. MUST be increase each time a set of money is
