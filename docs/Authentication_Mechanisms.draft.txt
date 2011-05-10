@@ -8,7 +8,7 @@ Request for Comments:                                      Open-UDC Team
 
  === Status of This Memo ===
 
- (Today 17 feb 2011, it is still a draft).
+ (Today 10 may 2011, it is still a draft).
 
  === Copyright Notice ===
 

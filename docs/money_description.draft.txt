@@ -8,7 +8,7 @@ Request for Comments:                                      Open-UDC Team
 
  === Status of This Memo ===
 
- (Today 29 mar 2011, it is still a draft).
+ (Today 10 may 2011, it is a draft requesting for comment).
 
  === Copyright Notice ===
 
@@ -206,7 +206,10 @@ Request for Comments:                                      Open-UDC Team
     democratically calculated.
 
     By the way, an offline vendor is free to decide its parameters to
-    suspect or accept the money given to him.
+    suspect or accept the money given to him. But if they differ from
+    the ones recommended by the community, the vendor SHOULD prevent
+    the buyer of its parameters before the transaction (eg: like
+    some vendors prevented that they didn't accept check).
 
     Note about OpenPGP KeyID collision : 2^64 possible OpenPGP KeyID,
     today there are about 2^33 human which may use about 2^6 key in
