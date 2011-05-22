@@ -429,13 +429,13 @@ Request for Comments:                                      Open-UDC Team
   +-------+-------+-------+--------+--------+-------+-------+-------+
   |Value| Time Counter|    bill number of this value for the period |
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  | Magic |         Number of Individuals           |   ;   ;   ;...
-  +-------+-------+-------+--------+--------+-------+-------+-------+
-  ...Factors of the Universal Dividend  (eg: ...+h*10+p*5+q*2+n*1 )..
+  | Factors of the Universal Dividend  (eg: ...+h*10+p*5+q*2+n*1 )..
   +-------+-------+-------+--------+--------+-------+-------+-------+
   ...they are 16*3 possible bills, factors are encoded on quartets...
   +-------+-------+-------+--------+--------+-------+-------+-------+
-  ... (so 16*3*4 = 192 bits)   ;   ;  h ; p ; q ; n |  CRC 16 (BSD) |
+            ... (so 16*3*4 = 192 bits)           ...; h ; p ; q ; n |
+  +-------+-------+-------+--------+--------+-------+-------+-------+
+  | Magic |         Number of Individuals           |  CRC 16 (BSD) |
   +-------+-------+-------+--------+--------+-------+-------+-------+
 
     Only the first 8 octets (64 bits) are usefull to identify a unique
@@ -454,21 +454,21 @@ Request for Comments:                                      Open-UDC Team
         44 bits, unsigned. The bill number of this value in the created
         set.
 
-    bits 64 to 71 (Magic):
-        This octet may be use as a magic number. Why not 42 ?
-
-    bits 72 to 111 (Individual Number):
-        40 bits, unsigned. The number of registered unique individual for
-        the given period.
-
-    bits 112 to 303 (Universal Dividende):
+    bits 64 to 255 (Universal Dividende):
         The amount of each udc-bill created per individual for the
         given period: 
-      bits 112 to 115 : the amount of udc-bill of value 5*10^15 created in
+      bits 64 to 67 : the amount of udc-bill of value 5*10^15 created in
                         this set
       (...)
-      bits 320 to 303 : the amount of udc-bill with value 1*10^0 created in
+      bits 252 to 255 : the amount of udc-bill with value 1*10^0 created in
                         this set
+
+    bits 256 to 263 (Magic):
+        This octet may be use as a magic number. Why not 42 ?
+
+    bits 264 to 303 (Individual Number):
+        40 bits, unsigned. The number of registered unique individual for
+        the given period.
 
     bits 304 to 319 : BSD compatible CRC of the 304 previous bits.
 
