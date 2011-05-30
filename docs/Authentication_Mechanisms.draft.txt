@@ -2,7 +2,7 @@ Network Working Group                                       J.J. Brucker
 Request for Comments:                                      Open-UDC Team 
 
 
-          ==== Open-UDC Authentication Mechanisms  ====
+          ==== OpenUDC Authentication Mechanisms  ====
 
  === Abstract ===
 
@@ -27,14 +27,14 @@ Request for Comments:                                      Open-UDC Team
 
 1.== Introduction ==
 
-  The Open-UDC project aims to provide a open, democratic and secure
+  The OpenUDC project aims to provide a open, democratic and secure
   monetary system, compatible with universal dividende.
 
   This document describe the authentication mechanisms used in the
-  Open-UDC implementations.
+  OpenUDC implementations.
 
   This document also describe how to use the OpenPGP standard [RFC4880]
-  in order to conform to the Open-UDC specifications.
+  in order to conform to the OpenUDC specifications.
 
 2.== Conventions Used in This Document ==
 
@@ -46,16 +46,16 @@ Request for Comments:                                      Open-UDC Team
 
 3.1= specific uid =
 
-  Open-UDC use widely OpenPGP standards for all authentications.
+  OpenUDC use widely OpenPGP standards for all authentications.
 
-  An Open-UDC certificate is an OpenPGP certificate on which the comment
-  field of one of its uid begin with the special string know as "udid1". 
+  An OpenUDC certificate is an OpenPGP certificate on which the comment
+  field of one of its uid begin with the special string know as "udid2". 
 
-  As the Open-UDC characterization only use uid in an OpenPGP certifcate
-  it is more accurate to speak about Open-UDC uid (inside an OpenPGP
-  certificate) instead of Open-UDC certificate.
+  As the OpenUDC characterization only use uid in an OpenPGP certifcate
+  it is more accurate to speak about OpenUDC uid (inside an OpenPGP
+  certificate) instead of OpenUDC certificate.
 
-  The special string recognized by Open-UDC implementations is a sum of
+  The special string recognized by OpenUDC implementations is a sum of
   fields which MUST be separated by a semicolon ';'.
   Each field MAY contain multiple subfields separated by a comma ','.
 
@@ -67,9 +67,11 @@ Request for Comments:                                      Open-UDC Team
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
-  Open-UDC specifies the 3 following headers field in uid comment :
+  OpenUDC specifies the 3 following headers field in uid comment :
 
     - "udid1"
+            Was used for Human Authentication, now deprecated.
+    - "udid2"
             Used for Human Authentication.
     - "udcini1"
             Used for the initialization of udc-unit signing chain.
@@ -88,31 +90,40 @@ Request for Comments:                                      Open-UDC Team
     - at least one for signing udc-unit signing chain. As smallest key
       implie smallest signature, it is recommended to use ECC Keys.
 
-3.3= exporting =
+3.3= Exporting =
 
     Certificates MUST be exported to some well-know sks key servers.
 
-    Sks servers MAY be enhanced to register only Open-UDC certificate,
-    and to unregister automatically Open-UDC certificate wich are not
+    Sks servers MAY be enhanced to register only OpenUDC certificate,
+    and to unregister automatically OpenUDC certificate wich are not
     validated periodically by some other certificate.
+
+3.4= Expiration =
+ 
+    The main key of the OpenPGP certificate should expired in less than
+    11 years after its creation.
 
 4.== Human Authentication ==
 
-  Each human which want to use an Open-UDC currency and receive a
+  Each human which want to use an OpenUDC currency and receive a
   Universal Dividende (or an other basic income) MUST have a OpenPGP
   certificate in accordance with the following specification.  
 
-4.1.= OpenPGP Human certificate =
+4.1.= OpenUDC Unique identification string =
 
+    An OpenUDC user MUST have a special string in the comment of one
+    of its OpenPGP uid.
 
-    This string look like :
+    This strings look like :
+    
+    udid2;c;Brucker;Jean-Jacques,Pascal;1980-12-05;E,+45.43+004.43;
 
-    udid1;Brucker;Jean-Jacques,Pascal;1297787885;+45.433+4.434; 
+    or :
 
-    The main key of the certificate should expired in less than 11 years
-    after its creation.
+    udid2;h;063007a34f7c8991ad47fe988e6d00c467162ae86508faaf8e4c97626880574c;
 
-4.1.1. Universal Digital IDentity
+4.1.1. Universal Digital IDentity string version 1.
+
 
     The "udid1;" header MUST be followed by 4 fields which MUST define :
 
@@ -143,6 +154,41 @@ Request for Comments:                                      Open-UDC Team
 
            Second subfield is optionnal and may be use to define
            non-terrestrial birth.
+
+    Note: The version 1 is deprecated and should not be used anymore.
+
+4.1.2. Universal Digital IDentity string version 2.
+
+    The "udid2;" header MUST be followed by a one-char field which
+    define if the birth datas are in clear or hashed :
+        - 'c' char means the data are not hashed.
+        - 'h' char means the data are hashed.
+
+    The hashed version is obtained by applying the SHA-256 algorithm on
+    the clear version.
+
+    As we can know hash the udid we have no more place for fuzziness in
+    it, and the rules of the clear version are very strict :
+
+    The clear version "udid2;c;" MUST be followed by 3 fields:
+
+        1- The name(s) as written on the birth certificate. Only
+           26 upper case US-ASCII characters are allowed. That means
+           it (they) have to be transposed in a standardized way to
+           US-ASCII characters.
+
+           If US-ASCII transposed name(s) reach the 26-chars limit,
+           extra characters are ignored.
+
+        - The fornames
+
+        2- The date of birth as written on the birth certificate, but
+           transposed, as specified by the ISO-8601, in the form:
+           "aaaa-mm-dd".
+
+        3- The location of birth
+
+            eg : "DE LA HAUTE TOUR PERDU DANS LA FORET"
 
 4.2= Proof of identity =
 
