@@ -116,11 +116,11 @@ Request for Comments:                                      Open-UDC Team
 
     This strings look like :
     
-    udid2;c;Brucker;Jean-Jacques,Pascal;1980-12-05;E,+45.43+004.43;
+    udid2;c;BRUCKER;JEAN-JACQUES;1980-12-05;E+45.43+004.43;0;
 
     or :
 
-    udid2;h;063007a34f7c8991ad47fe988e6d00c467162ae86508faaf8e4c97626880574c;
+    udid2;h;063007a34f7c8991ad47fe988e6d00c467162ae86508faaf8e4c97626880574c;0;
 
 4.1.1. Universal Digital IDentity string version 1.
 
@@ -146,11 +146,11 @@ Request for Comments:                                      Open-UDC Team
            by 'E' or '+' in the east from the Greenwich meridian, and
            by 'W' or '-' in the west from the Greenwich meridian.
 
-           Latitude and longitude MUST have at least 1 digit after the
+           Latitude and longitude MUST have at least 2 digits after the
            decimal point, and at most 6 digits after the decimal point.
 
-           Accepted range for latitude is [-90.0;+90.0].
-           Accepted range for longitude is [-179.999999;+180.0].
+           Accepted range for latitude is [-90.00;+90.00].
+           Accepted range for longitude is [-179.999999;+180.00].
 
            Second subfield is optionnal and may be use to define
            non-terrestrial birth.
@@ -164,31 +164,72 @@ Request for Comments:                                      Open-UDC Team
         - 'c' char means the data are not hashed.
         - 'h' char means the data are hashed.
 
-    The hashed version is obtained by applying the SHA-256 algorithm on
+    The hashed version is obtained by applying the SHA1 algorithm on
     the clear version.
 
     As we can know hash the udid we have no more place for fuzziness in
     it, and the rules of the clear version are very strict :
 
-    The clear version "udid2;c;" MUST be followed by 3 fields:
+    The clear version "udid2;c;" MUST be followed by 5 fields:
 
-        1- The name(s) as written on the birth certificate. Only
-           26 upper case US-ASCII characters are allowed. That means
-           it (they) have to be transposed in a standardized way to
-           US-ASCII characters.
+        1- The last last name as written on the birth certificate.
+           Only the 27 upper case [A-Z-] US-ASCII characters are allowed.
+           That means it have to be transposed in a standardized way to
+           this US-ASCII characters.
 
-           If US-ASCII transposed name(s) reach the 26-chars limit,
-           extra characters are ignored.
+           The maximum lenght of the US-ASCII transposed name MUST not
+           exceed 20 characters. If it reach the 20-chars limit, extra
+           characters MUST be ignored.
 
-        - The fornames
+        2- The first first name as written on the birth certificate.
+           Only the 27 upper case [A-Z-] US-ASCII characters are allowed.
+           That means it have to be transposed in a standardized way to
+           this US-ASCII characters.
 
-        2- The date of birth as written on the birth certificate, but
+           The maximum lenght of the US-ASCII transposed name MUST not
+           exceed 20 characters. If it reach the 20-chars limit, extra
+           characters MUST be ignored.
+
+        3- The date of birth as written on the birth certificate, but
            transposed, as specified by the ISO-8601, in the form:
            "aaaa-mm-dd".
 
-        3- The location of birth
+        4- The location of birth. As long as individuals are born on
+           earth, it should be prefixed by a 'E' (capital) character.
+           Then following is defined as terrestrial coordinates.
 
-            eg : "DE LA HAUTE TOUR PERDU DANS LA FORET"
+           The first number MUST be the latitude and MUST be a 4 digits
+           number : 2 before the decimal point and 2 after, prefixed by
+           '+' if in the Northern hemispheres, and prefixed by '-' if in
+           the Southern hemispheres.
+           The second number MUST be the longitude and MUST be a 5 digits
+           number : 3 before the decimal point and 2 after, prefixed by
+           by '+' in the east from the Greenwich meridian, and by '-' in
+           the west from the Greenwich meridian.
+
+           Accepted range for latitude is [-90.00;+90.00].
+           Accepted range for longitude is [-179.99;+180.00].
+
+           For a given place of birth, only one coordinate is allowed.
+           It should correspond to the coordinate of the office which
+           write the birth certificate. And so in general to the
+           coordinate that indicate almost all map tools (like
+           googlemap).
+
+        5- A number wich may increase in the case of more than one
+           children born with the same last name and first name at the
+           same place at the same date.
+
+           This number should so be equal to 0 for almost every one. 
+
+    eg: if a individual is registered as 
+             - first names: François-Xavier-Robert,Lucien
+             - last name: DE CLÉREL DE TOCQUEVILLE
+             - birth date: 14 July 1989
+             - birthplace: Paris 15
+
+    its udid2 will be :
+        
 
 4.2= Proof of identity =
 
