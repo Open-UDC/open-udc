@@ -57,10 +57,9 @@ Request for Comments:                                      Open-UDC Team
 
   The special string recognized by OpenUDC implementations is a sum of
   fields which MUST be separated by a semicolon ';'.
-  Each field MAY contain multiple subfields separated by a comma ','.
 
-  The string MUST use only US-ASCII charset (without the comma and the 
-  semicolon which are reserved for separation of fields).
+  The string MUST use only US-ASCII charset (without the semicolon which
+  is reserved for separation of fields).
 
   The string size MUST NOT exceed 255 octets.
 
@@ -195,7 +194,7 @@ Request for Comments:                                      Open-UDC Team
            "aaaa-mm-dd".
 
         4- The location of birth. As long as individuals are born on
-           earth, it should be prefixed by a 'E' (capital) character.
+           earth, it should be prefixed by a 'e' (lower case) character.
            Then following is defined as terrestrial coordinates.
 
            The first number MUST be the latitude and MUST be a 4 digits
@@ -219,17 +218,34 @@ Request for Comments:                                      Open-UDC Team
         5- A number wich may increase in the case of more than one
            children born with the same last name and first name at the
            same place at the same date.
-
            This number should so be equal to 0 for almost every one. 
 
-    eg: if a individual is registered as 
+    The hashed version "udid2;c;" MUST be followed by 2 fields:
+
+        1- The SHA1 of the string composed by the fields "1;2;3;4"
+           of the clear version (with the 3 ';' delimiters).
+
+        2- A number wich may increase in the case of more than one
+           children born with the same last name and first name at the
+           same place at the same date, or if SHA1 collision.
+           (2^63 operation are needed to meet an SHA1 collision, and
+           there is today less than 2^33 humans on earth...)
+           This number should so be equal to 0 for almost every one. 
+
+  example: if a individual is registered as 
              - first names: François-Xavier-Robert,Lucien
              - last name: DE CLÉREL DE TOCQUEVILLE
              - birth date: 14 July 1989
              - birthplace: Paris 15
 
-    its udid2 will be :
-        
+    its clear udid2 will be :
+    
+   udid2;c;TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14;e+48.84+002.30;0;
+
+    and it hashed udid2 will be :
+
+   udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
+
 
 4.2= Proof of identity =
 
