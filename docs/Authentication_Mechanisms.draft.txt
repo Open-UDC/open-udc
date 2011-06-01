@@ -223,7 +223,7 @@ Request for Comments:                                      Open-UDC Team
     The hashed version "udid2;c;" MUST be followed by 2 fields:
 
         1- The SHA1 of the string composed by the fields "1;2;3;4"
-           of the clear version (with the 3 ';' delimiters).
+           of the clear version (with the three ';' delimiters).
 
         2- A number wich may increase in the case of more than one
            children born with the same last name and first name at the
@@ -246,13 +246,38 @@ Request for Comments:                                      Open-UDC Team
 
    udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
 
+   Note1: the SHA1 can be calculated with the sha1sum tool on almost
+        all recent Unix systems.
+
+   Note2: to transpose some europeans charaters to US-ASCII charset,
+         uni2ascii tool may help.
+         (http://billposer.org/Software/uni2ascii.html)
 
 4.2= Proof of identity =
 
-    The identity is trusted by using the OpenPGP web of trust.
+    The identity is trusted by using the OpenPGP web of trust. It means
+    signing an OpenUDC uid is something to do seriously and imply to 
+    check ID of the individuals to sign.
 
-5.== Node Authentication ==
-
+    If a cheat is discovered, eg.:
+     - signing a person which doesn't exist.
+     - signing an udid which point to somebody else.
+     - signing an udid2 which doesn't match the standard described in
+       this document ([RFCXXXX]).
+    the signatories will be held accountable and may be prosecuted.
     
+4.3= Proof of live =
+
+    The proof of live is related with the money creation : if someone
+    in the web of trust does not initialize (use) the share of new money
+    which is reserved for him. He will be presumed "dead" and will be
+    remove for the calculation of the next money set.
+
+    The share of money which he have not initialized should be use
+    democratically by the rest of the web of trust.
+
+    If a cheat is discovered, eg. if someone or something (a robot) use
+    the private secret of somebody else or somebody dead, then
+    investigation ("Cui prodest scelus is fecit"), prosecution, etc ...
 
 
