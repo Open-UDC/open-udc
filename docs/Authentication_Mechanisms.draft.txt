@@ -8,7 +8,7 @@ Request for Comments:                                      Open-UDC Team
 
  === Status of This Memo ===
 
- (Today 10 may 2011, it is still a draft).
+ (Today 31 may 2011, it is still a draft).
 
  === Copyright Notice ===
 
@@ -21,9 +21,7 @@ Request for Comments:                                      Open-UDC Team
     4.1 OpenPGP Human certificat ....................................
     4.2 Proof of identity ..........................................
     4.3 Proof of life ..............................................
-    4.4 Money keys ..............................................
  5. Node Authentication ..........................................
- 6. Chain initialization keys .......................................
 
 1.== Introduction ==
 
@@ -72,8 +70,6 @@ Request for Comments:                                      Open-UDC Team
             Was used for Human Authentication, now deprecated.
     - "udid2"
             Used for Human Authentication.
-    - "udcini1"
-            Used for the initialization of udc-unit signing chain.
     - "udnode1"
             Used for Node Authentication.
 
@@ -115,11 +111,11 @@ Request for Comments:                                      Open-UDC Team
 
     This strings look like :
     
-    udid2;c;BRUCKER;JEAN-JACQUES;1980-12-05;E+45.43+004.43;0;
+    udid2;c;BRUCKER;JEAN-JACQUES;1980-12-05;e+45.43+004.43;0;
 
     or :
 
-    udid2;h;063007a34f7c8991ad47fe988e6d00c467162ae86508faaf8e4c97626880574c;0;
+    udid2;h;0b42ec04074e9b4138f5fdd524335f8fc2f9900f;0;
 
 4.1.1. Universal Digital IDentity string version 1.
 
@@ -242,7 +238,7 @@ Request for Comments:                                      Open-UDC Team
     
    udid2;c;TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14;e+48.84+002.30;0;
 
-    and it hashed udid2 will be :
+    and its hashed udid2 will be :
 
    udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
 
@@ -269,9 +265,9 @@ Request for Comments:                                      Open-UDC Team
 4.3= Proof of live =
 
     The proof of live is related with the money creation : if someone
-    in the web of trust does not initialize (use) the share of new money
-    which is reserved for him. He will be presumed "dead" and will be
-    remove for the calculation of the next money set.
+    in the web of trust does not initialize (or use) the share of new
+    money which is reserved for him. He will be presumed "dead" and will
+    be remove for the calculation of the next money set.
 
     The share of money which he have not initialized should be use
     democratically by the rest of the web of trust.
@@ -280,4 +276,12 @@ Request for Comments:                                      Open-UDC Team
     the private secret of somebody else or somebody dead, then
     investigation ("Cui prodest scelus is fecit"), prosecution, etc ...
 
+
+5.== Node Authentication ==
+
+    As long as a single network will be enough to trade efficiently in
+    a given web of trust, splitting the network into different node will
+    not be mandatory.
+
+    (Today, 31 may 2011) Node specification may wait.
 
