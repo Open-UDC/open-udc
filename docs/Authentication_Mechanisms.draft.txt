@@ -186,8 +186,8 @@ Request for Comments:                                      Open-UDC Team
            characters MUST be ignored.
 
         3- The date of birth as written on the birth certificate, but
-           transposed, as specified by the ISO-8601, in the form:
-           "aaaa-mm-dd".
+           transposed, as specified by the ISO-8601, in the extended
+           form: "aaaa-mm-dd".
 
         4- The location of birth. As long as individuals are born on
            earth, it should be prefixed by a 'e' (lower case) character.
@@ -224,7 +224,7 @@ Request for Comments:                                      Open-UDC Team
         2- A number wich may increase in the case of more than one
            children born with the same last name and first name at the
            same place at the same date, or if SHA1 collision.
-           (2^63 operation are needed to meet an SHA1 collision, and
+           (2^63 operations are needed to meet an SHA1 collision, and
            there is today less than 2^33 humans on earth...)
            This number should so be equal to 0 for almost every one. 
 
@@ -245,7 +245,7 @@ Request for Comments:                                      Open-UDC Team
    Note1: the SHA1 can be calculated with the sha1sum tool on almost
         all recent Unix systems.
 
-   Note2: to transpose some europeans charaters to US-ASCII charset,
+   Note2: to transpose some europeans characters to US-ASCII charset,
          uni2ascii tool may help.
          (http://billposer.org/Software/uni2ascii.html)
 
