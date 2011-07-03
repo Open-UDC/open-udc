@@ -43,7 +43,7 @@ Request for Comments:                                      Open-UDC Team
     7.1 header ......................................................
     7.2 bills .......................................................
     7.3 signing chain ...............................................
- 8. udc-unit JSON format ............................................
+ 8. udc-unit ASCII format ............................................
  9. Security concerns ...............................................
     9.1 offline transactions ........................................
     9.2 init chain signature ........................................
@@ -480,14 +480,14 @@ Request for Comments:                                      Open-UDC Team
 
 (TO CONTINUE... !)
 
-8.== udc-unit JSON format ==
+8.== udc-unit ASCII format ==
 
 9.== Security concerns ==
 
 9.1= offline transactions =
 
-    As it has been mentioned, offline udc-units MUST be connected
-    regularly.
+    As it has been mentioned, offline udc-units MUST be published
+    as soon as possible.
 
     If not, fraud detection will become harder, which mean fraud will
     become easier.
