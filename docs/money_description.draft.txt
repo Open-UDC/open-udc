@@ -24,9 +24,8 @@ Request for Comments:                                      Open-UDC Team
         3.3.2 differences compared to BitCoin .......................
         3.3.3 offline transactions ..................................
         3.3.4 beginning the chain ...................................
-        3.3.5 shortcutting the chain ................................
-        3.3.6 timestamp in the chain ................................
-        3.3.7 cancel a transaction ..................................
+        3.3.5 timestamp in the chain ................................
+        3.3.6 cancel a transaction ..................................
  4. udc-unit header description .....................................
     4.1 currency code ...............................................
     4.2 version .....................................................
@@ -217,22 +216,16 @@ Request for Comments:                                      Open-UDC Team
 
 3.3.4 beginning the chain
 
-    Only a few number of keys should be allowed to initiate the signing
-    chain of a udc-unit. They should be trustfull, well-known and
-    initialization have to be declared in the main node to be check by
-    the network.
+    Each time money is created, a list of key IDs and a list of users
+    who belong those keys is published. Those lists should be sign by at
+    least the majority of the user in the previous list.
+
+    Then each user should create the part of money which is reserved for
+    him, i.e. signing first transaction with its own key.
 
     Key ID collision are not allowed for this keys.
 
-3.3.5 shortcutting the chain
-
-    If a udc-unit get back to one of its previous owner, the previous
-    owner MAY shortcut the chain to the previous signature containing
-    its Key ID.
-
-    But it MUST be declared and registered by the network.
-    
-3.3.6 timestamp in the chain
+3.3.5 timestamp in the chain
 
     Recording the transaction dates inside the chain has 2 purposes :
 
@@ -258,7 +251,7 @@ Request for Comments:                                      Open-UDC Team
           the date he have signed (best idea).
         - Ask for money unit re-initialization (not to abuse).
 
-3.3.7 cancel a transaction
+3.3.6 cancel a transaction
 
     A transaction can not be canceled.
 

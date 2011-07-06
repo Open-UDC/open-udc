@@ -1,5 +1,15 @@
 #!/bin/bash
 
+if [ "${1:0:1}" == "-" ] || ! source "$1" ; then
+    echo "Usage: $0 CREATION_SET_FILE" >&2
+    exit -2
+fi
+
+if [ "$udcdata" != "cset1.env" ] ; then
+    echo "Sorry, unsupported version ($udcdata)" >&2
+    exit -3
+fi
+
 if gpg2 --version 2> /dev/null ; then 
     gpg="gpg2"
 elif gpg --version 2> /dev/null ; then
