@@ -106,8 +106,8 @@ Request for Comments:                                      Open-UDC Team
 
 4.1.= OpenUDC Unique identification string =
 
-    An OpenUDC user MUST have a special string in the comment of one
-    of its OpenPGP uid.
+    An OpenUDC user MUST have, in one of its OpenPGP uid, a comment
+    which begins with a special string.
 
     This strings look like :
     
