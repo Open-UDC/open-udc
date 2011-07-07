@@ -32,10 +32,10 @@ if [ -z "$mykeys" ] ; then
     exit -4
 fi
 
-myudid2h="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;h;[[:xdigit:]]\{40\};[0-9]\+\)[;)].*,\1,p ')"
+echo myudid2h="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;h;[[:xdigit:]]\{40\};[0-9]\+\)[;)].*,\1,p ')"
 #myudid2c="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;c;[A-Z-]\{0,20\};[A-Z-]\{1,20\};[0-9-]\{10\};e[0-9.+-]\{13\};[0-9]\+\)[;)].*,\1,p ')"
-myudid2c="$($gpg --list-secret-keys 2> /dev/null | gawk '/udid2;c/ { print gensub(/.*(\(udid2;c;[A-Z-]\{0,20\};[A-Z-]\{1,20\};[0-9-]\{10\};e[0-9.+-]\{13\};[0-9]\+)[;)].*/, "\\1", "1") }' )"
-myudid1="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid1;[^);]\+;[^);]\+;[^);]\+;[^);]\+\)[;)].*,\1,p ' | head -n 1 )" 
+echo myudid2c="$($gpg --list-secret-keys 2> /dev/null | gawk --re-interval '/\(udid2;c;/ { print gensub(/[^(]*\((udid2;c;[A-Z-]{0,20};[A-Z-]{1,20};[0-9-]{10};e[0-9.+-]{13};[0-9]+)[;)].*/, "\\1", "1") }' )"
+echo myudid1="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid1;[^);]\+;[^);]\+;[^);]\+;[^);]\+\)[;)].*,\1,p ' | head -n 1 )" 
 
 if ! [ "$myudid2h" -o "$myudid2c" -o "$myudid1" ] ; then 
     echo -e " No udid found in your private datas\n"\
@@ -57,12 +57,12 @@ fi
 myindex=$((${myline%%:*}-nstart))
 mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{16\}\);.*,\1,p ')"
 
-if ! echo "${mykeys[*]}" | grep "$mykey" ; then
-    echo -e " Oups ! the keyID associated with your udid is not one of yours here.\n"\
+if ! echo "${mykeys[*]}" | grep "$mykey" > /dev/null ; then
+    echo -e " Oups ! the keyID associated with your udid ($mykey) is not\n"\
+            "one of yours here (${mykeys[*]}).\n"\
             "If there is a mistake in the creation sheet, please alert quickly." >&2
     exit -5
 fi
-
 
 while true ; do
     read -p "Have you read the new creation sheet (y/n) ? " rep
@@ -74,7 +74,7 @@ while true ; do
       [nN]*)
         read -t 5 -p "So it will be displayed now, press q when you're done."
         echo
-        less $1 || more $1
+        less "$1" || more "$1"
         break
         ;;
       *)
@@ -86,9 +86,12 @@ while true ; do
     read -p "Do you validate this creation set (y/n) ? " rep 
     case "$rep" in
       [yY]*)
-        read -t 3 -p "Okay, let sign it !"
-        $gpg --detach-sign $1
-        echo " ^^"
+        read -t 3 -p "Okay, let's create your part of money !"
+        mkdir -p "$HOME/.openudc/$curname/cset"
+        #if 
+        mkdir -p "$HOME/.openudc/$curname/$mykey"
+        cp -v "$1" "$HOME/.openudc/$curname/cset/"
+        $gpg --detach-sign -u "${mykey}!" --armor --output - $1 
         break
         ;;
       [nN]*)
