@@ -168,22 +168,22 @@ Request for Comments:                                      Open-UDC Team
     The clear version "udid2;c;" MUST be followed by 5 fields:
 
         1- The last last name as written on the birth certificate.
-           Only the 27 upper case [A-Z-] US-ASCII characters are allowed.
+           Only the 26 upper case [A-Z] US-ASCII characters are allowed.
            That means it have to be transposed in a standardized way to
            this US-ASCII characters.
 
-           The maximum lenght of the US-ASCII transposed name MUST not
-           exceed 20 characters. If it reach the 20-chars limit, extra
-           characters MUST be ignored.
+           The transposed name MUST contain at least 1 character and
+           MUST not exceed 20 characters. If it reach the 20-chars
+           limit, extra characters MUST be ignored.
 
         2- The first first name as written on the birth certificate.
            Only the 27 upper case [A-Z-] US-ASCII characters are allowed.
            That means it have to be transposed in a standardized way to
            this US-ASCII characters.
 
-           The maximum lenght of the US-ASCII transposed name MUST not
-           exceed 20 characters. If it reach the 20-chars limit, extra
-           characters MUST be ignored.
+           The transposed name MUST contain at least 1 character and
+           MUST not exceed 20 characters. If it reach the 20-chars
+           limit, extra characters MUST be ignored.
 
         3- The date of birth as written on the birth certificate, but
            transposed, as specified by the ISO-8601, in the extended
@@ -230,7 +230,7 @@ Request for Comments:                                      Open-UDC Team
 
   example: if a individual is registered as 
              - first names: François-Xavier-Robert,Lucien
-             - last name: DE CLÉREL DE TOCQUEVILLE
+             - last name: DE CLÉREL-DE-TOCQUEVILLE
              - birth date: 14 July 1989
              - birthplace: Paris 15
 
