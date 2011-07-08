@@ -37,7 +37,7 @@ fi
 
 echo myudid2h="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;h;[[:xdigit:]]\{40\};[0-9]\+\)[;)].*,\1,p ')"
 #myudid2c="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;c;[A-Z-]\{0,20\};[A-Z-]\{1,20\};[0-9-]\{10\};e[0-9.+-]\{13\};[0-9]\+\)[;)].*,\1,p ')"
-echo myudid2c="$($gpg --list-secret-keys 2> /dev/null | gawk --re-interval '/\(udid2;c;/ { print gensub(/[^(]*\((udid2;c;[A-Z-]{0,20};[A-Z-]{1,20};[0-9-]{10};e[0-9.+-]{13};[0-9]+)[;)].*/, "\\1", "1") }' )"
+echo myudid2c="$($gpg --list-secret-keys 2> /dev/null | gawk --re-interval '/\(udid2;c;/ { print gensub(/[^(]*\((udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};e[0-9.+-]{13};[0-9]+)[;)].*/, "\\1", "1") }' )"
 echo myudid1="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid1;[^);]\+;[^);]\+;[^);]\+;[^);]\+\)[;)].*,\1,p ' | head -n 1 )" 
 
 if ! [ "$myudid2h" -o "$myudid2c" -o "$myudid1" ] ; then 
