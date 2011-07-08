@@ -25,7 +25,10 @@ else
     exit -3
 fi
 
+
 mykeys=($($gpg --list-secret-keys --with-colons | grep "^s" | cut -d: -f 5))
+# Warning: $mykeys contain non-signing key. It is not really annoying, but it's not clean.
+
 if [ -z "$mykeys" ] ; then 
     echo -e " No private key found here. Didn't you forget to create your\n"\
             "OpenPGP certificat or import the private part here ?" >&2
