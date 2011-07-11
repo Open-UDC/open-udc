@@ -142,7 +142,8 @@ while true ; do
         done >> "$cfile"
         echo ")" >> "$cfile"
         $gpg --detach-sign -u "${mykey}!" --armor --output - "$HOME/.openudc/$curname/cset/cset.$setnum.env" >> "$cfile"
-        # Publish the creation.
+        # Then we have to sign the generated file
+        # And publish it (the creation).
         break
         ;;
       [nN]*)
