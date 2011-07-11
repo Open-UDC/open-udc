@@ -1,0 +1,84 @@
+0[jbar@localhost open-udc]$ LANGUAGE=en gpg2 --verify -vv /home/jbar/.openudc/uni/1F07D320F5213CF6/c.1.gpg
+:compressed packet: algo=1
+:onepass_sig packet: keyid 1F07D320F5213CF6
+        version 3, sigclass 0x00, digest 2, pubkey 1, last=1
+:literal data packet:
+        mode b (62), created 1310404069, name="c.1",
+        raw data: 207 bytes
+gpg: original file name='c.1'
+:signature packet: algo 1, keyid 1F07D320F5213CF6
+        version 4, created 1310404069, md5len 0, sigclass 0x00
+        digest algo 2, begin of digest 3c e8
+        hashed subpkt 2 len 4 (sig created 2011-07-11)
+        subpkt 16 len 8 (issuer key ID 1F07D320F5213CF6)
+        data: [2043 bits]
+gpg: Signature made lun. 11 juil. 2011 19:07:49 CEST using RSA key ID F5213CF6
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: using subkey F5213CF6 instead of primary key EEF5EAE6
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: using PGP trust model
+gpg: key EEF5EAE6: accepted as trusted key
+gpg: Good signature from "Jean-Jacques B. (udid2;h;4c5441eb5fbe391b27f6baaa1e8203d1990d98b5;0;) <jeanjacquesbrucker@gmail.com>"
+gpg:                 aka "Jean-Jacques (udid2;c;BRUCKER;JEAN-JACQUES;1980-05-12;e+48.83+002.33;0;) <jeanjacquesbrucker@gmail.com>"
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: WARNING: This subkey has been revoked by its owner!
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: reason for revocation: Key is superseded
+gpg: revocation comment: merging in secring.gpg is almost impossible... then i have to cancel this subkey
+gpg: binary signature, digest algorithm SHA1
+0[jbar@localhost open-udc]$ 
+
+0[jbar@localhost ~]$ LANGUAGE=en gpg2 --verify -vv minicom.log2.gpg_
+:compressed packet: algo=1
+:onepass_sig packet: keyid 6AEEFE2C96193F28
+        version 3, sigclass 0x00, digest 2, pubkey 1, last=1
+:literal data packet:
+        mode b (62), created 1310397899, name="minicom.log2",
+        raw data: 331 bytes
+gpg: original file name='minicom.log2'
+:signature packet: algo 1, keyid 6AEEFE2C96193F28
+        version 4, created 1310397899, md5len 0, sigclass 0x00
+        digest algo 2, begin of digest ff 90
+        hashed subpkt 2 len 4 (sig created 2011-07-11)
+        subpkt 16 len 8 (issuer key ID 6AEEFE2C96193F28)
+        data: [1023 bits]
+gpg: Signature made lun. 11 juil. 2011 17:24:59 CEST using RSA key ID 96193F28
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: using subkey 96193F28 instead of primary key EEF5EAE6
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: using PGP trust model
+gpg: key EEF5EAE6: accepted as trusted key
+gpg: BAD signature from "Jean-Jacques B. (udid2;h;4c5441eb5fbe391b27f6baaa1e8203d1990d98b5;0;) <jeanjacquesbrucker@gmail.com>"
+gpg: binary signature, digest algorithm SHA1
+1[jbar@localhost ~]$
+
+0[jbar@localhost open-udc]$ LANGUAGE=en gpg2 --verify -vv ../../../minicom.log2.gpg
+:compressed packet: algo=1
+:onepass_sig packet: keyid 6AEEFE2C96193F28
+        version 3, sigclass 0x00, digest 2, pubkey 1, last=1
+:literal data packet:
+        mode b (62), created 1310398142, name="minicom.log2",
+        raw data: 331 bytes
+gpg: original file name='minicom.log2'
+:signature packet: algo 1, keyid 6AEEFE2C96193F28
+        version 4, created 1310398142, md5len 0, sigclass 0x00
+        digest algo 2, begin of digest d3 19
+        hashed subpkt 2 len 4 (sig created 2011-07-11)
+        subpkt 16 len 8 (issuer key ID 6AEEFE2C96193F28)
+        data: [1023 bits]
+gpg: Signature made lun. 11 juil. 2011 17:29:02 CEST using RSA key ID 96193F28
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: using subkey 96193F28 instead of primary key EEF5EAE6
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: using PGP trust model
+gpg: Good signature from "Jean-Jacques B. (udid2;h;4c5441eb5fbe391b27f6baaa1e8203d1990d98b5;0;) <jeanjacquesbrucker@gmail.com>"
+gpg:                 aka "Jean-Jacques (udid2;c;BRUCKER;JEAN-JACQUES;1980-05-12;e+48.83+002.33;0;) <jeanjacquesbrucker@gmail.com>"
+gpg: NOTE: signature key F5213CF6 has been revoked
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 0F16 B563 D276 8EA6 2B36  A13C 442C 7E45 EEF5 EAE6
+     Subkey fingerprint: 1B0C 7D91 A7A1 A833 C32D  4E15 6AEE FE2C 9619 3F28
+gpg: binary signature, digest algorithm SHA1
+0[jbar@localhost open-udc]$
+

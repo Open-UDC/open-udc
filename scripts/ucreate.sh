@@ -26,18 +26,35 @@ if [ "$udcdata" != "cset1.env" ] ; then
     exit -2
 fi
 
-if [ -z "$curname" ] || [ -z "$setnum" ] || ((${#factors[*]}!=48)) || [ -z "$defdate" ] ; then
+if [ -z "$curname" ] || [ -z "$setnum" ] || ((${#factors[*]}!=48)) || [ -z "$dlimc" ] ; then
     echo "$SW: Error: file \"$1\" is invalid" >&2
     exit -1
 fi
 
-echo -en "\nClosing date for creation: " 
-if ! date -d "$defdate" >&2 ; then
+for ((i=0;i<48;i++)) ; do
+    if ((factors[i])) ; then
+        ((value+=$(echo $(((48-i)%3?(48-i)%3:5))*10^$(((47-i)/3)) | bc -l )*factors[i]))
+    fi
+done 
+
+echo -e "\n Set n°$setnum:\n"\
+        "\tNumber of Individuals: $idnumber\n"\
+        "\tMonetary Dividend: $(echo "scale=2; $value/100" | bc -l ) ${curname}s"
+
+# validation is better outside the creation sheet
+#echo -n " Closing date for validation: " 
+#if ! date -d "$dlimv" >&2 ; then
+#    echo -e "$SW: Error: file \"$1\" is invalid" >&2
+#    exit -1
+#fi
+
+echo -n " Closing date for creation: " 
+if ! date -d "$dlimc" >&2 ; then
     echo -e "$SW: Error: file \"$1\" is invalid" >&2
     exit -1
 fi
 
-if (($(date +%s)>$(date -d "$defdate" +%s))) ; then
+if (($(date +%s)>$(date -d "$dlimc" +%s))) ; then
     echo "\n Sorry, this set of creation has expired\n" >&2
     exit -2
 fi
@@ -88,7 +105,7 @@ fi
 myindex=$((${myline%%:*}-nstart))
 mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{16\}\);.*,\1,p ')"
 
-echo -e "\nudid=$myudid key=$mykey position=$myindex"
+echo -e "\nudid=\"$myudid\" key=$mykey position=$myindex"
 
 if ! echo "${mykeys[*]}" | grep "$mykey" > /dev/null ; then
     echo -e "\n Oups ! the keyID associated with your udid ($mykey) is not\n"\
@@ -97,25 +114,6 @@ if ! echo "${mykeys[*]}" | grep "$mykey" > /dev/null ; then
     exit -5
 fi
 
-while true ; do
-    echo
-    read -p "Have you read the new creation sheet (y/n) ? " rep
-    case "$rep" in
-      [yY]*)
-        echo -n "^^ "
-        break
-        ;;
-      [nN]*)
-        read -t 5 -p "So it will be displayed now, press q when you're done."
-        echo
-        less "$1" || more "$1"
-        break
-        ;;
-      *)
-        echo "  please answer \"yes\" or \"no\""
-        ;;
-    esac
-done
 while true ; do
     echo
     read -p "Do you validate this creation set (y/n) ? " rep 
@@ -129,21 +127,20 @@ while true ; do
         #KeyID collision in 2 differents creation sheet time are not managed today
         mkdir -p "$HOME/.openudc/$curname/$mykey"
         cfile="$HOME/.openudc/$curname/$mykey/c.$setnum"
-        echo -e "d=t2c\nc=uni\nb=(" > "$cfile"
+        echo -e "d=t2c\nc=$curname\nh=$(sha1sum -t "$1" | cut -d ' ' -f 1)\nb=(" > "$cfile"
         for ((i=0;i<48;i++)) ; do
             if ((factors[i])) ; then
                 value="$(echo $(((48-i)%3?(48-i)%3:5))*10^$(((47-i)/3)) | bc -l )"
-                jstart=$((factors[i]*myindex))
                 for ((j=0;j<factors[i];j++)) ; do
-                    echo -n "$value-$setnum-$((jstart+j)).0 "
+                    echo -n "$value-$setnum-$((factors[i]*myindex+j)).0 "
                 done
                 echo
             fi
         done >> "$cfile"
         echo ")" >> "$cfile"
-        $gpg --detach-sign -u "${mykey}!" --armor --output - "$HOME/.openudc/$curname/cset/cset.$setnum.env" >> "$cfile"
-        # Then we have to sign the generated file
-        # And publish it (the creation).
+        #$gpg --detach-sign -u "${mykey}!" --armor --output - "$HOME/.openudc/$curname/cset/cset.$setnum.env" >> "$cfile"
+        $gpg --sign -u "${mykey}!" "$cfile"
+        # Then we havo to publish this creation... and hurry (before dlimc).
         break
         ;;
       [nN]*)
@@ -155,6 +152,4 @@ while true ; do
         ;;
     esac
 done
-
-## (check if the file
 
