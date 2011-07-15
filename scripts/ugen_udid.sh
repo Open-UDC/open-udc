@@ -1,46 +1,46 @@
 #!/bin/bash
 
-SW="OpenUDC"
-Version="ugen_udid.sh ($SW) 0.0.1 - devel"
+SW="OpenUDC - devel"
+Version="ugen_udid.sh 0.0.1 ($SW)"
 
-# translate long options to short
-# Note: This enable long options but disable "--?*" in $OPTARG, or disable long options after  "--" in option fields.
-for ((i=1;$#;i++)) ; do
-    case "$1" in
-        --) 
-            # [ ${args[$((i-1))]} == ... ] || EndOpt=1 ;;& # DIRTY: we still can handle some execptions...
-            EndOpt=1 ;;&
-        --version) ((EndOpt)) && args[$i]="$1"  || args[$i]="-V";; 
-        # default case : short option use the first char of the long option:
-        --?*) ((EndOpt)) && args[$i]="$1"  || args[$i]="-${1:2:1}";;
-        # pass through anything else:
-        *) args[$i]="$1" ;;
-    esac
-    shift
-done
-# reset the translated args
-set -- "${args[@]}"
+Countries=( "FRA" )
 
 function usage {
-echo "Usage: $0 [options] files" >&2
+echo -e "Usage: $0 [options]\n"\
+     "Options:\n"\
+     " -h, --help\t\tthis help"\
+     " -V, --version\t\tversion"\
+     " -f, --file\t\tgeolist file to use" > &2
     exit $1
 }
 
-# now we can process with getopt
-while getopts ":hvVc:" opt; do
-    case $opt in
-        h)  usage ;;
-        v)  VERBOSE=true ;;
-        V)  echo $Version ; exit ;;
-        c)  source $OPTARG ;;
-        \?) echo "unrecognized option: -$opt" ; usage -1 ;;
-        :)
-        echo "option -$OPTARG requires an argument"
-        usage -1
-        ;;
+if gpg2 --version 2> /dev/null | head -n 3 ; then 
+    gpg="gpg2"
+elif gpg --version 2> /dev/null | head -n 3 ; then
+    gpg="gpg"
+else
+    echo -e "\nWarning: No gpg found in your \$PATH ($PATH)\n"\
+            "please install GnuPG (http://www.gnupg.org/)\n" >&2
+    gpg=false
+fi
+
+for ((i=0;$#;)) ; do 
+    case "$1" in
+        -h|--h*) usage ;;
+        -V|--vers*) echo $Version ; exit ;;
+        -f|--f*)
+            shift
+            if [ -f "$1" ] ; then
+                Country=$(head -n 1 "$1" | cut -d "$(printf "\t")" -f 2 ) 
+                GeoFiles[$COUNTRY]="$1"
+            else
+                echo -e "Error: geolist file $1 does not exist\n" ; usage -1;
+            fi ;;
     esac
+    shift
 done
 
-shift $((OPTIND-1))
-[[ "$1" == "--" ]] && shift
+if ! LANGUAGE=en $gpg --verify ${GeoFile:=geolist_FRA.txt.asc} 2>&1 | grep -o 'Good signature from ".\+(udid2;h;4c5441eb5fbe391b27f6baaa1e8203d1990d98b5;0\>' ; then
+    echo "Warning: geolist signature ..."
+fi
 
