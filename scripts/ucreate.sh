@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SW="OpenUDC"
-Version="ucreate.sh ($SW) 0.0.2 - devel"
+SW="OpenUDC - devel"
+Version="ucreate.sh 0.0.2 ($SW)"
 
 if [ "$1" == "-V" ] || [ "$1" == "--version" ] ; then 
     echo "$Version"
