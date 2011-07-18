@@ -16,9 +16,9 @@ done
 function usage {
 echo -e "Usage: $0 [options]\n"\
      "Options:\n"\
-     " -h, --help\t\tthis help"\
-     " -V, --version\t\tversion"\
-     " -f, --file\t\tgeolist file to use" >&2
+     " -h, --help\t\tthis help\n"\
+     " -V, --version\t\tversion\n"\
+     " -f, --file\t\tgeolist file to use\n" >&2
     exit $1
 }
 
@@ -33,7 +33,7 @@ else
 fi
 
 if ! $gpg --list-key "${GEOLISTUDID[0]}" 2> /dev/null > /dev/null ; then
-    $gpg gpg2 --recv-keys --batch --no-verbose --keyserver "$KEYSERVER" "$GEOLISTFPR"
+    $gpg gpg2 --recv-keys --batch --no-verbose --keyserver "$KEYSERVER" "${GEOLISTFPR[0]}"
 fi
 
 for ((i=0;$#;)) ; do 
@@ -42,7 +42,10 @@ for ((i=0;$#;)) ; do
         -V|--vers*) echo $Version ; exit ;;
         -f|--f*)
             shift
-            if [ -f "$1" ] && Country="$(sed -n '4s,e[0-9+.]\+\t\([A-Z]\{3\}\)\t.*,\1,p' "$1" )" && [ "$Country" ] ; then
+            if [ -f "$1" ] \
+                    && Country="$($gpg --no-verbose --batch --decrypt "$1" 2> /dev/null | sed -n '2s,e[0-9+.]\+\t\([A-Z]\{3\}\)\t.*,\1,p' ;)" \
+                    && [ "$Country" ] ; then
+                    #Note: The validity of the signature will be checked later in the script
                 cCountries[$i]="$Country"
                 cCFiles[$((i++))]="$1"
                 Countries="${cCountries[@]}"
@@ -87,8 +90,17 @@ else
 fi
 
 if ! LANGUAGE=en $gpg --verify --no-verbose --batch "$GFile" 2>&1 | grep -o "(${GEOLISTUDID[0]}\>.*)" ; then
-    echo "Warning: geolist signature ..." >&2
     #Note: Trust is not checked.
+    echo "Warning: the geolist file "$GFile" is not signed by a recognized signature" >&2
+    read -p "The geolist file "$GFile" may provide invalid udid2, do you want to continue ? (y/n)" answer
+    case "$answer" in
+                Y* | y* | O* | o* )
+                true ;;
+                *)
+                exit ;;
+    esac
 fi
 
+read -p "Please enter your place of birth ? " answer
+#eval $gpg --no-verbose --batch --decrypt "$1" 2> /dev/null | 
 
