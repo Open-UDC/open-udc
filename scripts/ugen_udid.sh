@@ -18,9 +18,14 @@ echo -e "Usage: $0 [options]\n"\
      "Options:\n"\
      " -h, --help\t\tthis help\n"\
      " -V, --version\t\tversion\n"\
-     " -f, --file\t\tgeolist file to use\n" >&2
+     " -f, --file\t\tgeolist file to use\n"
     exit $1
 }
+
+## Create file descriptor 7 to save STDOUT
+exec 7>&1
+## then redirect STDOUT to STDERR to avoid using >&2 for each "echo" ...
+exec 1>&2
 
 if gpg2 --version 2> /dev/null | head -n 3 ; then 
     gpg="gpg2"
@@ -28,7 +33,7 @@ elif gpg --version 2> /dev/null | head -n 3 ; then
     gpg="gpg"
 else
     echo -e "\nError: No gpg found in your \$PATH ($PATH)\n"\
-            "please install GnuPG (http://www.gnupg.org/)\n" >&2
+            "please install GnuPG (http://www.gnupg.org/)\n" 
     exit -3
 fi
 
@@ -51,9 +56,9 @@ for ((i=0;$#;)) ; do
                 Countries="${cCountries[@]}"
                 CFiles="${cCFiles[@]}"
             else
-                echo "Error: incorrect geolist file $1" >&2 ; usage -1;
+                echo "Error: incorrect geolist file $1"  ; usage -1;
             fi ;;
-        *) echo "Error: Unrecognized option $1" >&2 ; usage -1;;
+        *) echo "Error: Unrecognized option $1"  ; usage -1;;
     esac
     shift
 done
@@ -93,43 +98,93 @@ fi
 
 if ! LANGUAGE=en $gpg --verify --no-verbose --batch "$GFile" 2>&1 | grep -o "(${GEOLISTUDID[0]}\>.*)" ; then
     #Note: Trust is not checked.
-    echo "Warning: the geolist file "$GFile" is not signed by a recognized signature" >&2
+    echo "Warning: the geolist file "$GFile" is not signed by a recognized signature" 
     read -p "The geolist file "$GFile" may provide invalid udid2, do you want to continue ? (y/n) " answer
     case "$answer" in
-                Y* | y* | O* | o* )
-                true ;;
-                *)
+            Y* | y* | O* | o* )
+                ;; # do nothing
+            *)
                 exit ;;
     esac
 fi
 
-for ((j=0;;j++)) ; do 
-    read -p "Please enter your place of birth ? " answer
-    cities="$($gpg --no-verbose --batch --decrypt "$GFile" 2> /dev/null | grep -i "$answer")"
-    eval citiesname=($(echo "$cities" | sed ' s,e[0-9.+-]\+\t[A-Z]\{3\}\t\([^"]\+\).*,"\1",'))
-    
-    chooseinlist "Please validate your place of birth" "${citiesname[@]}" "Other..."
-    ret=$?
-    if ((ret==${#citiesname[@]}+1)) ; then
-        if ((!j)) ; then continue
+for ((;;)) ; do 
+    for ((j=0;;j++)) ; do 
+        read -p "Please enter your place of birth ? " answer
+        cities="$($gpg --no-verbose --batch --decrypt "$GFile" 2> /dev/null | grep -i "$answer")"
+        eval citiesname=($(echo "$cities" | sed ' s,e[0-9.+-]\+\t[A-Z]\{3\}\t\([^"]\+\).*,"\1",'))
+        
+        chooseinlist "Please validate your place of birth" "${citiesname[@]}" "Other..."
+        ret=$?
+        if ((ret==${#citiesname[@]}+1)) ; then
+            if ((!j)) ; then continue
+            else
+                echo -e " Sorry: we can't generate your udid.\n"\
+                "Please join the OpenUDC's developpement team to add support for your birthplace <open-udc@googlegroups.com>."
+                exit
+            fi
         else
-            echo -e " Sorry: we can't generate your udid.\n"\
-            "Please join the OpenUDC's developpement team to add support for your birthplace <open-udc@googlegroups.com>."
-            exit
+            bplace="$(echo "$cities" | sed -n "${ret}p" )"
+            #echo "$bplace" | sed "s,\(e[0-9.+-]\+\)\t[A-Z]\{3\}\t.*,\1,"
+            #echo ${bplace%%$(echo -en "\t")*}
+            break;
         fi
+    done
+
+    echo -e "\nNote: Only US-ASCII characters are allowed for first name and last name,\n"\
+            "other characters (éçñßزд文...) have to be transposed to US-ASCII charset"
+    if echo | uni2ascii 2> /dev/null ; then
+        Transposer="uni2ascii -B"
     else
-        bplace="$(echo "$cities" | sed -n "${ret}p" )"
-        #echo "$bplace" | sed "s,\(e[0-9.+-]\+\)\t[A-Z]\{3\}\t.*,\1,"
-        #echo ${bplace%%$(echo -en "\t")*}
-        break;
+        echo -e "\t(and uni2ascii tool is not installed in your PATH)"
+        Transposer="cat"
     fi
+    
+    for ((;;)) ; do 
+        read -p "Please enter your birth last name (family name) ? " blname
+        blname="$(echo "$blname" | $Transposer 2> /dev/null | tr '[:lower:]' '[:upper:]' )"
+        if echo "$blname" | grep "[A-Z]" > /dev/null ; then
+            break
+        else
+            echo -e "\t(Last name MUST contain at least one [A-Z] character)"
+        fi
+    done
+
+    for ((;;)) ; do 
+        read -p "Please enter your birth first first name (forename) ? " bfname
+        bfname="$(echo "$bfname" | $Transposer 2> /dev/null )"
+        if echo "$bfname" | grep "[A-Za-z-]" > /dev/null ; then
+            break
+        else
+            echo -e "\t(First name MUST contain at least one [A-Z-] character)"
+        fi
+    done
+
+    for ((;;)) ; do
+        read -p "Please enter your date of birth ? (YYYY-mm-dd) " bdate
+        date -d "$bdate" > /dev/null && break
+    done
+
+    echo -e "\nSummary:\n"\
+            "Last name at birth: $blname\n"\
+            "First name at birth: $bfname\n"\
+            "Birthdate: $(date -d "$bdate" "+%A, %d %B %Y")\n"\
+            "Birthplace: ${bplace##*$(echo -en "\t")}\n"
+    read -p "Is that correct ? (y/n) " answer
+    case "$answer" in 
+        Y* | y* | O* | o* )
+            break ;;
+    esac
 done
 
-read -p "Please enter your birth last name (family name) ? " blname
-read -p "Please enter your birth first first name (forename) ? " bfname
+blname="$( echo "$blname" | sed -n ' s,.*\(\<[A-Z]\+\>\)[^A-Z]*,\1,p ' | head -c 20 )"
+bfname="$( echo "$bfname" | sed ' s,[^a-zA-Z-]*\([a-zA-Z-]\+\).*,\U\1, ' | head -c 20 )"
 
-read -p "Please enter your date of birth ? (YYYY-MM-DD) " bdate
-date -d "$bdate" "+%A, %d %B %Y"
+echo -e "\n\tTa-dah ! ... Your udids are (except of collision) :\n"
+sleep 1
+## redirect STDOUT to STDOUT
+exec >&7
 
-#eval $gpg --no-verbose --batch --decrypt "$1" 2> /dev/null | 
-
+echo "udid2;h;$( echo -n "$blname;$bfname;$bdate;${bplace%%$(echo -en "\t")*}" | sha1sum | head -c 40 );0;"
+echo "udid2;c;$blname;$bfname;$bdate;${bplace%%$(echo -en "\t")*};0;"
+echo

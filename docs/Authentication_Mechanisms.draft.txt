@@ -18,7 +18,7 @@ Request for Comments:                                      Open-UDC Team
  2. Conventions Used in This Document ...............................
  3. Using OpenPGP certificates ......................................
  4. Human Authentication ............................................
-    4.1 OpenPGP Human certificate ....................................
+    4.1 OpenPGP Human certificat ....................................
     4.2 Proof of identity ..........................................
     4.3 Proof of life ..............................................
  5. Node Authentication ..........................................
@@ -26,7 +26,7 @@ Request for Comments:                                      Open-UDC Team
 1.== Introduction ==
 
   The OpenUDC project aims to provide a open, democratic and secure
-  monetary system, compatible with universal dividend.
+  monetary system, compatible with universal dividende.
 
   This document describe the authentication mechanisms used in the
   OpenUDC implementations.
@@ -44,13 +44,13 @@ Request for Comments:                                      Open-UDC Team
 
 3.1= specific uid =
 
-  OpenUDC uses widely the OpenPGP standards for all authentications.
+  OpenUDC use widely OpenPGP standards for all authentications.
 
   An OpenUDC certificate is an OpenPGP certificate on which the comment
   field of one of its uid begin with the special string know as "udid2".
 
-  As the OpenUDC characterization only uses uid in an OpenPGP certificate
-  then it is more accurate to speak about OpenUDC uid (inside an OpenPGP
+  As the OpenUDC characterization only use uid in an OpenPGP certifcate
+  it is more accurate to speak about OpenUDC uid (inside an OpenPGP
   certificate) instead of OpenUDC certificate.
 
   The special string recognized by OpenUDC implementations is a sum of
@@ -59,12 +59,12 @@ Request for Comments:                                      Open-UDC Team
   The string MUST use only US-ASCII charset (without the semicolon which
   is reserved for separation of fields).
 
-  The string size MUST NOT exceed 255 bytes.
+  The string size MUST NOT exceed 255 octets.
 
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
-  OpenUDC specifies the 3 following header fields in uid comment :
+  OpenUDC specifies the 3 following headers field in uid comment :
 
     - "udid1"
 	    Was used for Human Authentication, now deprecated.
@@ -73,24 +73,24 @@ Request for Comments:                                      Open-UDC Team
     - "udnode1"
 	    Used for Node Authentication.
 
-  The characters after the last recognized field in the string SHOULD be
+  The charaters after the last recognized field in the string SHOULD be
   ignored and MAY use other charset (UTF-8...). They MAY be use to add
-  information in a non-universal language.
+  informations in a non-universal language.
 
 3.2= Key Types =
 
-    We recommended to use a big main key for the OpenPGP certificate,
+    We recommended to use a big main key of for the OpenPGP certificate,
     and at least 2 subkeys in it :
     - 1 for encryption.
     - at least one for signing udc-unit signing chain. As smallest key
-      implies smallest signature, it is recommended to use ECC Keys.
+      implie smallest signature, it is recommended to use ECC Keys.
 
 3.3= Exporting =
 
     Certificates MUST be exported to some well-know sks key servers.
 
     Sks servers MAY be enhanced to register only OpenUDC certificate,
-    and to unregister automatically OpenUDC certificate which are not
+    and to unregister automatically OpenUDC certificate wich are not
     validated periodically by some other certificate.
 
 3.4= Expiration =
@@ -100,8 +100,8 @@ Request for Comments:                                      Open-UDC Team
 
 4.== Human Authentication ==
 
-  Each human who wants to use an OpenUDC currency and receive a
-  Universal Dividend (or another basic income) MUST have a OpenPGP
+  Each human which want to use an OpenUDC currency and receive a
+  Universal Dividende (or an other basic income) MUST have a OpenPGP
   certificate in accordance with the following specification.
 
 4.1.= OpenUDC Unique identification string =
@@ -109,7 +109,7 @@ Request for Comments:                                      Open-UDC Team
     An OpenUDC user MUST have, in one of its OpenPGP uid, a comment
     which begins with a special string.
 
-    These strings look like :
+    This strings look like :
 
     udid2;c;BRUCKER;JEAN-JACQUES;1980-12-05;e+45.43+004.43;0;
 
@@ -124,13 +124,13 @@ Request for Comments:                                      Open-UDC Team
 
 	1- The last names of the individual, separated by a comma.
 
-	2- The forenames of the individual, separated by a comma.
+	2- The fornames of the individual, separated by a comma.
 
-	3- The date of birth, formatted as number of seconds since
+	3- The date of birth, formated as number of seconds since
 	   00:00:00 UTC on Thursday, 1 January 1970.
 	   For people born before this date, the string will indicate a
-	   negative number prefixed with a character '-'.
-	   If the hour of birth is unknown, it SHOULD be fixed at
+	   negative number prefixed with a charater '-'.
+	   If the hour of birth is unknow, it SHOULD be fixed at
 	   12:00:00 UTC.
 
 	4- The location of birth, defined as terrestrial coordinates.
@@ -147,7 +147,7 @@ Request for Comments:                                      Open-UDC Team
 	   Accepted range for latitude is [-90.00;+90.00].
 	   Accepted range for longitude is [-179.999999;+180.00].
 
-	   Second sub-field is optional and may be use to define
+	   Second subfield is optionnal and may be use to define
 	   non-terrestrial birth.
 
     Note: The version 1 is deprecated and should not be used anymore.
@@ -155,7 +155,7 @@ Request for Comments:                                      Open-UDC Team
 4.1.2. Universal Digital IDentity string version 2.
 
     The "udid2;" header MUST be followed by a one-char field which
-    defines if the birth data are in clear or hashed :
+    define if the birth datas are in clear or hashed :
 	- 'c' char means the data are not hashed.
 	- 'h' char means the data are hashed.
 
@@ -167,7 +167,7 @@ Request for Comments:                                      Open-UDC Team
 
     The clear version "udid2;c;" MUST be followed by 5 fields:
 
-	1- The last name as written on the birth certificate.
+	1- The last last name as written on the birth certificate.
 	   Only the 26 upper case [A-Z] US-ASCII characters are allowed.
 	   That means it have to be transposed in a standardized way to
 	   this US-ASCII characters.
@@ -176,7 +176,7 @@ Request for Comments:                                      Open-UDC Team
 	   MUST not exceed 20 characters. If it reach the 20-chars
 	   limit, extra characters MUST be ignored.
 
-	2- The first name as written on the birth certificate.
+	2- The first first name as written on the birth certificate.
 	   Only the 27 upper case [A-Z-] US-ASCII characters are allowed.
 	   That means it have to be transposed in a standardized way to
 	   this US-ASCII characters.
@@ -187,11 +187,11 @@ Request for Comments:                                      Open-UDC Team
 
 	3- The date of birth as written on the birth certificate, but
 	   transposed, as specified by the ISO-8601, in the extended
-	   form: "aaaa-mm-dd".
+	   form: "YYYY-mm-dd".
 
 	4- The location of birth. As long as individuals are born on
-	   earth, it should be prefixed by an 'e' (lower case) character.
-	   Then the following is defined as terrestrial coordinates.
+	   earth, it should be prefixed by a 'e' (lower case) character.
+	   Then following is defined as terrestrial coordinates.
 
 	   The first number MUST be the latitude and MUST be a 4 digits
 	   number : 2 before the decimal point and 2 after, prefixed by
@@ -211,17 +211,17 @@ Request for Comments:                                      Open-UDC Team
 	   coordinate that indicate almost all map tools (like
 	   googlemap).
 
-	5- A number which may increase in the case of more than one
+	5- A number wich may increase in the case of more than one
 	   children born with the same last name and first name at the
 	   same place at the same date.
 	   This number should so be equal to 0 for almost every one.
 
-    The hashed version "udid2;c;" MUST be followed by 2 fields:
+    The hashed version "udid2;h;" MUST be followed by 2 fields:
 
 	1- The SHA1 of the string composed by the fields "1;2;3;4"
 	   of the clear version (with the three ';' delimiters).
 
-	2- A number which may increase in the case of more than one
+	2- A number wich may increase in the case of more than one
 	   children born with the same last name and first name at the
 	   same place at the same date, or if SHA1 collision.
 	   (2^63 operations are needed to meet an SHA1 collision, and
@@ -262,17 +262,17 @@ Request for Comments:                                      Open-UDC Team
        this document ([RFCXXXX]).
     the signatories will be held accountable and may be prosecuted.
 
-4.3= Proof of life =
+4.3= Proof of live =
 
     The proof of live is related with the money creation : if someone
     in the web of trust does not initialize (or use) the share of new
     money which is reserved for him. He will be presumed "dead" and will
-    be removed for the calculation of the next money set.
+    be remove for the calculation of the next money set.
 
-    The share of money which he has not initialized should be used
+    The share of money which he have not initialized should be use
     democratically by the rest of the web of trust.
 
-    If a cheat is discovered, eg. if someone or something (a robot) uses
+    If a cheat is discovered, eg. if someone or something (a robot) use
     the private secret of somebody else or somebody dead, then
     investigation ("Cui prodest scelus is fecit"), prosecution, etc ...
 
