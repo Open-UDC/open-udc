@@ -38,7 +38,7 @@ else
 fi
 
 if ! $gpg --list-key "${GEOLISTUDID[0]}" 2> /dev/null > /dev/null ; then
-    $gpg gpg2 --recv-keys --batch --no-verbose --keyserver "$KEYSERVER" "${GEOLISTFPR[0]}"
+    $gpg --recv-keys --batch --no-verbose --keyserver "$KEYSERVER" "${GEOLISTFPR[0]}"
 fi
 
 for ((i=0;$#;)) ; do 
