@@ -262,7 +262,7 @@ Request for Comments:                                      Open-UDC Team
        this document ([RFCXXXX]).
     the signatories will be held accountable and may be prosecuted.
     
-4.3= Proof of live =
+4.3= Proof of life =
 
     The proof of live is related with the money creation : if someone
     in the web of trust does not initialize (or use) the share of new

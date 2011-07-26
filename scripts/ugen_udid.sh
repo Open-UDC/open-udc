@@ -27,9 +27,9 @@ exec 7>&1
 ## then redirect STDOUT to STDERR to avoid using >&2 for each "echo" ...
 exec 1>&2
 
-if gpg2 --version 2> /dev/null | head -n 3 ; then 
+if gpg2 --version > /dev/null 2>&1 ; then 
     gpg="gpg2"
-elif gpg --version 2> /dev/null | head -n 3 ; then
+elif gpg --version > /dev/null 2>&1 ; then
     gpg="gpg"
 else
     echo -e "\nError: No gpg found in your \$PATH ($PATH)\n"\
