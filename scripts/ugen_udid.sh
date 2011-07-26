@@ -98,21 +98,33 @@ fi
 
 if ! LANGUAGE=en $gpg --verify --no-verbose --batch "$GFile" 2>&1 | grep -o "(${GEOLISTUDID[0]}\>.*)" ; then
     #Note: Trust is not checked.
-    echo "Warning: the geolist file "$GFile" is not signed by a recognized signature" 
-    read -p "The geolist file "$GFile" may provide invalid udid2, do you want to continue ? (y/n) " answer
-    case "$answer" in
-            Y* | y* | O* | o* )
+
+    if [ -z "${cCountries[0]}" ] ; then # No Custom geolist file in command parameter
+        if mkdir -p "${GFile%/*}" \
+        && ( curl "https://raw.github.com/jbar/open-udc/master/docs/geolist_${Countries[((ret-1))]}.txt.asc" > "$GFile" \
+        || wget -O - "https://raw.github.com/jbar/open-udc/master/docs/geolist_${Countries[((ret-1))]}.txt.asc" > "$GFile" \
+        || GET "https://raw.github.com/jbar/open-udc/master/docs/geolist_${Countries[((ret-1))]}.txt.asc" > "$GFile" ) ; then
+            echo " File \"$GFile\" updated from git repository"
+        else
+            echo " Error: unable to retrieve invalid \"$GFile\" from git repository" ; exit -4
+        fi
+    else
+        echo "Warning: the geolist file "$GFile" is not signed by a recognized signature" 
+        read -p "The geolist file "$GFile" may provide invalid udid2, do you want to continue ? (y/n) " answer
+        case "$answer" in
+                Y* | y* | O* | o* )
                 ;; # do nothing
-            *)
-                exit ;;
-    esac
+                *)
+                    exit ;;
+        esac
+    fi
 fi
 
 for ((;;)) ; do 
     for ((j=0;;j++)) ; do 
         read -p "Please enter your place of birth ? " answer
-        cities="$($gpg --no-verbose --batch --decrypt "$GFile" 2> /dev/null | grep -i "$answer")"
-        eval citiesname=($(echo "$cities" | sed ' s,e[0-9.+-]\+\t[A-Z]\{3\}\t\([^"]\+\).*,"\1",'))
+        cities="$($gpg --no-verbose --batch --decrypt "$GFile" 2> /dev/null | sed ' s,\(e[0-9.+-]\+\t\)[A-Z]\{3\}\t,\1,' | grep -i "$answer")"
+        eval citiesname=($(echo "$cities" | sed ' s,e[0-9.+-]\+\t\([^"]\+\).*,"\1",'))
         
         chooseinlist "Please validate your place of birth" "${citiesname[@]}" "Other..."
         ret=$?
