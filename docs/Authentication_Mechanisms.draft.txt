@@ -187,11 +187,11 @@ Request for Comments:                                      Open-UDC Team
 
 	3- The date of birth as written on the birth certificate, but
 	   transposed, as specified by the ISO-8601, in the extended
-	   form: "aaaa-mm-dd".
+	   form: "YYYY-mm-dd".
 
 	4- The location of birth. As long as individuals are born on
 	   earth, it should be prefixed by an 'e' (lower case) character.
-	   Then the following is defined as terrestrial coordinates.
+	   Then following is defined as terrestrial coordinates.
 
 	   The first number MUST be the latitude and MUST be a 4 digits
 	   number : 2 before the decimal point and 2 after, prefixed by
@@ -216,7 +216,7 @@ Request for Comments:                                      Open-UDC Team
 	   same place at the same date.
 	   This number should so be equal to 0 for almost every one.
 
-    The hashed version "udid2;c;" MUST be followed by 2 fields:
+    The hashed version "udid2;h;" MUST be followed by 2 fields:
 
 	1- The SHA1 of the string composed by the fields "1;2;3;4"
 	   of the clear version (with the three ';' delimiters).
