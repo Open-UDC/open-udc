@@ -1,4 +1,4 @@
-open-udc README
+OpenUDC README
 ===============
 
 Copyright (c) 2010 The open-udc.org team. 
@@ -6,12 +6,14 @@ Copyright (c) 2010 The open-udc.org team.
 DESCRIPTION
 -----------
 
-Open-udc is an experimental implementation of an open monetary system.
+OpenUDC is an experimental implementation of an open monetary system.
 It permit :
  - To create a currency and control its monetary mass.
  - To exchange money in this currency between individuals.
- - To apply Universal Dividend to the individuals that accept to use the currency.
+ - To apply Universal monetary Dividend to the individuals that accept to use the currency.
 And all of that with best efforts on security and anonymity preservation.
 
-About Universal Dividend, please read the Theory of Money Relativity from Stephane Laborde (in french: http://www.creationmonetaire.info/2010/11/theorie-relative-de-la-monnaie-10.html) or at least "In This Age of Plenty" from Louis Even (http://www.michaeljournal.org/plenty.htm).
+About Universal monetary Dividend, please read the Theory of Money Relativity from Stephane Laborde
+(in french: http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html) or at
+least other studies about Social Credit  (http://en.wikipedia.org/wiki/Social_Credit).
 
