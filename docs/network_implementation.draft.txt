@@ -1,8 +1,8 @@
 Network Working Group                                       J.J. Brucker
-Request for Comments:                                      Open-UDC Team 
+Request for Comments:                                      Open-UDC Team
 
 
-          ==== Open-UDC Network Implementation ====
+	  ==== Open-UDC Network Implementation ====
 
  === Status of This Memo ===
 
@@ -22,20 +22,20 @@ Request for Comments:                                      Open-UDC Team
     5.1. Node URI (Uniform Ressource Identifier) ....................
     5.2. Node Name Restriction ......................................
     5.3. Node types .................................................
-         5.3.1 Accountants ..........................................
-         5.3.2 Users ................................................
-         5.3.1 Fund .................................................
-         5.3.1 Init .................................................
+	 5.3.1 Accountants ..........................................
+	 5.3.2 Users ................................................
+	 5.3.1 Fund .................................................
+	 5.3.1 Init .................................................
     5.4  Node Aliases ...............................................
     5.5. Node parameters ............................................
-         5.5.1 Taxe rate ............................................
-         5.5.2 Taxe redistribution ..................................
-         5.5.3 Redirections .........................................
-         5.5.4 Vote parameters ......................................
-         5.5.5 Suscribtion parameters ...............................
-         5.5.6 Member List ..........................................
-         5.5.7 Accountants List .....................................
-         5.5.8 Individuals List .....................................
+	 5.5.1 Taxe rate ............................................
+	 5.5.2 Taxe redistribution ..................................
+	 5.5.3 Redirections .........................................
+	 5.5.4 Vote parameters ......................................
+	 5.5.5 Suscribtion parameters ...............................
+	 5.5.6 Member List ..........................................
+	 5.5.7 Accountants List .....................................
+	 5.5.8 Individuals List .....................................
  6. Voting procedure ................................................
  7. Broadcast channels ..............................................
     7.1. IRC and XMPP Use ...........................................
@@ -113,24 +113,24 @@ Request for Comments:                                      Open-UDC Team
 
   Each Node have a unique identifier which look like DNS name :
     - uni         is the root node of the currency "uni"
-    - uni.oy      could be the node used by almost all Faroe Islands 
-                  habitants.
+    - uni.oy      could be the node used by almost all Faroe Islands
+		  habitants.
     - uni.bel.bru could be the node mainly used by people living in
-                  Bruxelle (Belgium).
+		  Bruxelle (Belgium).
     - uni.48_22   could be the node used mainly by people around the
-                  geographic coordinate N 48° E 22°
+		  geographic coordinate N 48° E 22°
 
 5.2= Node Name Restriction =
- 
+
   Node name are case insensitive and MUST use ASCII charset [0-9a-z_-].
 
   Node names SHOULD be limited to 8 characters.
 
   Some node name are RESERVED for specific use.
     - "fund"  is reserved for the default children node. It can NOT have
-              any children, but could be use to collect taxes (if any).
+	      any children, but could be use to collect taxes (if any).
     - "init" is reserved for responding to the RESET and MARK commands.
-              It can NOT have any children, NEITHER store any money.
+	      It can NOT have any children, NEITHER store any money.
 
   Alias children name MAY be allowed by a Node.
 
@@ -139,14 +139,14 @@ Request for Comments:                                      Open-UDC Team
 
 5.3= Node Type =
 
- * Accountants are the ones which verify and store all transactions in 
-   the node. Each accountants are coequal, and 
+ * Accountants are the ones which verify and store all transactions in
+   the node. Each accountants are coequal, and
    - MUST store the entire monney repartition of the node.
    - MUST store all node parameters.
    - MUST be present whith high availabilty on all communication
-          channels of the node.
+	  channels of the node.
    - MUST be able to verify and validate (eg. sign) quickly any
-          transacations in the node.
+	  transacations in the node.
    - A minimal number or proportion of accountants MUST validate (sign)
      each transaction. That is a parameters which should be voted by the
      members of a node.
@@ -215,7 +215,7 @@ IRC channel or XMMP salons SHOULD be moderated and structured like this :
 
  == Commands ==
 
-  An udc-agent MUST respond to all the following commands : 
+  An udc-agent MUST respond to all the following commands :
 
  .1= General Command =
 
@@ -226,7 +226,7 @@ IRC channel or XMMP salons SHOULD be moderated and structured like this :
     This command MUST show and explain other command supported by the
     udc-agent.
  - INFO
-    This command SHOULD indicate the version of the open-udc software, 
+    This command SHOULD indicate the version of the open-udc software,
     the nodes in wich it has been accepted, and its public keys or certificats.
  - SUSCRIBE
     This command SHOULD permit to a member of a node for entering one of its node.
@@ -288,5 +288,3 @@ _Node Command, usable inside the broadcast channels.
   networks (48 chars max for channels and 16 chars max for nicknames on
   freenode).
   That is why node names SHOULD be limited to 8 characters.
-
-

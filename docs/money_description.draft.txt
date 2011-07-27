@@ -1,8 +1,8 @@
 Network Working Group                                       J.J. Brucker
-Request for Comments:                                      Open-UDC Team 
+Request for Comments:                                      Open-UDC Team
 
 
-          ==== Open-UDC Money Description ====
+	  ==== Open-UDC Money Description ====
 
  === Abstract ===
 
@@ -20,12 +20,12 @@ Request for Comments:                                      Open-UDC Team
     3.1 header/footer ...............................................
     3.2 bills .......................................................
     3.3 signing chain ...............................................
-        3.3.1 make transaction ......................................
-        3.3.2 differences compared to BitCoin .......................
-        3.3.3 offline transactions ..................................
-        3.3.4 beginning the chain ...................................
-        3.3.5 timestamp in the chain ................................
-        3.3.6 cancel a transaction ..................................
+	3.3.1 make transaction ......................................
+	3.3.2 differences compared to BitCoin .......................
+	3.3.3 offline transactions ..................................
+	3.3.4 beginning the chain ...................................
+	3.3.5 timestamp in the chain ................................
+	3.3.6 cancel a transaction ..................................
  4. udc-unit header description .....................................
     4.1 currency code ...............................................
     4.2 version .....................................................
@@ -35,9 +35,9 @@ Request for Comments:                                      Open-UDC Team
     5.2 coding the value ............................................
     5.3 creation informations .....................................
  6. udc-unit signing chain description ..............................
-    6.1 Signature types ............................................. 
-        6.1.1 Digests ............................................... 
-        6.1.2 Assymetric cryptographic keys ......................... 
+    6.1 Signature types .............................................
+	6.1.1 Digests ...............................................
+	6.1.2 Assymetric cryptographic keys .........................
  7. udc-unit binary format ..........................................
     7.1 header ......................................................
     7.2 bills .......................................................
@@ -113,7 +113,7 @@ Request for Comments:                                      Open-UDC Team
     private key) associated to the last pubkey in the signature chain.
 
     Then transaction is done by :
-    1- Digitally signing (with the pivate key associated to previous 
+    1- Digitally signing (with the pivate key associated to previous
        public key) the digest of this udc-unit concatened with some
        metadata containing the next owner public key.
     2- Adding this signature to the beginning of the udc-unit.
@@ -136,7 +136,7 @@ Request for Comments:                                      Open-UDC Team
     number of pairs...
 
     You may notice that, as you have to be connected to make a BitCoin
-    transaction, there is actually a third party for BitCoins : it is 
+    transaction, there is actually a third party for BitCoins : it is
     the entire network.
 
     We believe that the most important concepts to provide equity is not
@@ -144,14 +144,14 @@ Request for Comments:                                      Open-UDC Team
     level of, human-based, democracy and transparency.
 
     That kind of democracy and transparency have been especially met
-    in some broadcast channels like newgroups, irc channels, or XMPP 
+    in some broadcast channels like newgroups, irc channels, or XMPP
     Multi User Chatroom.
 
     So we choose to use XMPP chatroom as a first third party to check
     transactions. And we allow and encourage any group of people to make
     their own sub-chatroom as the number of members or transactions
     inside the first chatroom increase.
-   
+
     Growing up, the third party should be split into a tree of node.
 
     Notes:
@@ -172,7 +172,7 @@ Request for Comments:                                      Open-UDC Team
 
     But connected mode is not always possible in the real world:
     How to buy a camel in desert without internet connection ?
-    
+
     By verifying the identity of each part of the transaction :
 
       As in connected transaction, the vendor show first an OpenPGP
@@ -184,8 +184,8 @@ Request for Comments:                                      Open-UDC Team
       web of trust, and vice-versa. So vendor and buyer SHOULD exchange
       missing certificates to reach one of their common denominator
       wich are, ultimately, the accountants of the root node.
-    
-    As KeyID collision may occurs, the udc-unit need, to be check and 
+
+    As KeyID collision may occurs, the udc-unit need, to be check and
     replayed by the network, to contain the "udid1" or a "udnode1" of
     the buyer in the signing chain.
 
@@ -194,10 +194,10 @@ Request for Comments:                                      Open-UDC Team
     signature (cf section 5.2.3.1. of the [RFC4880]).
 
     Offline udc-units SHOULD be connected regularly to:
-    - possibly be shortened. 
+    - possibly be shortened.
     - be replayed and pay taxes if there are somes in the crossed nodes.
     - check it have not been double-spended and identify the bad guy if
-      have been. 
+      have been.
 
     The offline parameters (maximum time since a connected transaction,
     maximum following offline transactions, multiple recipient...)
@@ -243,13 +243,13 @@ Request for Comments:                                      Open-UDC Team
     previous date increased by 1.
 
     If in a buyer has signed a date too far in the futur, as a vendor
-    you can : 
-        - give his money back more far in the futur (... and ping
-          pong until offline transaction maximum number is reached
-          ...  =>  bad idea).
-        - ask him to come back getting the things he have paid after  
-          the date he have signed (best idea).
-        - Ask for money unit re-initialization (not to abuse).
+    you can :
+	- give his money back more far in the futur (... and ping
+	  pong until offline transaction maximum number is reached
+	  ...  =>  bad idea).
+	- ask him to come back getting the things he have paid after
+	  the date he have signed (best idea).
+	- Ask for money unit re-initialization (not to abuse).
 
 3.3.6 cancel a transaction
 
@@ -326,15 +326,15 @@ Request for Comments:                                      Open-UDC Team
     Inside udc-bill we only use 6 bits :
     .The first 4 bits are used to define the multiplier, so up to 10^15.
     .The last 2 bits define the value of the base :
-                            01 -> 1
-                            10 -> 2
-                            11 -> 5
+			    01 -> 1
+			    10 -> 2
+			    11 -> 5
 
     Examples:
-        * an udc-bill of value 5 wich is equal to 5 * 10^0 is binary
-          encoded 00 0011.
-        * an udc-bill of value 100 wich is equal to 1 * 10^2 is binary
-          encoded 00 1001.
+	* an udc-bill of value 5 wich is equal to 5 * 10^0 is binary
+	  encoded 00 0011.
+	* an udc-bill of value 100 wich is equal to 1 * 10^2 is binary
+	  encoded 00 1001.
 
 5.3= creation informations =
 
@@ -355,9 +355,9 @@ Request for Comments:                                      Open-UDC Team
     If for a given month, there is 250 individuals and the Universal
     Dividende has been calculated to be 10052. The new udc-bills
     may look like :
-            250 x 2 udc-units of value 5000
-            250 x 5 udc-units of value   10
-            250 x 2 udc-units of value    1
+	    250 x 2 udc-units of value 5000
+	    250 x 5 udc-units of value   10
+	    250 x 2 udc-units of value    1
     And so udc-units of value 10 will be numbered 0 to 1249 this month.
 
     This informations about each created set MUST be know by at least
@@ -365,11 +365,11 @@ Request for Comments:                                      Open-UDC Team
 
 6.== udc-unit signing chain ==
 
-  The signing chain is almost compatible with the section 5.2.3. of the 
+  The signing chain is almost compatible with the section 5.2.3. of the
   [RFC4880] but use some specific Open-UDC enhancements.
 
 7.== udc-unit binary format ==
- 
+
   Following present the binary construction of a udc-unit which version
   is equal to 1.
 
@@ -377,7 +377,7 @@ Request for Comments:                                      Open-UDC Team
   or in storage systems (files, databases, ...).
 
   All integer values stored on more that 1 octet MUST use the little
-  endianness.     
+  endianness.
 
   All date are formated as number of seconds since 00:00:00 UTC on
   Thursday, 1 January 1970.
@@ -388,7 +388,7 @@ Request for Comments:                                      Open-UDC Team
 
 7.1= header and footer =
 
-   0     7 8    15 16   23 24    31 32                            63 
+   0     7 8    15 16   23 24    31 32                            63
   +-------+-------+-------+--------+--------+-------+-------+-------+
   |            currency code                |Ver|P| |   Nb Glued    |
   +-------+-------+-------+--------+--------+-------+-------+-------+
@@ -396,29 +396,29 @@ Request for Comments:                                      Open-UDC Team
     Detail:
 
     bits 0 to 39 (currency code):
-        3 to 5 NULL-padded ASCII chars to identify a currency
-        (cf. section 3.1).
+	3 to 5 NULL-padded ASCII chars to identify a currency
+	(cf. section 3.1).
 
     bits 40 to 43 (Version):
-        Version bits. This document only describe version 1.
+	Version bits. This document only describe version 1.
 
     bits 44 (Position):
-        This bit define the location of udc-bills:
-            - if 0 the udc-bills are following
-            - if 1 the udc-bills are previous
-        This may be usefull to indicate the Number of udc-bill in both
-        extremities to be able to read them forward or backward.
+	This bit define the location of udc-bills:
+	    - if 0 the udc-bills are following
+	    - if 1 the udc-bills are previous
+	This may be usefull to indicate the Number of udc-bill in both
+	extremities to be able to read them forward or backward.
 
     bits 45 to 47 (Unused):
-        Reserved for futur use.
+	Reserved for futur use.
 
     bits 48 to 63 (NbGlued):
-        uint16_t. Define the number of udc-bill "glued" and signed once.
+	uint16_t. Define the number of udc-bill "glued" and signed once.
 
 
 7.2= udc-bill =
 
-   0     7 8    15 16   23 24    31 32                            63 
+   0     7 8    15 16   23 24    31 32                            63
   +-------+-------+-------+--------+--------+-------+-------+-------+
   |Value| Time Counter|    bill number of this value for the period |
   +-------+-------+-------+--------+--------+-------+-------+-------+
@@ -426,7 +426,7 @@ Request for Comments:                                      Open-UDC Team
   +-------+-------+-------+--------+--------+-------+-------+-------+
   ...they are 16*3 possible bills, factors are encoded on quartets...
   +-------+-------+-------+--------+--------+-------+-------+-------+
-            ... (so 16*3*4 = 192 bits)           ...; h ; p ; q ; n |
+	    ... (so 16*3*4 = 192 bits)           ...; h ; p ; q ; n |
   +-------+-------+-------+--------+--------+-------+-------+-------+
   | Magic |         Number of Individuals           |  CRC 16 (BSD) |
   +-------+-------+-------+--------+--------+-------+-------+-------+
@@ -437,31 +437,31 @@ Request for Comments:                                      Open-UDC Team
     Detail:
 
     bits 0 to 5 (Value):
-        Value of the udc-unit. (cf. section 5.2).
+	Value of the udc-unit. (cf. section 5.2).
 
     bits 6 to 19 (Time counter):
-        14 bits, unsigned. MUST be increase each time a set of money is
-         created (usually each month).
-    
+	14 bits, unsigned. MUST be increase each time a set of money is
+	 created (usually each month).
+
     bits 20 to 63 (number):
-        44 bits, unsigned. The bill number of this value in the created
-        set.
+	44 bits, unsigned. The bill number of this value in the created
+	set.
 
     bits 64 to 255 (Universal Dividende):
-        The amount of each udc-bill created per individual for the
-        given period: 
+	The amount of each udc-bill created per individual for the
+	given period:
       bits 64 to 67 : the amount of udc-bill of value 5*10^15 created in
-                        this set
+			this set
       (...)
       bits 252 to 255 : the amount of udc-bill with value 1*10^0 created in
-                        this set
+			this set
 
     bits 256 to 263 (Magic):
-        This octet may be use as a magic number. Why not 42 ?
+	This octet may be use as a magic number. Why not 42 ?
 
     bits 264 to 303 (Individual Number):
-        40 bits, unsigned. The number of registered unique individual for
-        the given period.
+	40 bits, unsigned. The number of registered unique individual for
+	the given period.
 
     bits 304 to 319 : BSD compatible CRC of the 304 previous bits.
 
@@ -504,4 +504,3 @@ Request for Comments:                                      Open-UDC Team
     revoked, Network should investigate about the fraud, and all the
     udc-units provided by this initializer will have to be initialized
     by the other initializers.
-
