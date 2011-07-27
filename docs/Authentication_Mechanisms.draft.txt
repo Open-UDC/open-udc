@@ -187,7 +187,7 @@ Request for Comments:                                      Open-UDC Team
 
         3- The date of birth as written on the birth certificate, but
            transposed, as specified by the ISO-8601, in the extended
-           form: "aaaa-mm-dd".
+           form: "YYYY-mm-dd".
 
         4- The location of birth. As long as individuals are born on
            earth, it should be prefixed by a 'e' (lower case) character.
@@ -216,7 +216,7 @@ Request for Comments:                                      Open-UDC Team
            same place at the same date.
            This number should so be equal to 0 for almost every one. 
 
-    The hashed version "udid2;c;" MUST be followed by 2 fields:
+    The hashed version "udid2;h;" MUST be followed by 2 fields:
 
         1- The SHA1 of the string composed by the fields "1;2;3;4"
            of the clear version (with the three ';' delimiters).
@@ -262,7 +262,7 @@ Request for Comments:                                      Open-UDC Team
        this document ([RFCXXXX]).
     the signatories will be held accountable and may be prosecuted.
     
-4.3= Proof of live =
+4.3= Proof of life =
 
     The proof of live is related with the money creation : if someone
     in the web of trust does not initialize (or use) the share of new
