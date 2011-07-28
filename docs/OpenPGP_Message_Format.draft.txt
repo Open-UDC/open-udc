@@ -1,21 +1,15 @@
-
-
-
-
-
-
 Network Working Group                                          J. Callas
 Request for Comments:                                    PGP Corporation
 Obsoletes: 1991, 2440, 4880                               L. Donnerhacke
 Category: Standards Track                                       IKS GmbH
-                                                               H. Finney
-                                                         PGP Corporation
-                                                                 D. Shaw
-                                                               R. Thayer
-                                                           November 2007
+							       H. Finney
+							 PGP Corporation
+								 D. Shaw
+							       R. Thayer
+							   November 2007
 
 
-                         OpenPGP Message Format
+			 OpenPGP Message Format
 
 Status of This Memo
 
@@ -78,36 +72,36 @@ Table of Contents
       3.5. Time Fields ...............................................10
       3.6. Keyrings ..................................................10
       3.7. String-to-Key (S2K) Specifiers ............................10
-           3.7.1. String-to-Key (S2K) Specifier Types ................10
-                  3.7.1.1. Simple S2K ................................10
-                  3.7.1.2. Salted S2K ................................11
-                  3.7.1.3. Iterated and Salted S2K ...................11
-           3.7.2. String-to-Key Usage ................................12
-                  3.7.2.1. Secret-Key Encryption .....................12
-                  3.7.2.2. Symmetric-Key Message Encryption ..........13
+	   3.7.1. String-to-Key (S2K) Specifier Types ................10
+		  3.7.1.1. Simple S2K ................................10
+		  3.7.1.2. Salted S2K ................................11
+		  3.7.1.3. Iterated and Salted S2K ...................11
+	   3.7.2. String-to-Key Usage ................................12
+		  3.7.2.1. Secret-Key Encryption .....................12
+		  3.7.2.2. Symmetric-Key Message Encryption ..........13
    4. Packet Syntax ..................................................13
       4.1. Overview ..................................................13
       4.2. Packet Headers ............................................13
-           4.2.1. Old Format Packet Lengths ..........................14
-           4.2.2. New Format Packet Lengths ..........................15
-                  4.2.2.1. One-Octet Lengths .........................15
-                  4.2.2.2. Two-Octet Lengths .........................15
-                  4.2.2.3. Five-Octet Lengths ........................15
-                  4.2.2.4. Partial Body Lengths ......................16
-           4.2.3. Packet Length Examples .............................16
+	   4.2.1. Old Format Packet Lengths ..........................14
+	   4.2.2. New Format Packet Lengths ..........................15
+		  4.2.2.1. One-Octet Lengths .........................15
+		  4.2.2.2. Two-Octet Lengths .........................15
+		  4.2.2.3. Five-Octet Lengths ........................15
+		  4.2.2.4. Partial Body Lengths ......................16
+	   4.2.3. Packet Length Examples .............................16
       4.3. Packet Tags ...............................................17
    5. Packet Types ...................................................17
       5.1. Public-Key Encrypted Session Key Packets (Tag 1) ..........17
       5.2. Signature Packet (Tag 2) ..................................19
-           5.2.1. Signature Types ....................................19
-           5.2.2. Version 3 Signature Packet Format ..................21
-           5.2.3. Version 4 Signature Packet Format ..................24
-                  5.2.3.1. Signature Subpacket Specification .........25
-                  5.2.3.2. Signature Subpacket Types .................27
-                  5.2.3.3. Notes on Self-Signatures ..................27
-                  5.2.3.4. Signature Creation Time ...................28
-                  5.2.3.5. Issuer ....................................28
-                  5.2.3.6. Key Expiration Time .......................28
+	   5.2.1. Signature Types ....................................19
+	   5.2.2. Version 3 Signature Packet Format ..................21
+	   5.2.3. Version 4 Signature Packet Format ..................24
+		  5.2.3.1. Signature Subpacket Specification .........25
+		  5.2.3.2. Signature Subpacket Types .................27
+		  5.2.3.3. Notes on Self-Signatures ..................27
+		  5.2.3.4. Signature Creation Time ...................28
+		  5.2.3.5. Issuer ....................................28
+		  5.2.3.6. Key Expiration Time .......................28
 
 
 
@@ -116,40 +110,40 @@ Callas, et al               Standards Track                     [Page 2]
 RFC 4880                 OpenPGP Message Format            November 2007
 
 
-                  5.2.3.7. Preferred Symmetric Algorithms ............28
-                  5.2.3.8. Preferred Hash Algorithms .................29
-                  5.2.3.9. Preferred Compression Algorithms ..........29
-                  5.2.3.10. Signature Expiration Time ................29
-                  5.2.3.11. Exportable Certification .................29
-                  5.2.3.12. Revocable ................................30
-                  5.2.3.13. Trust Signature ..........................30
-                  5.2.3.14. Regular Expression .......................31
-                  5.2.3.15. Revocation Key ...........................31
-                  5.2.3.16. Notation Data ............................31
-                  5.2.3.17. Key Server Preferences ...................32
-                  5.2.3.18. Preferred Key Server .....................33
-                  5.2.3.19. Primary User ID ..........................33
-                  5.2.3.20. Policy URI ...............................33
-                  5.2.3.21. Key Flags ................................33
-                  5.2.3.22. Signer's User ID .........................34
-                  5.2.3.23. Reason for Revocation ....................35
-                  5.2.3.24. Features .................................36
-                  5.2.3.25. Signature Target .........................36
-                  5.2.3.26. Embedded Signature .......................37
-                  5.2.3.27. Recipient
-                  5.2.3.28. Open-UDC buyer/donor ID
-           5.2.4. Computing Signatures ...............................37
-                  5.2.4.1. Subpacket Hints ...........................38
+		  5.2.3.7. Preferred Symmetric Algorithms ............28
+		  5.2.3.8. Preferred Hash Algorithms .................29
+		  5.2.3.9. Preferred Compression Algorithms ..........29
+		  5.2.3.10. Signature Expiration Time ................29
+		  5.2.3.11. Exportable Certification .................29
+		  5.2.3.12. Revocable ................................30
+		  5.2.3.13. Trust Signature ..........................30
+		  5.2.3.14. Regular Expression .......................31
+		  5.2.3.15. Revocation Key ...........................31
+		  5.2.3.16. Notation Data ............................31
+		  5.2.3.17. Key Server Preferences ...................32
+		  5.2.3.18. Preferred Key Server .....................33
+		  5.2.3.19. Primary User ID ..........................33
+		  5.2.3.20. Policy URI ...............................33
+		  5.2.3.21. Key Flags ................................33
+		  5.2.3.22. Signer's User ID .........................34
+		  5.2.3.23. Reason for Revocation ....................35
+		  5.2.3.24. Features .................................36
+		  5.2.3.25. Signature Target .........................36
+		  5.2.3.26. Embedded Signature .......................37
+		  5.2.3.27. Recipient
+		  5.2.3.28. Open-UDC buyer/donor ID
+	   5.2.4. Computing Signatures ...............................37
+		  5.2.4.1. Subpacket Hints ...........................38
       5.3. Symmetric-Key Encrypted Session Key Packets (Tag 3) .......38
       5.4. One-Pass Signature Packets (Tag 4) ........................39
       5.5. Key Material Packet .......................................40
-           5.5.1. Key Packet Variants ................................40
-                  5.5.1.1. Public-Key Packet (Tag 6) .................40
-                  5.5.1.2. Public-Subkey Packet (Tag 14) .............40
-                  5.5.1.3. Secret-Key Packet (Tag 5) .................41
-                  5.5.1.4. Secret-Subkey Packet (Tag 7) ..............41
-           5.5.2. Public-Key Packet Formats ..........................41
-           5.5.3. Secret-Key Packet Formats ..........................43
+	   5.5.1. Key Packet Variants ................................40
+		  5.5.1.1. Public-Key Packet (Tag 6) .................40
+		  5.5.1.2. Public-Subkey Packet (Tag 14) .............40
+		  5.5.1.3. Secret-Key Packet (Tag 5) .................41
+		  5.5.1.4. Secret-Subkey Packet (Tag 7) ..............41
+	   5.5.2. Public-Key Packet Formats ..........................41
+	   5.5.3. Secret-Key Packet Formats ..........................43
       5.6. Compressed Data Packet (Tag 8) ............................45
       5.7. Symmetrically Encrypted Data Packet (Tag 9) ...............45
       5.8. Marker Packet (Obsolete Literal Packet) (Tag 10) ..........46
@@ -157,7 +151,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
       5.10. Trust Packet (Tag 12) ....................................47
       5.11. User ID Packet (Tag 13) ..................................48
       5.12. User Attribute Packet (Tag 17) ...........................48
-           5.12.1. The Image Attribute Subpacket .....................48
+	   5.12.1. The Image Attribute Subpacket .....................48
       5.13. Sym. Encrypted Integrity Protected Data Packet (Tag 18) ..49
       5.14. Modification Detection Code Packet (Tag 19) ..............52
    6. Radix-64 Conversions ...........................................53
@@ -186,20 +180,20 @@ RFC 4880                 OpenPGP Message Format            November 2007
    10. IANA Considerations ...........................................63
       10.1. New String-to-Key Specifier Types ........................64
       10.2. New Packets ..............................................64
-           10.2.1. User Attribute Types ..............................64
-                  10.2.1.1. Image Format Subpacket Types .............64
-           10.2.2. New Signature Subpackets ..........................64
-                  10.2.2.1. Signature Notation Data Subpackets .......65
-                  10.2.2.2. Key Server Preference Extensions .........65
-                  10.2.2.3. Key Flags Extensions .....................65
-                  10.2.2.4. Reason For Revocation Extensions .........65
-                  10.2.2.5. Implementation Features ..................66
-           10.2.3. New Packet Versions ...............................66
+	   10.2.1. User Attribute Types ..............................64
+		  10.2.1.1. Image Format Subpacket Types .............64
+	   10.2.2. New Signature Subpackets ..........................64
+		  10.2.2.1. Signature Notation Data Subpackets .......65
+		  10.2.2.2. Key Server Preference Extensions .........65
+		  10.2.2.3. Key Flags Extensions .....................65
+		  10.2.2.4. Reason For Revocation Extensions .........65
+		  10.2.2.5. Implementation Features ..................66
+	   10.2.3. New Packet Versions ...............................66
       10.3. New Algorithms ...........................................66
-           10.3.1. Public-Key Algorithms .............................66
-           10.3.2. Symmetric-Key Algorithms ..........................67
-           10.3.3. Hash Algorithms ...................................67
-           10.3.4. Compression Algorithms ............................67
+	   10.3.1. Public-Key Algorithms .............................66
+	   10.3.2. Symmetric-Key Algorithms ..........................67
+	   10.3.3. Hash Algorithms ...................................67
+	   10.3.4. Compression Algorithms ............................67
    11. Packet Composition ............................................67
       11.1. Transferable Public Keys .................................67
       11.2. Transferable Secret Keys .................................69
@@ -210,13 +204,13 @@ RFC 4880                 OpenPGP Message Format            November 2007
       12.2. Key IDs and Fingerprints .................................71
    13. Notes on Algorithms ...........................................72
       13.1. PKCS#1 Encoding in OpenPGP ...............................72
-           13.1.1. EME-PKCS1-v1_5-ENCODE .............................73
-           13.1.2. EME-PKCS1-v1_5-DECODE .............................73
-           13.1.3. EMSA-PKCS1-v1_5 ...................................74
+	   13.1.1. EME-PKCS1-v1_5-ENCODE .............................73
+	   13.1.2. EME-PKCS1-v1_5-DECODE .............................73
+	   13.1.3. EMSA-PKCS1-v1_5 ...................................74
       13.2. Symmetric Algorithm Preferences ..........................75
       13.3. Other Algorithm Preferences ..............................76
-           13.3.1. Compression Preferences ...........................76
-           13.3.2. Hash Algorithm Preferences ........................76
+	   13.3.1. Compression Preferences ...........................76
+	   13.3.2. Hash Algorithm Preferences ........................76
       13.4. Plaintext ................................................77
       13.5. RSA ......................................................77
       13.6. DSA ......................................................77
@@ -626,7 +620,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
    formula:
 
        #define EXPBIAS 6
-           count = ((Int32)16 + (c & 15)) << ((c >> 4) + EXPBIAS);
+	   count = ((Int32)16 + (c & 15)) << ((c >> 4) + EXPBIAS);
 
    The above formula is in C, where "Int32" is a type for a 32-bit
    integer, and the variable "c" is the coded count, Octet 10.
@@ -737,11 +731,11 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Note that the most significant bit is the leftmost bit, called bit 7.
    A mask for this bit is 0x80 in hexadecimal.
 
-              +---------------+
-         PTag |7 6 5 4 3 2 1 0|
-              +---------------+
-         Bit 7 -- Always one
-         Bit 6 -- New packet format if set
+	      +---------------+
+	 PTag |7 6 5 4 3 2 1 0|
+	      +---------------+
+	 Bit 7 -- Always one
+	 Bit 6 -- New packet format if set
 
    PGP 2.6.x only uses old format packets.  Thus, software that
    interoperates with those versions of PGP must only use old format
@@ -756,12 +750,12 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
    Old format packets contain:
 
-         Bits 5-2 -- packet tag
-         Bits 1-0 -- length-type
+	 Bits 5-2 -- packet tag
+	 Bits 1-0 -- length-type
 
    New format packets contain:
 
-         Bits 5-0 -- packet tag
+	 Bits 5-0 -- packet tag
 
 4.2.1.  Old Format Packet Lengths
 
@@ -831,7 +825,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
    equal to:
 
        bodyLen = (2nd_octet << 24) | (3rd_octet << 16) |
-                 (4th_octet << 8)  | 5th_octet
+		 (4th_octet << 8)  | 5th_octet
 
    This basic set of one, two, and five-octet lengths is also used
    internally to some packets.
@@ -1169,9 +1163,9 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
      - One-octet length of following hashed material.  MUST be 5.
 
-         - One-octet signature type.
+	 - One-octet signature type.
 
-         - Four-octet creation time.
+	 - Four-octet creation time.
 
      - Eight-octet Key ID of signer.
 
@@ -1259,30 +1253,30 @@ RFC 4880                 OpenPGP Message Format            November 2007
    The full hash prefixes for these are as follows:
 
        MD5:        0x30, 0x20, 0x30, 0x0C, 0x06, 0x08, 0x2A, 0x86,
-                   0x48, 0x86, 0xF7, 0x0D, 0x02, 0x05, 0x05, 0x00,
-                   0x04, 0x10
+		   0x48, 0x86, 0xF7, 0x0D, 0x02, 0x05, 0x05, 0x00,
+		   0x04, 0x10
 
        RIPEMD-160: 0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2B, 0x24,
-                   0x03, 0x02, 0x01, 0x05, 0x00, 0x04, 0x14
+		   0x03, 0x02, 0x01, 0x05, 0x00, 0x04, 0x14
 
        SHA-1:      0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x0E,
-                   0x03, 0x02, 0x1A, 0x05, 0x00, 0x04, 0x14
+		   0x03, 0x02, 0x1A, 0x05, 0x00, 0x04, 0x14
 
        SHA224:     0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
-                   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x04, 0x05,
-                   0x00, 0x04, 0x1C
+		   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x04, 0x05,
+		   0x00, 0x04, 0x1C
 
        SHA256:     0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
-                   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05,
-                   0x00, 0x04, 0x20
+		   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05,
+		   0x00, 0x04, 0x20
 
        SHA384:     0x30, 0x41, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
-                   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02, 0x05,
-                   0x00, 0x04, 0x30
+		   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02, 0x05,
+		   0x00, 0x04, 0x30
 
        SHA512:     0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86,
-                   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05,
-                   0x00, 0x04, 0x40
+		   0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05,
+		   0x00, 0x04, 0x40
 
    DSA signatures MUST use hashes that are equal in size to the number
    of bits of q, the group generated by the DSA key's generator value.
@@ -1378,26 +1372,26 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Partial Body Lengths.  That is:
 
        if the 1st octet <  192, then
-           lengthOfLength = 1
-           subpacketLen = 1st_octet
+	   lengthOfLength = 1
+	   subpacketLen = 1st_octet
 
        if the 1st octet >= 192 and < 255, then
-           lengthOfLength = 2
-           subpacketLen = ((1st_octet - 192) << 8) + (2nd_octet) + 192
+	   lengthOfLength = 2
+	   subpacketLen = ((1st_octet - 192) << 8) + (2nd_octet) + 192
 
        if the 1st octet = 255, then
-           lengthOfLength = 5
-           subpacket length = [four-octet scalar starting at 2nd_octet]
+	   lengthOfLength = 5
+	   subpacket length = [four-octet scalar starting at 2nd_octet]
 
    The value of the subpacket type octet may be:
 
-            0 = Reserved
-            1 = Reserved
-            2 = Signature Creation Time
-            3 = Signature Expiration Time
-            4 = Exportable Certification
-            5 = Trust Signature
-            6 = Regular Expression
+	    0 = Reserved
+	    1 = Reserved
+	    2 = Signature Creation Time
+	    3 = Signature Expiration Time
+	    4 = Exportable Certification
+	    5 = Trust Signature
+	    6 = Regular Expression
 
 
 
@@ -1406,34 +1400,34 @@ Callas, et al               Standards Track                    [Page 25]
 RFC 4880                 OpenPGP Message Format            November 2007
 
 
-            7 = Revocable
-            8 = Reserved
-            9 = Key Expiration Time
-           10 = Placeholder for backward compatibility
-           11 = Preferred Symmetric Algorithms
-           12 = Revocation Key
-           13 = Reserved
-           14 = Reserved
-           15 = Reserved
-           16 = Issuer
-           17 = Reserved
-           18 = Reserved
-           19 = Reserved
-           20 = Notation Data
-           21 = Preferred Hash Algorithms
-           22 = Preferred Compression Algorithms
-           23 = Key Server Preferences
-           24 = Preferred Key Server
-           25 = Primary User ID
-           26 = Policy URI
-           27 = Key Flags
-           28 = Signer's User ID
-           29 = Reason for Revocation
-           30 = Features
-           31 = Signature Target
-           32 = Embedded Signature
-           33 = Recipient
-           34 = Open-UDC buyer/donor ID
+	    7 = Revocable
+	    8 = Reserved
+	    9 = Key Expiration Time
+	   10 = Placeholder for backward compatibility
+	   11 = Preferred Symmetric Algorithms
+	   12 = Revocation Key
+	   13 = Reserved
+	   14 = Reserved
+	   15 = Reserved
+	   16 = Issuer
+	   17 = Reserved
+	   18 = Reserved
+	   19 = Reserved
+	   20 = Notation Data
+	   21 = Preferred Hash Algorithms
+	   22 = Preferred Compression Algorithms
+	   23 = Key Server Preferences
+	   24 = Preferred Key Server
+	   25 = Primary User ID
+	   26 = Policy URI
+	   27 = Key Flags
+	   28 = Signer's User ID
+	   29 = Reason for Revocation
+	   30 = Features
+	   31 = Signature Target
+	   32 = Embedded Signature
+	   33 = Recipient
+	   34 = Open-UDC buyer/donor ID
    100 To 110 = Private or experimental
 
    An implementation SHOULD ignore any subpacket of a type that it does
@@ -1724,9 +1718,9 @@ RFC 4880                 OpenPGP Message Format            November 2007
 5.2.3.16.  Notation Data
 
        (4 octets of flags, 2 octets of name length (M),
-                           2 octets of value length (N),
-                           M octets of name data,
-                           N octets of value data)
+			   2 octets of value length (N),
+			   M octets of name data,
+			   N octets of value data)
 
    This subpacket describes a "notation" on the signature that the
    issuer wishes to make.  The notation has a name and a value, each of
@@ -1867,14 +1861,14 @@ RFC 4880                 OpenPGP Message Format            November 2007
        0x08 - This key may be used to encrypt storage.
 
        0x10 - The private component of this key may have been split
-              by a secret-sharing mechanism.
+	      by a secret-sharing mechanism.
 
        0x20 - This key may be used for authentication.
 
        0x40 - This key may be used in a signing chain.
 
        0x80 - The private component of this key may be in the
-              possession of more than one person.
+	      possession of more than one person.
 
        Second octet:
 
@@ -1932,11 +1926,11 @@ RFC 4880                 OpenPGP Message Format            November 2007
    The first octet contains a machine-readable code that denotes the
    reason for the revocation:
 
-        0  - No reason specified (key revocations or cert revocations)
-        1  - Key is superseded (key revocations)
-        2  - Key material has been compromised (key revocations)
-        3  - Key is retired and no longer used (key revocations)
-        32 - User ID information is no longer valid (cert revocations)
+	0  - No reason specified (key revocations or cert revocations)
+	1  - Key is superseded (key revocations)
+	2  - Key material has been compromised (key revocations)
+	3  - Key is retired and no longer used (key revocations)
+	32 - User ID information is no longer valid (cert revocations)
    100-110 - Private Use
 
    Following the revocation code is a string of octets that gives
@@ -2051,7 +2045,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
 5.2.3.28.  Open-UDC buyer/donor ID
 
     (String)
-    
+
     This subpacket contains an Open-UDC udid or udnode and is used by
     Open-UDC implementations when the key ID isn't enough to identify
     the previous keyholder. Typically when disconnected transactions.
@@ -2310,9 +2304,9 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
      - A series of multiprecision integers comprising the key material:
 
-           - a multiprecision integer (MPI) of RSA public modulus n;
+	   - a multiprecision integer (MPI) of RSA public modulus n;
 
-           - an MPI of RSA public encryption exponent e.
+	   - an MPI of RSA public encryption exponent e.
 
    V3 keys are deprecated.  They contain three weaknesses.  First, it is
    relatively easy to construct a V3 key that has the same Key ID as any
@@ -2354,26 +2348,26 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
        Algorithm-Specific Fields for RSA public keys:
 
-         - multiprecision integer (MPI) of RSA public modulus n;
+	 - multiprecision integer (MPI) of RSA public modulus n;
 
-         - MPI of RSA public encryption exponent e.
+	 - MPI of RSA public encryption exponent e.
 
        Algorithm-Specific Fields for DSA public keys:
 
-         - MPI of DSA prime p;
+	 - MPI of DSA prime p;
 
-         - MPI of DSA group order q (q is a prime divisor of p-1);
+	 - MPI of DSA group order q (q is a prime divisor of p-1);
 
-         - MPI of DSA group generator g;
+	 - MPI of DSA group generator g;
 
-         - MPI of DSA public-key value y (= g**x mod p where x
-           is secret).
+	 - MPI of DSA public-key value y (= g**x mod p where x
+	   is secret).
 
        Algorithm-Specific Fields for Elgamal public keys:
 
-         - MPI of Elgamal prime p;
+	 - MPI of Elgamal prime p;
 
-         - MPI of Elgamal group generator g;
+	 - MPI of Elgamal group generator g;
 
 
 
@@ -2384,8 +2378,8 @@ Callas, et al               Standards Track                    [Page 42]
 RFC 4880                 OpenPGP Message Format            November 2007
 
 
-         - MPI of Elgamal public key value y (= g**x mod p where x
-           is secret).
+	 - MPI of Elgamal public key value y (= g**x mod p where x
+	   is secret).
 
 5.5.3.  Secret-Key Packet Formats
 
@@ -3008,17 +3002,17 @@ RFC 4880                 OpenPGP Message Format            November 2007
       typedef long crc24;
       crc24 crc_octets(unsigned char *octets, size_t len)
       {
-          crc24 crc = CRC24_INIT;
-          int i;
-          while (len--) {
-              crc ^= (*octets++) << 16;
-              for (i = 0; i < 8; i++) {
-                  crc <<= 1;
-                  if (crc & 0x1000000)
-                      crc ^= CRC24_POLY;
-              }
-          }
-          return crc & 0xFFFFFFL;
+	  crc24 crc = CRC24_INIT;
+	  int i;
+	  while (len--) {
+	      crc ^= (*octets++) << 16;
+	      for (i = 0; i < 8; i++) {
+		  crc <<= 1;
+		  if (crc & 0x1000000)
+		      crc ^= CRC24_POLY;
+	      }
+	  }
+	  return crc & 0xFFFFFFL;
       }
 
 6.2.  Forming ASCII Armor
@@ -3185,34 +3179,34 @@ RFC 4880                 OpenPGP Message Format            November 2007
    the high-order bit in the first 8-bit octet, and the eighth bit will
    be the low-order bit in the first 8-bit octet, and so on.
 
-         +--first octet--+-second octet--+--third octet--+
-         |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
-         +-----------+---+-------+-------+---+-----------+
-         |5 4 3 2 1 0|5 4 3 2 1 0|5 4 3 2 1 0|5 4 3 2 1 0|
-         +--1.index--+--2.index--+--3.index--+--4.index--+
+	 +--first octet--+-second octet--+--third octet--+
+	 |7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|
+	 +-----------+---+-------+-------+---+-----------+
+	 |5 4 3 2 1 0|5 4 3 2 1 0|5 4 3 2 1 0|5 4 3 2 1 0|
+	 +--1.index--+--2.index--+--3.index--+--4.index--+
 
    Each 6-bit group is used as an index into an array of 64 printable
    characters from the table below.  The character referenced by the
    index is placed in the output string.
 
      Value Encoding  Value Encoding  Value Encoding  Value Encoding
-         0 A            17 R            34 i            51 z
-         1 B            18 S            35 j            52 0
-         2 C            19 T            36 k            53 1
-         3 D            20 U            37 l            54 2
-         4 E            21 V            38 m            55 3
-         5 F            22 W            39 n            56 4
-         6 G            23 X            40 o            57 5
-         7 H            24 Y            41 p            58 6
-         8 I            25 Z            42 q            59 7
-         9 J            26 a            43 r            60 8
-        10 K            27 b            44 s            61 9
-        11 L            28 c            45 t            62 +
-        12 M            29 d            46 u            63 /
-        13 N            30 e            47 v
-        14 O            31 f            48 w         (pad) =
-        15 P            32 g            49 x
-        16 Q            33 h            50 y
+	 0 A            17 R            34 i            51 z
+	 1 B            18 S            35 j            52 0
+	 2 C            19 T            36 k            53 1
+	 3 D            20 U            37 l            54 2
+	 4 E            21 V            38 m            55 3
+	 5 F            22 W            39 n            56 4
+	 6 G            23 X            40 o            57 5
+	 7 H            24 Y            41 p            58 6
+	 8 I            25 Z            42 q            59 7
+	 9 J            26 a            43 r            60 8
+	10 K            27 b            44 s            61 9
+	11 L            28 c            45 t            62 +
+	12 M            29 d            46 u            63 /
+	13 N            30 e            47 v
+	14 O            31 f            48 w         (pad) =
+	15 P            32 g            49 x
+	16 Q            33 h            50 y
 
    The encoded output stream must be represented in lines of no more
    than 76 characters each.
@@ -3291,18 +3285,18 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Input data:  0x14FB9C03D9
    Hex:     1   4    F   B    9   C     | 0   3    D   9
    8-bit:   00010100 11111011 10011100  | 00000011 11011001
-                                                   pad with 00
+						   pad with 00
    6-bit:   000101 001111 101110 011100 | 000000 111101 100100
    Decimal: 5      15     46     28       0      61     36
-                                                      pad with =
+						      pad with =
    Output:  F      P      u      c        A      9      k      =
    Input data:  0x14FB9C03
    Hex:     1   4    F   B    9   C     | 0   3
    8-bit:   00010100 11111011 10011100  | 00000011
-                                          pad with 0000
+					  pad with 0000
    6-bit:   000101 001111 101110 011100 | 000000 110000
    Decimal: 5      15     46     28       0      48
-                                               pad with =      =
+					       pad with =      =
    Output:  F      P      u      c        A      w      =      =
 
 6.6.  Example of an ASCII Armored Message
@@ -3464,7 +3458,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
       19         - Reserved for ECDSA
       20         - Reserved (formerly Elgamal Encrypt or Sign)
       21         - Reserved for Diffie-Hellman (X9.42,
-                   as defined for IETF-S/MIME)
+		   as defined for IETF-S/MIME)
       100 to 110 - Private/Experimental algorithm
 
    Implementations MUST implement DSA for signatures, and Elgamal for
@@ -3482,7 +3476,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
        0          - Plaintext or unencrypted data
        1          - IDEA [IDEA]
        2          - TripleDES (DES-EDE, [SCHNEIER] [HAC] -
-                    168 bit key derived from 192)
+		    168 bit key derived from 192)
        3          - CAST5 (128 bit key, as per [RFC2144])
        4          - Blowfish (128 bit key, 16 rounds) [BLOWFISH]
        5          - Reserved
@@ -3874,19 +3868,19 @@ RFC 4880                 OpenPGP Message Format            November 2007
    sequential composition, and vertical bar separates alternatives):
 
    OpenPGP Message :- Encrypted Message | Signed Message |
-                      Compressed Message | Literal Message.
+		      Compressed Message | Literal Message.
 
    Compressed Message :- Compressed Data Packet.
 
    Literal Message :- Literal Data Packet.
 
    ESK :- Public-Key Encrypted Session Key Packet |
-          Symmetric-Key Encrypted Session Key Packet.
+	  Symmetric-Key Encrypted Session Key Packet.
 
    ESK Sequence :- ESK | ESK Sequence, ESK.
 
    Encrypted Data :- Symmetrically Encrypted Data Packet |
-         Symmetrically Encrypted Integrity Protected Data Packet
+	 Symmetrically Encrypted Integrity Protected Data Packet
 
 
 
@@ -3899,10 +3893,10 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Encrypted Message :- Encrypted Data | ESK Sequence, Encrypted Data.
 
    One-Pass Signed Message :- One-Pass Signature Packet,
-               OpenPGP Message, Corresponding Signature Packet.
+	       OpenPGP Message, Corresponding Signature Packet.
 
    Signed Message :- Signature Packet, OpenPGP Message |
-               One-Pass Signed Message.
+	       One-Pass Signed Message.
 
    In addition, decrypting a Symmetrically Encrypted Data packet or a
    Symmetrically Encrypted Integrity Protected Data packet as well as
@@ -3924,10 +3918,10 @@ RFC 4880                 OpenPGP Message Format            November 2007
    The format of an OpenPGP V3 key is as follows.  Entries in square
    brackets are optional and ellipses indicate repetition.
 
-           RSA Public Key
-              [Revocation Self Signature]
-               User ID [Signature ...]
-              [User ID [Signature ...] ...]
+	   RSA Public Key
+	      [Revocation Self Signature]
+	       User ID [Signature ...]
+	      [User ID [Signature ...] ...]
 
    Each signature certifies the RSA public key and the preceding User
    ID.  The RSA public key can have many User IDs and each User ID can
@@ -3952,14 +3946,14 @@ Callas, et al               Standards Track                    [Page 70]
 RFC 4880                 OpenPGP Message Format            November 2007
 
 
-           Primary-Key
-              [Revocation Self Signature]
-              [Direct Key Signature...]
-               User ID [Signature ...]
-              [User ID [Signature ...] ...]
-              [User Attribute [Signature ...] ...]
-              [[Subkey [Binding-Signature-Revocation]
-                      Primary-Key-Binding-Signature] ...]
+	   Primary-Key
+	      [Revocation Self Signature]
+	      [Direct Key Signature...]
+	       User ID [Signature ...]
+	      [User ID [Signature ...] ...]
+	      [User Attribute [Signature ...] ...]
+	      [[Subkey [Binding-Signature-Revocation]
+		      Primary-Key-Binding-Signature] ...]
 
    A subkey always has a single signature after it that is issued using
    the primary key to tie the two keys together.  This binding signature
@@ -4071,7 +4065,7 @@ RFC 4880                 OpenPGP Message Format            November 2007
    k  = the length in octets of the key modulus
 
    M  = message to be encoded, an octet string of length mLen, where
-        mLen <= k - 11
+	mLen <= k - 11
 
    Output:
 
@@ -4080,16 +4074,16 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Error:   "message too long"
 
      1. Length checking: If mLen > k - 11, output "message too long" and
-        stop.
+	stop.
 
      2. Generate an octet string PS of length k - mLen - 3 consisting of
-        pseudo-randomly generated nonzero octets.  The length of PS will
-        be at least eight octets.
+	pseudo-randomly generated nonzero octets.  The length of PS will
+	be at least eight octets.
 
      3. Concatenate PS, the message M, and other padding to form an
-        encoded message EM of length k octets as
+	encoded message EM of length k octets as
 
-        EM = 0x00 || 0x02 || PS || 0x00 || M.
+	EM = 0x00 || 0x02 || PS || 0x00 || M.
 
      4. Output EM.
 
@@ -4135,15 +4129,15 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Option:
 
    Hash - a hash function in which hLen denotes the length in octets of
-         the hash function output
+	 the hash function output
 
    Input:
 
    M  = message to be encoded
 
    mL = intended length in octets of the encoded message, at least tLen
-        + 11, where tLen is the octet length of the DER encoding T of a
-        certain value computed during the encoding operation
+	+ 11, where tLen is the octet length of the DER encoding T of a
+	certain value computed during the encoding operation
 
    Output:
 
@@ -4155,19 +4149,19 @@ RFC 4880                 OpenPGP Message Format            November 2007
    Steps:
 
      1. Apply the hash function to the message M to produce a hash value
-        H:
+	H:
 
-        H = Hash(M).
+	H = Hash(M).
 
-        If the hash function outputs "message too long," output "message
-        too long" and stop.
+	If the hash function outputs "message too long," output "message
+	too long" and stop.
 
      2. Using the list in Section 5.2.2, produce an ASN.1 DER value for
-        the hash function used.  Let T be the full hash prefix from
-        Section 5.2.2, and let tLen be the length in octets of T.
+	the hash function used.  Let T be the full hash prefix from
+	Section 5.2.2, and let tLen be the length in octets of T.
 
      3. If emLen < tLen + 11, output "intended encoded message length
-        too short" and stop.
+	too short" and stop.
 
 
 
@@ -4177,13 +4171,13 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
 
      4. Generate an octet string PS consisting of emLen - tLen - 3
-        octets with hexadecimal value 0xFF.  The length of PS will be at
-        least 8 octets.
+	octets with hexadecimal value 0xFF.  The length of PS will be at
+	least 8 octets.
 
      5. Concatenate PS, the hash prefix T, and other padding to form the
-        encoded message EM as
+	encoded message EM as
 
-        EM = 0x00 || 0x01 || PS || 0x00 || T.
+	EM = 0x00 || 0x01 || PS || 0x00 || T.
 
      6. Output EM.
 
@@ -4582,14 +4576,14 @@ RFC 4880                 OpenPGP Message Format            November 2007
      Publication 800-57 [SP800-57] recommends the following list of
      equivalent strengths:
 
-           Asymmetric  |  Hash  |  Symmetric
-            key size   |  size  |   key size
-           ------------+--------+-----------
-              1024        160         80
-              2048        224        112
-              3072        256        128
-              7680        384        192
-             15360        512        256
+	   Asymmetric  |  Hash  |  Symmetric
+	    key size   |  size  |   key size
+	   ------------+--------+-----------
+	      1024        160         80
+	      2048        224        112
+	      3072        256        128
+	      7680        384        192
+	     15360        512        256
 
    * There is a somewhat-related potential security problem in
      signatures.  If an attacker can find a message that hashes to the
@@ -4657,13 +4651,13 @@ RFC 4880                 OpenPGP Message Format            November 2007
      Consequently, it is important that:
 
       1. Implementers treat MDC errors and decompression failures as
-         security problems.
+	 security problems.
 
       2. Implementers implement Modification Detection with all due
-         speed and encourage its spread.
+	 speed and encourage its spread.
 
       3. Users migrate to implementations that support Modification
-         Detection with all due speed.
+	 Detection with all due speed.
 
    * PKCS#1 has been found to be vulnerable to attacks in which a system
      that reports errors in padding differently from errors in
@@ -4800,45 +4794,45 @@ RFC 4880                 OpenPGP Message Format            November 2007
 16.1.  Normative References
 
    [AES]            NIST, FIPS PUB 197, "Advanced Encryption Standard
-                    (AES)," November 2001.
-                    http://csrc.nist.gov/publications/fips/fips197/fips-
-                    197.{ps,pdf}
+		    (AES)," November 2001.
+		    http://csrc.nist.gov/publications/fips/fips197/fips-
+		    197.{ps,pdf}
 
    [BLOWFISH]       Schneier, B. "Description of a New Variable-Length
-                    Key, 64-Bit Block Cipher (Blowfish)" Fast Software
-                    Encryption, Cambridge Security Workshop Proceedings
-                    (December 1993), Springer-Verlag, 1994, pp191-204
-                    <http://www.counterpane.com/bfsverlag.html>
+		    Key, 64-Bit Block Cipher (Blowfish)" Fast Software
+		    Encryption, Cambridge Security Workshop Proceedings
+		    (December 1993), Springer-Verlag, 1994, pp191-204
+		    <http://www.counterpane.com/bfsverlag.html>
 
    [BZ2]            J. Seward, jseward@acm.org, "The Bzip2 and libbzip2
-                    home page" <http://www.bzip.org/>
+		    home page" <http://www.bzip.org/>
 
    [ELGAMAL]        T. Elgamal, "A Public-Key Cryptosystem and a
-                    Signature Scheme Based on Discrete Logarithms," IEEE
-                    Transactions on Information Theory, v. IT-31, n. 4,
-                    1985, pp. 469-472.
+		    Signature Scheme Based on Discrete Logarithms," IEEE
+		    Transactions on Information Theory, v. IT-31, n. 4,
+		    1985, pp. 469-472.
 
    [FIPS180]        Secure Hash Signature Standard (SHS) (FIPS PUB 180-
-                    2).
-                    <http://csrc.nist.gov/publications/fips/fips180-
-                    2/fips180-2withchangenotice.pdf>
+		    2).
+		    <http://csrc.nist.gov/publications/fips/fips180-
+		    2/fips180-2withchangenotice.pdf>
 
    [FIPS186]        Digital Signature Standard (DSS) (FIPS PUB 186-2).
-                    <http://csrc.nist.gov/publications/fips/fips186-2/
-                     fips186-2-change1.pdf> FIPS 186-3 describes keys
-                    greater than 1024 bits.  The latest draft is at:
-                    <http://csrc.nist.gov/publications/drafts/
-                    fips_186-3/Draft-FIPS-186-3%20_March2006.pdf>
+		    <http://csrc.nist.gov/publications/fips/fips186-2/
+		     fips186-2-change1.pdf> FIPS 186-3 describes keys
+		    greater than 1024 bits.  The latest draft is at:
+		    <http://csrc.nist.gov/publications/drafts/
+		    fips_186-3/Draft-FIPS-186-3%20_March2006.pdf>
 
    [HAC]            Alfred Menezes, Paul van Oorschot, and Scott
-                    Vanstone, "Handbook of Applied Cryptography," CRC
-                    Press, 1996.
-                    <http://www.cacr.math.uwaterloo.ca/hac/>
+		    Vanstone, "Handbook of Applied Cryptography," CRC
+		    Press, 1996.
+		    <http://www.cacr.math.uwaterloo.ca/hac/>
 
    [IDEA]           Lai, X, "On the design and security of block
-                    ciphers", ETH Series in Information Processing, J.L.
-                    Massey (editor), Vol. 1, Hartung-Gorre Verlag
-                    Knostanz, Technische Hochschule (Zurich), 1992
+		    ciphers", ETH Series in Information Processing, J.L.
+		    Massey (editor), Vol. 1, Hartung-Gorre Verlag
+		    Knostanz, Technische Hochschule (Zurich), 1992
 
 
 
@@ -4849,52 +4843,52 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
 
    [ISO10646]       ISO/IEC 10646-1:1993. International Standard --
-                    Information technology -- Universal Multiple-Octet
-                    Coded Character Set (UCS) -- Part 1: Architecture
-                    and Basic Multilingual Plane.
+		    Information technology -- Universal Multiple-Octet
+		    Coded Character Set (UCS) -- Part 1: Architecture
+		    and Basic Multilingual Plane.
 
    [JFIF]           JPEG File Interchange Format (Version 1.02).  Eric
-                    Hamilton, C-Cube Microsystems, Milpitas, CA,
-                    September 1, 1992.
+		    Hamilton, C-Cube Microsystems, Milpitas, CA,
+		    September 1, 1992.
 
    [RFC1950]        Deutsch, P. and J-L. Gailly, "ZLIB Compressed Data
-                    Format Specification version 3.3", RFC 1950, May
-                    1996.
+		    Format Specification version 3.3", RFC 1950, May
+		    1996.
 
    [RFC1951]        Deutsch, P., "DEFLATE Compressed Data Format
-                    Specification version 1.3", RFC 1951, May 1996.
+		    Specification version 1.3", RFC 1951, May 1996.
 
    [RFC2045]        Freed, N. and N. Borenstein, "Multipurpose Internet
-                    Mail Extensions (MIME) Part One: Format of Internet
-                    Message Bodies", RFC 2045, November 1996
+		    Mail Extensions (MIME) Part One: Format of Internet
+		    Message Bodies", RFC 2045, November 1996
 
    [RFC2119]        Bradner, S., "Key words for use in RFCs to Indicate
-                    Requirement Levels", BCP 14, RFC 2119, March 1997.
+		    Requirement Levels", BCP 14, RFC 2119, March 1997.
 
    [RFC2144]        Adams, C., "The CAST-128 Encryption Algorithm", RFC
-                    2144, May 1997.
+		    2144, May 1997.
 
    [RFC2434]        Narten, T. and H. Alvestrand, "Guidelines for
-                    Writing an IANA Considerations Section in RFCs", BCP
-                    26, RFC 2434, October 1998.
+		    Writing an IANA Considerations Section in RFCs", BCP
+		    26, RFC 2434, October 1998.
 
    [RFC2822]        Resnick, P., "Internet Message Format", RFC 2822,
-                    April 2001.
+		    April 2001.
 
    [RFC3156]        Elkins, M., Del Torto, D., Levien, R., and T.
-                    Roessler, "MIME Security with OpenPGP", RFC 3156,
-                    August 2001.
+		    Roessler, "MIME Security with OpenPGP", RFC 3156,
+		    August 2001.
 
    [RFC3447]        Jonsson, J. and B. Kaliski, "Public-Key Cryptography
-                    Standards (PKCS) #1: RSA Cryptography Specifications
-                    Version 2.1", RFC 3447, February 2003.
+		    Standards (PKCS) #1: RSA Cryptography Specifications
+		    Version 2.1", RFC 3447, February 2003.
 
    [RFC3629]        Yergeau, F., "UTF-8, a transformation format of ISO
-                    10646", STD 63, RFC 3629, November 2003.
+		    10646", STD 63, RFC 3629, November 2003.
 
    [RFC4086]        Eastlake, D., 3rd, Schiller, J., and S. Crocker,
-                    "Randomness Requirements for Security", BCP 106, RFC
-                    4086, June 2005.
+		    "Randomness Requirements for Security", BCP 106, RFC
+		    4086, June 2005.
 
 
 
@@ -4905,51 +4899,51 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
 
    [SCHNEIER]      Schneier, B., "Applied Cryptography Second Edition:
-                    protocols, algorithms, and source code in C", 1996.
+		    protocols, algorithms, and source code in C", 1996.
 
    [TWOFISH]        B. Schneier, J. Kelsey, D. Whiting, D. Wagner, C.
-                    Hall, and N. Ferguson, "The Twofish Encryption
-                    Algorithm", John Wiley & Sons, 1999.
+		    Hall, and N. Ferguson, "The Twofish Encryption
+		    Algorithm", John Wiley & Sons, 1999.
 
 16.2.  Informative References
 
    [BLEICHENBACHER] Bleichenbacher, Daniel, "Generating Elgamal
-                    signatures without knowing the secret key,"
-                    Eurocrypt 96. Note that the version in the
-                    proceedings has an error. A revised version is
-                    available at the time of writing from
-                    <ftp://ftp.inf.ethz.ch/pub/publications/papers/ti
-                    /isc/ElGamal.ps>
+		    signatures without knowing the secret key,"
+		    Eurocrypt 96. Note that the version in the
+		    proceedings has an error. A revised version is
+		    available at the time of writing from
+		    <ftp://ftp.inf.ethz.ch/pub/publications/papers/ti
+		    /isc/ElGamal.ps>
 
    [JKS02]          Kahil Jallad, Jonathan Katz, Bruce Schneier
-                    "Implementation of Chosen-Ciphertext Attacks against
-                    PGP and GnuPG" http://www.counterpane.com/pgp-
-                    attack.html
+		    "Implementation of Chosen-Ciphertext Attacks against
+		    PGP and GnuPG" http://www.counterpane.com/pgp-
+		    attack.html
 
    [MAURER]         Ueli Maurer, "Modelling a Public-Key
-                    Infrastructure", Proc. 1996 European Symposium on
-                    Research in Computer Security (ESORICS' 96), Lecture
-                    Notes in Computer Science, Springer-Verlag, vol.
-                    1146, pp. 325-350, Sep 1996.
+		    Infrastructure", Proc. 1996 European Symposium on
+		    Research in Computer Security (ESORICS' 96), Lecture
+		    Notes in Computer Science, Springer-Verlag, vol.
+		    1146, pp. 325-350, Sep 1996.
 
    [MZ05]           Serge Mister, Robert Zuccherato, "An Attack on CFB
-                    Mode Encryption As Used By OpenPGP," IACR ePrint
-                    Archive: Report 2005/033, 8 Feb 2005
-                    http://eprint.iacr.org/2005/033
+		    Mode Encryption As Used By OpenPGP," IACR ePrint
+		    Archive: Report 2005/033, 8 Feb 2005
+		    http://eprint.iacr.org/2005/033
 
    [REGEX]          Jeffrey Friedl, "Mastering Regular Expressions,"
-                    O'Reilly, ISBN 0-596-00289-0.
+		    O'Reilly, ISBN 0-596-00289-0.
 
    [RFC1423]        Balenson, D., "Privacy Enhancement for Internet
-                    Electronic Mail: Part III: Algorithms, Modes, and
-                    Identifiers", RFC 1423, February 1993.
+		    Electronic Mail: Part III: Algorithms, Modes, and
+		    Identifiers", RFC 1423, February 1993.
 
    [RFC1991]        Atkins, D., Stallings, W., and P. Zimmermann, "PGP
-                    Message Exchange Formats", RFC 1991, August 1996.
+		    Message Exchange Formats", RFC 1991, August 1996.
 
    [RFC2440]        Callas, J., Donnerhacke, L., Finney, H., and R.
-                    Thayer, "OpenPGP Message Format", RFC 2440, November
-                    1998.
+		    Thayer, "OpenPGP Message Format", RFC 2440, November
+		    1998.
 
 
 
@@ -4961,11 +4955,11 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
 
    [SP800-57]       NIST Special Publication 800-57, Recommendation on
-                    Key Management
-                    <http://csrc.nist.gov/publications/nistpubs/ 800-
-                    57/SP800-57-Part1.pdf>
-                    <http://csrc.nist.gov/publications/nistpubs/ 800-
-                    57/SP800-57-Part2.pdf>
+		    Key Management
+		    <http://csrc.nist.gov/publications/nistpubs/ 800-
+		    57/SP800-57-Part1.pdf>
+		    <http://csrc.nist.gov/publications/nistpubs/ 800-
+		    57/SP800-57-Part2.pdf>
 
 Acknowledgements
 
