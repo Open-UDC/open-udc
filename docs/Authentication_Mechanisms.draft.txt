@@ -19,9 +19,10 @@ Request for Comments:                                      Open-UDC Team
  3. Using OpenPGP certificates ......................................
  4. Human Authentication ............................................
     4.1 OpenPGP Human certificat ....................................
-    4.2 Proof of identity ..........................................
-    4.3 Proof of life ..............................................
- 5. Node Authentication ..........................................
+    4.2 Proof of identity ...........................................
+    4.3 Living trust level .................................................
+    4.4 Proof of life ...............................................
+ 5. Node Authentication .............................................
 
 1.== Introduction ==
 
@@ -262,14 +263,28 @@ Request for Comments:                                      Open-UDC Team
        this document ([RFCXXXX]).
     the signatories will be held accountable and may be prosecuted.
 
-4.3= Proof of life =
+4.3= Living trust level =
 
-    The proof of live is related with the money creation : if someone
-    in the web of trust does not initialize (or use) the share of new
-    money which is reserved for him. He will be presumed "dead" and will
-    be remove for the calculation of the next money set.
+    For each people inside the web of trust, levels of trust may be
+    calculated, depending on such parameters:
+     1 - The number of signatories.
+     2 - The level of trust of the signatories.
+     3 - The age of the signatures.
+     4 - A level indicated by other signatories.
+     5 - A level indicated by other humans in the web of trust.
 
-    The share of money which he have not initialized should be use
+    OpenUDC define as "living trust level" those where the "age of
+    signatures" parameter may do it collapse. 
+    
+4.4= Proof of life =
+
+    The proof of live is related with the money creation and the living
+    trust level: if someone in the web of trust does not create the
+    share of new money which is reserved for him or if its living trust
+    level become lower than a minimal required. He will be presumed
+    "dead" and will be remove for the calculation of the next money set.
+
+    The share of money which he have not be initialized should be use
     democratically by the rest of the web of trust.
 
     If a cheat is discovered, eg. if someone or something (a robot) use
