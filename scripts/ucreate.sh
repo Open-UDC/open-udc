@@ -21,7 +21,7 @@ if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space
     exit -1
 fi
 
-if [ "$udcdata" != "cset1.env" ] ; then
+if [ "$udcdata" != "cset2.env" ] ; then
     echo "$SW: Sorry, unsupported version ($udcdata)" >&2
     exit -2
 fi
@@ -60,9 +60,9 @@ if (($(date +%s)>$(date -d "$dlimc" +%s))) ; then
 fi
 
 echo
-if gpg2 --version 2> /dev/null | head -n 3 ; then 
+if gpg2 --version > /dev/null 2>&1 ; then 
     gpg="gpg2"
-elif gpg --version 2> /dev/null | head -n 3 ; then
+elif gpg --version > /dev/null 2>&1 ; then
     gpg="gpg"
 else
     echo -e "\n No gpg found in your \$PATH ($PATH)\n"\
@@ -70,7 +70,8 @@ else
     exit -3
 fi
 
-mykeys=($($gpg --list-secret-keys --with-colons | grep "^s" | cut -d: -f 5))
+#mykeys=($($gpg --list-secret-keys --with-colons | grep "^s" | cut -d: -f 5))
+mykeys=($($gpg --list-secret-keys --with-colons --with-fingerprint --fingerprint | grep "^fpr" | cut -d: -f 10))
 # Warning: $mykeys contain non-signing key. It is not really annoying, but it's not clean.
 
 if [ -z "$mykeys" ] ; then 
@@ -103,7 +104,7 @@ else
 fi
 
 myindex=$((${myline%%:*}-nstart))
-mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{16\}\);.*,\1,p ')"
+mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{40\}\);.*,\1,p ')"
 
 echo -e "\nudid=\"$myudid\" key=$mykey position=$myindex"
 
