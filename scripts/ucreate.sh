@@ -70,7 +70,6 @@ else
     exit -3
 fi
 
-#mykeys=($($gpg --list-secret-keys --with-colons | grep "^s" | cut -d: -f 5))
 mykeys=($($gpg --list-secret-keys --with-colons --with-fingerprint --fingerprint | grep "^fpr" | cut -d: -f 10))
 # Warning: $mykeys contain non-signing key. It is not really annoying, but it's not clean.
 
@@ -106,7 +105,7 @@ fi
 myindex=$((${myline%%:*}-nstart))
 mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{40\}\);.*,\1,p ')"
 
-echo -e "\nudid=\"$myudid\" key=$mykey position=$myindex"
+echo -e "\n udid=\"$myudid\"\n key=$mykey position=$myindex"
 
 if ! echo "${mykeys[*]}" | grep "$mykey" > /dev/null ; then
     echo -e "\n Oups ! the keyID associated with your udid ($mykey) is not\n"\
@@ -126,14 +125,17 @@ while true ; do
         cp -v "$1" "$HOME/.openudc/$curname/cset/cset.$setnum.env"
 
         #KeyID collision in 2 differents creation sheet time are not managed today
-        mkdir -p "$HOME/.openudc/$curname/$mykey"
-        cfile="$HOME/.openudc/$curname/$mykey/c.$setnum"
+        mkdir -p "$HOME/.openudc/$curname/k/$mykey"
+        cfile="$HOME/.openudc/$curname/k/$mykey/c.$setnum"
         echo -e "d=t2c\nc=$curname\nh=$(sha1sum -t "$1" | cut -d ' ' -f 1)\nb=(" > "$cfile"
         for ((i=0;i<48;i++)) ; do
             if ((factors[i])) ; then
                 value="$(echo $(((48-i)%3?(48-i)%3:5))*10^$(((47-i)/3)) | bc -l )"
+                mkdir -p "$HOME/.openudc/$curname/k/$mykey/w/$value/"
                 for ((j=0;j<factors[i];j++)) ; do
-                    echo -n "$value-$setnum-$((factors[i]*myindex+j)).0 "
+                    k=$((factors[i]*myindex+j))
+                    echo -n "$value-$setnum-$k.0 "
+                    ln -s "../../c.$setnum" "$HOME/.openudc/$curname/k/$mykey/w/$value/$setnum-$k"
                 done
                 echo
             fi
