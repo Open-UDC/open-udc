@@ -2,13 +2,43 @@
 
 SW="OpenUDC - devel"
 Version="ucreate.sh 0.0.2 ($SW)"
+SHome="$HOME/.openudc"
 
 if [ "$1" == "-V" ] || [ "$1" == "--version" ] ; then 
     echo "$Version"
     exit
-elif [ -z "$1" ] || [ "${1:0:1}" == "-" ] ; then
-    echo "Usage: $0 CREATION_SET_FILE IDLIST_FILE" >&2
+elif [ "${1:0:1}" == "-" ] ; then
+    echo "Usage: $0 [CREATION_SHEET]" >&2
     exit -1
+fi
+
+
+
+
+if [ -z "$1" ] ; then
+    # TO DO : use a config file or ~/.openudc/config
+    PubServList=("https://github.com/jbar/open-udc/tree/master/data")
+    DefCurrency="uni"
+    TMPDIR="/tmp"
+
+    echo "Sorry, works to auto-synchronize creation with publications servers is still in progress..." >&2
+    echo "Usage: $0 [CREATION_SHEET]" >&2
+    exit
+
+
+    if curl "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" \
+        || wget -O - "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" \
+        || GET "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" ) ; then
+        if diff "$SHome/$DefCurrency/c/cset.status" "$TMPDIR/cset.status"
+            echo "Nothing to do: You are synchronized with the published creations !"
+            exit
+        else
+            # get the missing sheets
+            # ...
+        fi
+    else
+        echo " Error: unable to retrieve creation status from publication server(s)" ; exit -4
+    fi
 fi
 
 #We have to test that the OpenUDC home contain all the validated cset file (with the network i.e the publication serveur in the first time).
@@ -16,7 +46,7 @@ fi
 #   rsync ...
 #fi
 
-if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space:]]*-----START IDLIST-----/ { print "nstart="NR+1 ; exit } {print} ' "$1") ; then
+if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space:]]*d=idlist\>/ { print "nstart="NR+1 ; exit } {print} ' "$1") ; then
     echo "$SW: Error: file \"$1\" is invalid" >&2
     exit -1
 fi
@@ -41,12 +71,7 @@ echo -e "\n Set n°$setnum:\n"\
         "\tNumber of Individuals: $idnumber\n"\
         "\tMonetary Dividend: $(echo "scale=2; $value/100" | bc -l ) ${curname}s"
 
-# validation is better outside the creation sheet
-#echo -n " Closing date for validation: " 
-#if ! date -d "$dlimv" >&2 ; then
-#    echo -e "$SW: Error: file \"$1\" is invalid" >&2
-#    exit -1
-#fi
+# Note: validation process is something external to the creation sheet.
 
 echo -n " Closing date for creation: " 
 if ! date -d "$dlimc" >&2 ; then
@@ -90,23 +115,23 @@ if ! [ "$myudid2h" -o "$myudid2c" -o "$myudid1" ] ; then
     exit -4
 fi
 
-mkdir -p "$HOME/.openudc/$curname/cset"
-head -n $((nstart-1)) "$1" > "$HOME/.openudc/$curname/cset/cset.$setnum.env"
-tail -n $((nstart+1)) "$1" > "$HOME/.openudc/$curname/cset/cset.$setnum.list"
+mkdir -p "$SHome/$curname/c"
+head -n $((nstart-1)) "$1" > "$SHome/$curname/c/cset-$setnum.env"
+tail -n $((nstart)) "$1" > "$SHome/$curname/c/cset-$setnum.list"
 
 #myudid="$(([ "$myudid2h" ] && grep -o "$myudid2h" $1 ) || ([ "$myudid2c" ] && grep -o "$myudid2c" $1 ) || ([ "$myudid1" ] && grep -o "$myudid1" $1 ))"
-if [ "$myudid2h" ] && myline="$(grep -n " $myudid2h\>" "$HOME/.openudc/$curname/cset/cset.$setnum.list" )" ; then
+if [ "$myudid2h" ] && myline="$(grep -n " $myudid2h\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
     myudid="$myudid2h"
-elif [ "$myudid2c" ] && myline="$(grep -n " $myudid2c\>" "$HOME/.openudc/$curname/cset/cset.$setnum.list" )" ; then
+elif [ "$myudid2c" ] && myline="$(grep -n " $myudid2c\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
     myudid="$myudid2c"
-elif [ "$myudid1" ] && myline="$(tail -n +$nstart "$1" | grep -n " $myudid1\>" )" ; then
+elif [ "$myudid1" ] && myline="$(grep -n " $myudid1\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
     myudid="$myudid1"
 else
     echo -e "\n Sorry, your udid is not in the creation set\n" >&2
     exit
 fi
 
-myindex=$((${myline%%:*}-1))
+myindex=$((${myline%%:*}-2))
 mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{40\}\);.*,\1,p ')"
 
 echo -e "\n udid=\"$myudid\"\n key=$mykey position=$myindex"
@@ -127,9 +152,9 @@ while true ; do
         echo -e "\n"
 
         #KeyID collision in 2 differents creation sheet time are not managed today
-        mkdir -p "$HOME/.openudc/$curname/k/$mykey/w/$setnum"
-        rm -f "$HOME/.openudc/$curname/k/$mykey/w/$setnum/*"
-        cfile="$HOME/.openudc/$curname/k/$mykey/c.$setnum"
+        mkdir -p "$SHome/$curname/k/$mykey/w/$setnum"
+        rm -f "$SHome/$curname/k/$mykey/w/$setnum/*"
+        cfile="$SHome/$curname/k/$mykey/c.$setnum"
         echo -e "d=t2c\nc=$curname\nh=$(sha1sum -t "$1" | cut -d ' ' -f 1)\nb=(" > "$cfile"
         for ((i=0;i<48;i++)) ; do
             if ((factors[i])) ; then
@@ -137,13 +162,13 @@ while true ; do
                 for ((j=0;j<factors[i];j++)) ; do
                     k=$((factors[i]*myindex+j))
                     echo -n "$value-$setnum-$k.0 "
-                    echo "$value-$setnum-$k c.$setnum" >> "$HOME/.openudc/$curname/k/$mykey/w/$setnum/$value"
+                    echo "$value-$setnum-$k c.$setnum" >> "$SHome/$curname/k/$mykey/w/$setnum/$value"
                 done
                 echo
             fi
         done >> "$cfile"
         echo ")" >> "$cfile"
-        #$gpg --detach-sign -u "${mykey}!" --armor --output - "$HOME/.openudc/$curname/cset/cset.$setnum.env" >> "$cfile"
+        #$gpg --detach-sign -u "${mykey}!" --armor --output - "$SHome/$curname/cset/cset.$setnum.env" >> "$cfile"
         $gpg --sign -u "${mykey}!" "$cfile"
         # Then we have to publish this creation... and hurry (before dlimc).
         break
