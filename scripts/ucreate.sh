@@ -7,7 +7,7 @@ if [ "$1" == "-V" ] || [ "$1" == "--version" ] ; then
     echo "$Version"
     exit
 elif [ -z "$1" ] || [ "${1:0:1}" == "-" ] ; then
-    echo "Usage: $0 CREATION_SET_FILE" >&2
+    echo "Usage: $0 CREATION_SET_FILE IDLIST_FILE" >&2
     exit -1
 fi
 
@@ -16,7 +16,7 @@ fi
 #   rsync ...
 #fi
 
-if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space:]]*idlist=/ { print "nstart="NR+1 ; exit } {print} ' "$1") ; then
+if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space:]]*-----START IDLIST-----/ { print "nstart="NR+1 ; exit } {print} ' "$1") ; then
     echo "$SW: Error: file \"$1\" is invalid" >&2
     exit -1
 fi
@@ -79,10 +79,10 @@ if [ -z "$mykeys" ] ; then
     exit -4
 fi
 
-myudid2h="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;h;[[:xdigit:]]\{40\};[0-9]\+\)[;)].*,\1,p ')"
+myudid2h="$($gpg --list-key ${mykeys[0]} 2> /dev/null | sed -n ' s,.*(\(udid2;h;[[:xdigit:]]\{40\};[0-9]\+\)[;)].*,\1,p ' | head -n 1)"
 #myudid2c="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid2;c;[A-Z-]\{0,20\};[A-Z-]\{1,20\};[0-9-]\{10\};e[0-9.+-]\{13\};[0-9]\+\)[;)].*,\1,p ')"
-myudid2c="$($gpg --list-secret-keys 2> /dev/null | gawk --re-interval '/\(udid2;c;/ { print gensub(/[^(]*\((udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};e[0-9.+-]{13};[0-9]+)[;)].*/, "\\1", "1") }' )"
-myudid1="$($gpg --list-secret-keys 2> /dev/null | sed -n ' s,.*(\(udid1;[^);]\+;[^);]\+;[^);]\+;[^);]\+\)[;)].*,\1,p ' | head -n 1 )" 
+myudid2c="$($gpg --list-key ${mykeys[0]} 2> /dev/null | gawk --re-interval '/\(udid2;c;/ { print gensub(/[^(]*\((udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};e[0-9.+-]{13};[0-9]+)[;)].*/, "\\1", "1") ; exit }' )"
+myudid1="$($gpg --list-key ${mykeys[0]} 2> /dev/null | sed -n ' s,.*(\(udid1;[^);]\+;[^);]\+;[^);]\+;[^);]\+\)[;)].*,\1,p ' | head -n 1 )" 
 
 if ! [ "$myudid2h" -o "$myudid2c" -o "$myudid1" ] ; then 
     echo -e "\n No udid found in your private datas\n"\
@@ -90,19 +90,23 @@ if ! [ "$myudid2h" -o "$myudid2c" -o "$myudid1" ] ; then
     exit -4
 fi
 
+mkdir -p "$HOME/.openudc/$curname/cset"
+head -n $((nstart-1)) "$1" > "$HOME/.openudc/$curname/cset/cset.$setnum.env"
+tail -n $((nstart+1)) "$1" > "$HOME/.openudc/$curname/cset/cset.$setnum.list"
+
 #myudid="$(([ "$myudid2h" ] && grep -o "$myudid2h" $1 ) || ([ "$myudid2c" ] && grep -o "$myudid2c" $1 ) || ([ "$myudid1" ] && grep -o "$myudid1" $1 ))"
-if [ "$myudid2h" ] && myline="$(grep -n "$myudid2h\"" $1 )" ; then
+if [ "$myudid2h" ] && myline="$(grep -n " $myudid2h\>" "$HOME/.openudc/$curname/cset/cset.$setnum.list" )" ; then
     myudid="$myudid2h"
-elif [ "$myudid2c" ] && myline="$(grep -n "$myudid2c\"" $1 )" ; then
+elif [ "$myudid2c" ] && myline="$(grep -n " $myudid2c\>" "$HOME/.openudc/$curname/cset/cset.$setnum.list" )" ; then
     myudid="$myudid2c"
-elif [ "$myudid1" ] && myline="$(grep -n "$myudid1\"" $1 )" ; then
+elif [ "$myudid1" ] && myline="$(tail -n +$nstart "$1" | grep -n " $myudid1\>" )" ; then
     myudid="$myudid1"
 else
     echo -e "\n Sorry, your udid is not in the creation set\n" >&2
     exit
 fi
 
-myindex=$((${myline%%:*}-nstart))
+myindex=$((${myline%%:*}-1))
 mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{40\}\);.*,\1,p ')"
 
 echo -e "\n udid=\"$myudid\"\n key=$mykey position=$myindex"
@@ -121,21 +125,19 @@ while true ; do
       [yY]*)
         read -t 3 -p "Okay, let's create your part of money !"
         echo -e "\n"
-        mkdir -p "$HOME/.openudc/$curname/cset"
-        cp -v "$1" "$HOME/.openudc/$curname/cset/cset.$setnum.env"
 
         #KeyID collision in 2 differents creation sheet time are not managed today
-        mkdir -p "$HOME/.openudc/$curname/k/$mykey"
+        mkdir -p "$HOME/.openudc/$curname/k/$mykey/w/$setnum"
+        rm -f "$HOME/.openudc/$curname/k/$mykey/w/$setnum/*"
         cfile="$HOME/.openudc/$curname/k/$mykey/c.$setnum"
         echo -e "d=t2c\nc=$curname\nh=$(sha1sum -t "$1" | cut -d ' ' -f 1)\nb=(" > "$cfile"
         for ((i=0;i<48;i++)) ; do
             if ((factors[i])) ; then
                 value="$(echo $(((48-i)%3?(48-i)%3:5))*10^$(((47-i)/3)) | bc -l )"
-                mkdir -p "$HOME/.openudc/$curname/k/$mykey/w/$value/"
                 for ((j=0;j<factors[i];j++)) ; do
                     k=$((factors[i]*myindex+j))
                     echo -n "$value-$setnum-$k.0 "
-                    ln -s "../../c.$setnum" "$HOME/.openudc/$curname/k/$mykey/w/$value/$setnum-$k"
+                    echo "$value-$setnum-$k c.$setnum" >> "$HOME/.openudc/$curname/k/$mykey/w/$setnum/$value"
                 done
                 echo
             fi
@@ -143,7 +145,7 @@ while true ; do
         echo ")" >> "$cfile"
         #$gpg --detach-sign -u "${mykey}!" --armor --output - "$HOME/.openudc/$curname/cset/cset.$setnum.env" >> "$cfile"
         $gpg --sign -u "${mykey}!" "$cfile"
-        # Then we havo to publish this creation... and hurry (before dlimc).
+        # Then we have to publish this creation... and hurry (before dlimc).
         break
         ;;
       [nN]*)
