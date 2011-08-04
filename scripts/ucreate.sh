@@ -28,12 +28,13 @@ if [ -z "$1" ] ; then
 
     if curl "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" \
         || wget -O - "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" \
-        || GET "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" ) ; then
-        if diff "$SHome/$DefCurrency/c/cset.status" "$TMPDIR/cset.status"
+        || GET "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" ; then
+        if diff "$SHome/$DefCurrency/c/cset.status" "$TMPDIR/cset.status" ; then
             echo "Nothing to do: You are synchronized with the published creations !"
             exit
         else
             # get the missing sheets
+            echo
             # ...
         fi
     else
@@ -46,7 +47,7 @@ fi
 #   rsync ...
 #fi
 
-if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space:]]*d=idlist\>/ { print "nstart="NR+1 ; exit } {print} ' "$1") ; then
+if ! head -n 1 "$1" | grep "^udcdata=" > /dev/null || ! eval $(gawk ' /^[[:space:]]*d=idlist\>/ { print "nstart="NR ; exit } {print} ' "$1") ; then
     echo "$SW: Error: file \"$1\" is invalid" >&2
     exit -1
 fi
@@ -116,15 +117,15 @@ if ! [ "$myudid2h" -o "$myudid2c" -o "$myudid1" ] ; then
 fi
 
 mkdir -p "$SHome/$curname/c"
-head -n $((nstart-1)) "$1" > "$SHome/$curname/c/cset-$setnum.env"
-tail -n $((nstart)) "$1" > "$SHome/$curname/c/cset-$setnum.list"
+head -n $((nstart-2)) "$1" > "$SHome/$curname/c/cset-$setnum.env"
+tail -n +$((nstart)) "$1" > "$SHome/$curname/c/cset-$setnum.list"
 
 #myudid="$(([ "$myudid2h" ] && grep -o "$myudid2h" $1 ) || ([ "$myudid2c" ] && grep -o "$myudid2c" $1 ) || ([ "$myudid1" ] && grep -o "$myudid1" $1 ))"
-if [ "$myudid2h" ] && myline="$(grep -n " $myudid2h\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
+if [ "$myudid2h" ] && myline="$(grep -n "\<$myudid2h\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
     myudid="$myudid2h"
-elif [ "$myudid2c" ] && myline="$(grep -n " $myudid2c\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
+elif [ "$myudid2c" ] && myline="$(grep -n "\<$myudid2c\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
     myudid="$myudid2c"
-elif [ "$myudid1" ] && myline="$(grep -n " $myudid1\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
+elif [ "$myudid1" ] && myline="$(grep -n "\<$myudid1\>" "$SHome/$curname/c/cset-$setnum.list" )" ; then
     myudid="$myudid1"
 else
     echo -e "\n Sorry, your udid is not in the creation set\n" >&2
@@ -132,7 +133,7 @@ else
 fi
 
 myindex=$((${myline%%:*}-2))
-mykey="$(echo "$myline" | sed -n ' s,[^"]*"\([[:xdigit:]]\{40\}\);.*,\1,p ')"
+mykey="$(echo "$myline" | cut -d ':' -f 2)"
 
 echo -e "\n udid=\"$myudid\"\n key=$mykey position=$myindex"
 

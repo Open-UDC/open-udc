@@ -164,7 +164,7 @@ Request for Comments:                                      Open-UDC Team
     the clear version.
 
     As we can know hash the udid we have no more place for fuzziness in
-    it, and the rules of the clear version are very strict :
+    it, and so the rules of the clear version are very strict :
 
     The clear version "udid2;c;" MUST be followed by 5 fields:
 
