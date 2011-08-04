@@ -1,24 +1,18 @@
 #!/bin/bash
 
-SW="OpenUDC - devel"
-UDCHOME="$HOME/.openudc"
-KEYSERVER="keys.gnupg.net"
-GEOLISTFPR=("0F16B563D2768EA62B36A13C442C7E45EEF5EAE6")
-GEOLISTUDID=("udid2;h;4c5441eb5fbe391b27f6baaa1e8203d1990d98b5;0")
+. ${0%/*}/uenv.sh
+Version="ugen_udid.sh 0.0.1 ($udcSW)"
 
-Version="ugen_udid.sh 0.0.1 ($SW)"
-
-Countries=("FRA")
-for i in ${!Countries[@]} ; do 
-    CFiles[$i]="$UDCHOME/udid2/geolist_${Countries[$i]}.txt.asc"
+for i in ${!udcCountries[@]} ; do 
+    CFiles[$i]="$udcHOME/udid2/geolist_${udcCountries[$i]}.txt.asc"
 done
 
 function usage {
-echo -e "Usage: $0 [options]\n"\
-     "Options:\n"\
-     " -h, --help\t\tthis help\n"\
-     " -V, --version\t\tversion\n"\
-     " -f, --file\t\tgeolist file to use\n"
+    echo -e "Usage: $0 [options]\n"\
+            "Options:\n"\
+            " -h, --help\t\tthis help\n"\
+            " -V, --version\t\tversion\n"\
+            " -f, --file\t\tgeolist file to use\n"
     exit $1
 }
 
@@ -27,18 +21,10 @@ exec 7>&1
 ## then redirect STDOUT to STDERR to avoid using >&2 for each "echo" ...
 exec 1>&2
 
-if gpg2 --version > /dev/null 2>&1 ; then 
-    gpg="gpg2"
-elif gpg --version > /dev/null 2>&1 ; then
-    gpg="gpg"
-else
-    echo -e "\nError: No gpg found in your \$PATH ($PATH)\n"\
-            "please install GnuPG (http://www.gnupg.org/)\n" 
-    exit -3
-fi
+gpg=$(udc_getgpg "Error" ) || exit -3
 
-if ! $gpg --list-key "${GEOLISTUDID[0]}" 2> /dev/null > /dev/null ; then
-    $gpg --recv-keys --batch --no-verbose --keyserver "$KEYSERVER" "${GEOLISTFPR[0]}"
+if ! $gpg --list-key "${udcGEOLISTUDID[0]}" 2> /dev/null > /dev/null ; then
+    $gpg --recv-keys --batch --no-verbose --keyserver "$udcKEYSERVER" "${udcGEOLISTFPR[0]}"
 fi
 
 for ((i=0;$#;)) ; do 
@@ -53,7 +39,7 @@ for ((i=0;$#;)) ; do
                     #Note: The validity of the signature will be checked later in the script
                 cCountries[$i]="$Country"
                 cCFiles[$((i++))]="$1"
-                Countries="${cCountries[@]}"
+                udcCountries="${cCountries[@]}"
                 CFiles="${cCFiles[@]}"
             else
                 echo "Error: incorrect geolist file $1"  ; usage -1;
@@ -63,32 +49,9 @@ for ((i=0;$#;)) ; do
     shift
 done
 
-function chooseinlist {
-    ret=0
-    echo -n "$1"
-    shift
-    n=$#
-    for ((i=0;$#;)) ; do
-        if ((i%3)) ; then 
-            echo -en "\t\t"
-        else
-            echo -en "\n\t"
-        fi
-        echo -en "$((++i))) $1"
-        shift
-    done
-    echo
-    while ((ret<1 || ret>n)) ; do
-        read -p "Reply (1-$n) ? " ret
-    done
-    return $ret
-}
-
-
-Countries[${#Countries[@]}]="Other..."
-chooseinlist "Please select your Country of Birth..." "${Countries[@]}"
+udc_chooseinlist "Please select your Country of Birth..." "${udcCountries[@]}" "Other..."
 ret=$?
-if ((ret==${#Countries[@]})) ; then
+if ((ret==${#udcCountries[@]}+1)) ; then
     echo -e " Sorry: we can't generate your udid.\n"\
             "Please join the OpenUDC's developpement team to add support for your birthplace <open-udc@googlegroups.com>."
     exit
@@ -96,14 +59,14 @@ else
     GFile="${CFiles[((ret-1))]}"
 fi
 
-if ! LANGUAGE=en $gpg --verify --no-verbose --batch "$GFile" 2>&1 | grep -o "(${GEOLISTUDID[0]}\>.*)" ; then
+if ! LANGUAGE=en $gpg --verify --no-verbose --batch "$GFile" 2>&1 | grep -o "(${udcGEOLISTUDID[0]}\>.*)" ; then
     #Note: Trust is not checked.
 
     if [ -z "${cCountries[0]}" ] ; then # No Custom geolist file in command parameter
         if mkdir -p "${GFile%/*}" \
-        && ( curl "https://raw.github.com/jbar/open-udc/master/docs/geolist_${Countries[((ret-1))]}.txt.asc" > "$GFile" \
-        || wget -O - "https://raw.github.com/jbar/open-udc/master/docs/geolist_${Countries[((ret-1))]}.txt.asc" > "$GFile" \
-        || GET "https://raw.github.com/jbar/open-udc/master/docs/geolist_${Countries[((ret-1))]}.txt.asc" > "$GFile" ) ; then
+        && ( curl "https://raw.github.com/jbar/open-udc/master/docs/geolist_${udcCountries[((ret-1))]}.txt.asc" > "$GFile" \
+        || wget -O - "https://raw.github.com/jbar/open-udc/master/docs/geolist_${udcCountries[((ret-1))]}.txt.asc" > "$GFile" \
+        || GET "https://raw.github.com/jbar/open-udc/master/docs/geolist_${udcCountries[((ret-1))]}.txt.asc" > "$GFile" ) ; then
             echo " File \"$GFile\" updated from git repository"
         else
             echo " Error: unable to retrieve invalid \"$GFile\" from git repository" ; exit -4
@@ -126,7 +89,7 @@ for ((;;)) ; do
         cities="$($gpg --no-verbose --batch --decrypt "$GFile" 2> /dev/null | sed ' s,\(e[0-9.+-]\+\t\)[A-Z]\{3\}\t,\1,' | grep -i "$answer")"
         eval citiesname=($(echo "$cities" | sed ' s,e[0-9.+-]\+\t\([^"]\+\).*,"\1",'))
         
-        chooseinlist "Please validate your place of birth" "${citiesname[@]}" "Other..."
+        udc_chooseinlist "Please validate your place of birth" "${citiesname[@]}" "Other..."
         ret=$?
         if ((ret==${#citiesname[@]}+1)) ; then
             if ((!j)) ; then continue
