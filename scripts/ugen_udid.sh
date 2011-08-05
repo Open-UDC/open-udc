@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ${0%/*}/uenv.sh
+. ${0%/*}/uset.env
 Version="ugen_udid.sh 0.0.1 ($udcSW)"
 
 for i in ${!udcCountries[@]} ; do 

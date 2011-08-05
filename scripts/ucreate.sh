@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ${0%/*}/uenv.sh
+. ${0%/*}/uset.env
 Version="ucreate.sh 0.0.2 ($udcSW)"
 
 if [ "$1" == "-V" ] || [ "$1" == "--version" ] ; then 
