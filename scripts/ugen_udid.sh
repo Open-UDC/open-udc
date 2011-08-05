@@ -54,7 +54,7 @@ ret=$?
 if ((ret==${#udcCountries[@]}+1)) ; then
     echo -e " Sorry: we can't generate your udid.\n"\
             "Please join the OpenUDC's developpement team to add support for your birthplace <open-udc@googlegroups.com>."
-    exit
+    exit -5
 else
     GFile="${CFiles[((ret-1))]}"
 fi
@@ -78,7 +78,7 @@ if ! LANGUAGE=en $gpg --verify --no-verbose --batch "$GFile" 2>&1 | grep -o "(${
                 Y* | y* | O* | o* )
                 ;; # do nothing
                 *)
-                    exit ;;
+                    exit -1;;
         esac
     fi
 fi
@@ -96,7 +96,7 @@ for ((;;)) ; do
             else
                 echo -e " Sorry: we can't generate your udid.\n"\
                 "Please join the OpenUDC's developpement team to add support for your birthplace <open-udc@googlegroups.com>."
-                exit
+                exit -6
             fi
         else
             bplace="$(echo "$cities" | sed -n "${ret}p" )"

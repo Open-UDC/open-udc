@@ -13,9 +13,6 @@ fi
 
 if [ -z "$1" ] ; then
     # TO DO : use a config file or ~/.openudc/config
-    PubServList=("https://github.com/jbar/open-udc/tree/master/data")
-    DefCurrency="uni"
-    TMPDIR="/tmp"
 
     echo "Sorry, works to auto-synchronize creation with publications servers is still in progress..." >&2
     echo "Usage: $0 [CREATION_SHEET]" >&2
@@ -26,7 +23,7 @@ if [ -z "$1" ] ; then
         || wget -O - "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" \
         || GET "${PubServList[0]}/$DefCurrency/c/cset.status" > "$TMPDIR/cset.status" ; then
         if diff "$udcHOME/$DefCurrency/c/cset.status" "$TMPDIR/cset.status" ; then
-            echo "Nothing to do: You are synchronized with the published creations !"
+            echo "Nothing to do: You are synchronized with the published  creations !"
             exit
         else
             # get the missing sheets
