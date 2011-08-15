@@ -20,8 +20,9 @@ Request for Comments:                                      Open-UDC Team
  4. Human Authentication ............................................
     4.1 OpenPGP Human certificat ....................................
     4.2 Proof of identity ...........................................
-    4.3 Living trust level ..........................................
-    4.4 Proof of life ...............................................
+    4.3 Implicit living trust level .................................
+    4.4 Explicit living trust level .................................
+    4.5 Proof of life ...............................................
  5. Node Authentication .............................................
 
 1.== Introduction ==
@@ -263,7 +264,7 @@ Request for Comments:                                      Open-UDC Team
        this document ([RFCXXXX]).
     the signatories will be held accountable and may be prosecuted.
 
-4.3= Living trust level =
+4.3= Implicit living trust level =
 
     For each people inside a web of trust, levels of trust may be
     calculated, depending on such parameters:
@@ -273,24 +274,48 @@ Request for Comments:                                      Open-UDC Team
      4 - A level indicated by signatories.
      5 - A level indicated by other humans in the web of trust.
 
-    OpenUDC defines as "living trust level" those where the "age of
-    signatures" parameter may do it collapse. 
+    OpenUDC defines as "implicit living trust level" those where the
+    "age of signatures" parameter may do it collapse.
+
+    But that implies that people don't sign for dead one, wich is not
+    forbidden, and so it is not (enough) reliable.
+
+4.4= Explicit living trust level =
+
+    Also OpenUDC define two notations to be recognized inside a
+    certificate signature:
+        _alive@-=YYYY-mm-dd
+        _died@-=YYYY-mm-dd
     
-4.4= Proof of life =
+    Were the '-' character may be replaced by a string with any
+    characters except the character '@' and the character '='. This
+    string may be use to indicate a place and so may contain, for
+    example, a name or a coordinate.
 
-    The proof of life is related with the money creation and the living
-    trust level: if someone in the web of trust does not create the
-    share of new money which is reserved for him or if its living trust
-    level become lower than a minimal required. He will be presumed
-    "dead" and will be remove for the calculation of the next money set.
+    And were "YYYY-mm-dd" is a date, as specified by the ISO-8601, which
+    indicate when the signatorie have checked the identity and the life
+    of the certificate's owner.
 
-    The share of money which he has not initialized should be use
-    democratically by the rest of the web of trust.
+    OpenUDC defines as "explicit living trust level" those relying on
+    this "_alive@..." and "_died@..." notations.
+    
+4.5= Proof of life =
+
+    The proof of life is related with the money creation and the
+    explicit living trust level: if someone in the web of trust does not
+    create the share of new money which is reserved for him before a
+    given date, or if its explicit living trust level become lower than
+    a minimal required. He will be presumed "dead" and will be remove
+    for the calculation of the next money set.
+
+    The share of money which "dead" people have not created however is
+    counted in the monetary mass, and anyone who obtains the private key
+    (eg: his heirs) may create that share, thereafter.
 
     If a cheat is discovered, eg. if someone or something (a robot) use
-    the private secret of somebody else or somebody dead, then
+    the private secret of somebody else or somebody dead (without being
+    noticed as such), then:
     investigation ("Cui prodest scelus is fecit"), prosecution, etc ...
-
 
 5.== Node Authentication ==
 
