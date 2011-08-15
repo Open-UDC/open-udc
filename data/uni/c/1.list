@@ -1,26 +1,3 @@
-udcdata="cset2.env"
-curname="uni"
-setnum=1
-factors=(
-  0 0 0
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  1 1 2 
-  1 1 2 
-  1 1 2 
-  2 0 0
-    )
-dlimc="2011-09-30 12:00:00+00:00"
-idnumber=3
 d=idlist # -----
 AB49FC7C3EC6D4A2259B0508FB29CDDA17A7E2AE:udid2;h;e29e9cd71ee03702c8a51b37380cc2b307133d53;0
 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D:udid2;h;4c5441eb5fbe391b27f6baaa1e8203d1990d98b5;0

@@ -278,7 +278,7 @@ Request for Comments:                                      Open-UDC Team
     "age of signatures" parameter may do it collapse.
 
     But that implies that people don't sign for dead one, wich is not
-    forbidden, and so it is not (enough) reliable.
+    forbidden. So this living trust level is not (enough) reliable.
 
 4.4= Explicit living trust level =
 
