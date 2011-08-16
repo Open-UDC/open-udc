@@ -1,4 +1,4 @@
-udcdata="cset2.env"
+udcdata="cset1.env"
 curname="uni"
 setnum=0
 factors=(
@@ -19,7 +19,6 @@ factors=(
   1 1 3 
   0 0 0
 )
-dlimc="2011-09-29 12:00:00+00:00"
 idnumber=2
 d=idlist # -----
 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28:udid1;Brucker;Jean-Jacques,Cyr,Pascal,Benoit;326994900;N48.837327E2.333626
