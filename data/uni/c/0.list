@@ -1,25 +1,3 @@
-udcdata="cset1.env"
-curname="uni"
-setnum=0
-factors=(
-  0 0 0
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  0 0 0 
-  1 1 2 
-  1 1 2 
-  1 1 3 
-  0 0 0
-)
-idnumber=2
 d=idlist # -----
 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28:udid1;Brucker;Jean-Jacques,Cyr,Pascal,Benoit;326994900;N48.837327E2.333626
 18F938BD3BBBF9190B77EABB57A135297E9DF1BF:udid1;Laborde;Stephane,Jean-Marie;-21600900;+44.84-000.57
