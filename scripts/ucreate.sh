@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
 . ${0%/*}/uset.env
 UDinit
-UDcreate "$@"
+. ${0%/*}/ucreate.env
+UDsyncCreation
