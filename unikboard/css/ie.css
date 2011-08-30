@@ -1,0 +1,89 @@
+/* line 7, ../sass/ie.sass */
+body.bp {
+  text-align: center;
+}
+/* line 48, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+* html body.bp legend {
+  margin: 0px -8px 16px 0;
+  padding: 0;
+}
+/* line 52, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+html > body.bp p code {
+  *white-space: normal;
+}
+/* line 67, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp .container {
+  text-align: left;
+}
+/* line 69, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp sup {
+  vertical-align: text-top;
+}
+/* line 71, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp sub {
+  vertical-align: text-bottom;
+}
+/* line 73, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp hr {
+  margin: -8px auto 11px;
+}
+/* line 75, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp img {
+  -ms-interpolation-mode: bicubic;
+}
+/* line 77, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp fieldset {
+  padding-top: 0;
+}
+/* line 79, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp textarea {
+  overflow: auto;
+}
+/* line 82, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.text {
+  margin: 0.5em 0;
+  background-color: white;
+  border: 1px solid #bbbbbb;
+}
+/* line 86, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.text:focus {
+  border: 1px solid #666666;
+}
+/* line 88, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.title {
+  margin: 0.5em 0;
+  background-color: white;
+  border: 1px solid #bbbbbb;
+}
+/* line 92, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.title:focus {
+  border: 1px solid #666666;
+}
+/* line 94, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.checkbox {
+  position: relative;
+  top: 0.25em;
+}
+/* line 97, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.radio {
+  position: relative;
+  top: 0.25em;
+}
+/* line 100, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp input.button {
+  position: relative;
+  top: 0.25em;
+}
+/* line 103, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp textarea {
+  margin: 0.5em 0;
+}
+/* line 105, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp select {
+  margin: 0.5em 0;
+}
+/* line 107, ../../../../../../var/lib/gems/1.8/gems/compass-0.10.6/frameworks/blueprint/stylesheets/blueprint/_ie.scss */
+body.bp button {
+  position: relative;
+  top: 0.25em;
+}

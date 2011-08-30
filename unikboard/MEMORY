@@ -1,0 +1,35 @@
+# Putting a document in the DB
+curl -X POST http://unikboard:5984/unikboard/ -H "Content-Type: application/json" -d '{"title":"ho"}'
+
+curl -X PUT http://unikboard:5984/unikboard/test -d '{"title":"ho"}'
+curl -X PUT http://unikboard:5984/unikboard/test -d '{"title":"ho", "_rev":"xxx"}'
+
+curl -X PUT -H "Content-Type: application/pgp-encrypted" -T ../extras/firstbill.gpg http://localhost:5984/unikboard/firstbill/
+→ {"ok":true,"id":"firstbill","rev":"1-7d62b1dfafab012eba115afda4561ef1"}
+
+#curl -X PUT -H "Content-Type: application/pgp-encrypted" -T ../extras/firstbill.gpg http://localhost:5984/upload
+curl -F _attachments=@../extras/firstbill.gpg http://localhost:5984/upload
+
+
+curl -X PUT -H "Content-Type: text/xml" \
+			 -T doc/os-UBL-2.0/xml/UBL-Order-2.0-Example.xml \
+			 http://127.0.0.1:5984/dit/troc/again/hop/hop
+curl -X PUT -H "Content-Type: text/xml" \
+			 -T doc/os-UBL-2.0/xml/UBL-Order-2.0-Example.xml \
+			 http://127.0.0.1:5984/dit/troc/again/hop/hop?rev=2-xxx
+curl -X PUT -H "Content-Type: text/xml" \
+			 -d@doc/os-UBL-2.0/xml/UBL-Order-2.0-Example.xml \
+			 http://127.0.0.1:5984/dit/20100907174913745_4/UBL-Order-2.0-Example.xml
+curl -X PUT -H "Content-Type: text/xml" \
+			 -T doc/os-UBL-2.0/xml/UBL-Order-2.0-Example.xml \
+			 http://127.0.0.1:5984/dit/_design/gadgets/_update/upload/truc
+
+curl -X DELETE http://127.0.0.1:5984/dit/d6a4a3ae0bfb1044a335b1b1440013fa?rev=1-9c96e5ad30e626d1ae3e9c41f7d62c3d
+
+# Steps for source file upload
+curl -X POST http://blue.echarp.org/dit/_design/gadgets/_update/init
+curl http://blue.echarp.org/dit/20100908001524358_61
+curl -v -X POST -F "_rev=1-efa540f85ace285769f5688c84d24a2d" \
+			 -F "_attachments=@doc/os-UBL-2.0/xml/UBL-Order-2.0-Example.xml" \
+			 http://127.0.0.1:5984/dit/20100908001524358_61
+curl -X POST http://blue.echarp.org/dit/_design/gadgets/_update/upload/20100908001524358_61
