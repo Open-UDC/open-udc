@@ -14,7 +14,7 @@ var log = function(mesg) {
   console.log(JSON.stringify(["log", mesg]));
 }
 
-function send_content(req, resp, files, decrypted_content) {
+function send_content(req, resp, files, decrypted_error, decrypted_content) {
   log("Host: "+req.headers['host']);
   log("Method: "+req.method);
   //log(sys.inspect(req.headers));
@@ -31,6 +31,9 @@ function send_content(req, resp, files, decrypted_content) {
       //resp.writeHead(proxy_response.statusCode, {'Content-Type': 'text/plain'});
       resp.write(chunk, 'binary');
     });
+    ifsResponse.on('error', function() {
+      resp.end('An error occured');
+    });
     ifsResponse.on('end', function() {
       resp.end(files._attachments.name+" → " +decrypted_content+'\n');
     });
@@ -40,6 +43,9 @@ function send_content(req, resp, files, decrypted_content) {
     var data = {
       created_on: new Date(),
       content: decrypted_content,
+      // This decrypted_error is in fact not an error at all, but the
+      // decryption meta data!!!
+      meta: decrypted_error,
       _attachments: {}
     };
     data._attachments[files._attachments.name] = {
@@ -60,7 +66,8 @@ var server = http.createServer(function (req, resp) {
   new formidable.IncomingForm().parse(req, function(err, fields, files) {
     gpg.decryptFile(files._attachments.path, function(err, contents) {
       log("Decrypted content: "+contents);
-      send_content(req, resp, files, contents);
+      log("err: "+err);
+      send_content(req, resp, files, err, contents);
     });
   });
 })
