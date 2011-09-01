@@ -12,6 +12,7 @@ curl -F _attachments=@../extras/firstbill.gpg http://localhost:5984/upload
 # Then delete using the returned revision
 curl -X DELETE http://127.0.0.1:5984/unikboard/firstbill?rev=1-f0a1277371261134025c46ed373af038
 
+curl -F _attachments=@../extras/firstbill.gpg http://unikboard.acoeuro.org/upload
 
 curl -X PUT -H "Content-Type: text/xml" \
 			 -T doc/os-UBL-2.0/xml/UBL-Order-2.0-Example.xml \
