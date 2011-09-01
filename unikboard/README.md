@@ -2,16 +2,33 @@
 
 Welcome to unik board, a place where to verify and publish your grains.
 
-To setup this board, you'll need couchdb. But also to install soca:
+To setup this board, you'll need couchdb and nodejs.
+
+The gpg decryption mechanism is a node file managed by couchdb. To configure please copy and modify appropriately the `proxy/couchdb_unikboard.ini` file into the couchdb configuration directory (on debian, it is in `/etc/couchdb/local.ini`.
+
+Also, please install soca (https://github.com/quirkey/soca), for example in debian:
     sudo gem install soca
 
-Then:
+Then you can develop using:
     compass watch . --sass-dir "sass" --css-dir "css" --javascripts-dir "js" --images-dir "images"
+
+Not stored in git, there is a `.couchapprc` describing what couchdb you can deploy to, here is a sample:
+    {
+      "env": {
+        "default": {
+          "db": "http://admin:password@localhost:5984/unikboard"
+        },
+        "production": {
+          "db": "http://admin:password@unikboard.acoeuro.org/unikboard"
+        }
+      }
+    }
+
+Then to deploy:
+    soca push
+or
+    soca push production
+
+During development it's even easier, this will follow your changes and
+automatically deploy them:
     soca autopush
-
-The gpg decryption mechanism is a node file managed by couchdb. In the /etc/couhdb/local.ini file needs to be declared:
-    [httpd_global_handlers]
-    upload = {couch_httpd_proxy, handle_proxy_req, <<"http://localhost:9000">>}
-
-    [os_daemons]
-    gpg_upload = /home/manu/develop/open-udc/unikboard/proxy/couch-gpg.js
