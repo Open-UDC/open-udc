@@ -2,12 +2,14 @@
 
 Welcome to unik board, a place where to verify and publish your grains.
 
-To setup this board, you'll need couchdb and nodejs.
+To setup this board, you'll need `couchdb`, `nodejs`, `gpg`.
 
 The gpg decryption mechanism is a node file managed by couchdb. To configure please copy and modify appropriately the `proxy/couchdb_unikboard.ini` file into the couchdb configuration directory (on debian, it is in `/etc/couchdb/local.ini`.
 
 Also, please install soca (https://github.com/quirkey/soca), for example in debian:
     sudo gem install soca
+And javascript library to access the underlying `gpg` software:
+    npm install gpg
 
 Then you can develop using:
     compass watch . --sass-dir "sass" --css-dir "css" --javascripts-dir "js" --images-dir "images"
