@@ -37,3 +37,6 @@ automatically deploy them:
 
 To generate html files form haml:
     haml -f html5 haml/index.haml index.html
+
+Then upload a grain file:
+    curl -F _attachments=@../extras/firstbill.gpg http://localhost:5984/upload
