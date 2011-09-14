@@ -34,3 +34,6 @@ or
 During development it's even easier, this will follow your changes and
 automatically deploy them:
     soca autopush
+
+To generate html files form haml:
+    haml -f html5 haml/index.haml index.html
