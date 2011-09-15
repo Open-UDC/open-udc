@@ -10,6 +10,17 @@
       %link(href='css/ie.css' media='screen, projection' rel='stylesheet' type='text/css')
 
   %body
-    #container
-      hi
+    #header
+      %h1 Unik Board
+
+    %section#container
+      %h2 Vous avez un grain?
+
+      %form#publish(enctype='multipart/form-data' method='POST')
+        %input(type='file' id='_attachments' name='_attachments')
+        %input(type='submit' value='OK')
+
+      %h3 Derniers grains
+
     %script(src='js/default.js' type='text/javascript' charset='utf-8')
+    %script(src='/_utils/script/jquery.form.js' type='text/javascript' charset='utf-8')

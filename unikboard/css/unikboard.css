@@ -1,0 +1,130 @@
+/* add styles here */
+/* line 3, ../sass/unikboard.sass */
+html {
+  color: white;
+  background-color: black;
+}
+
+/* line 7, ../sass/unikboard.sass */
+body {
+  width: 80em;
+  margin: 0 auto;
+  max-width: 100%;
+  text-align: center;
+  border-radius: 5px;
+}
+
+/* line 15, ../sass/unikboard.sass */
+header a {
+  color: #ffeeff;
+}
+
+/* line 18, ../sass/unikboard.sass */
+section {
+  color: black;
+}
+
+/* line 21, ../sass/unikboard.sass */
+h1 {
+  color: gray;
+  margin-top: 0;
+  text-align: left;
+}
+
+/* line 26, ../sass/unikboard.sass */
+#account {
+  float: right;
+}
+
+/* line 29, ../sass/unikboard.sass */
+#profile {
+  border: 4px solid #eedddd;
+  padding: 8px;
+  text-align: left;
+  background: #ffeeee;
+  border-radius: 5px;
+  margin-bottom: 8px;
+}
+
+/* line 37, ../sass/unikboard.sass */
+#items, #sidebar {
+  display: inline-block;
+}
+
+/* line 40, ../sass/unikboard.sass */
+#container {
+  width: 60%;
+  border: 4px solid #ddddee;
+  padding: 8px;
+  text-align: left;
+  background: #eeeeff;
+  margin-right: 1%;
+  border-radius: 5px;
+  vertical-align: top;
+}
+
+/* line 50, ../sass/unikboard.sass */
+#sidebar {
+  width: 30%;
+  border: 4px solid #ddffdd;
+  padding: 8px;
+  text-align: left;
+  border-radius: 5px;
+  vertical-align: top;
+  background-color: #ccccff;
+}
+
+/* line 59, ../sass/unikboard.sass */
+#items li {
+  border: 4px solid #f5f5ff;
+  margin: 4px 0;
+  padding: 8px;
+  background: white;
+}
+
+/* line 65, ../sass/unikboard.sass */
+form {
+  margin: 6px;
+  padding: 4px;
+  background-color: #dddddd;
+}
+
+/* line 71, ../sass/unikboard.sass */
+form#publish input, form#publish textarea {
+  vertical-align: middle;
+}
+
+/* line 74, ../sass/unikboard.sass */
+div.avatar {
+  float: left;
+  width: 60px;
+  height: 60px;
+  padding: 2px;
+  font-size: 0.78em;
+  text-align: center;
+  margin-right: 4px;
+  padding-bottom: 0;
+}
+
+/* line 84, ../sass/unikboard.sass */
+div.avatar .name {
+  padding-top: 2px;
+}
+
+/* line 87, ../sass/unikboard.sass */
+div.avatar img {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* line 93, ../sass/unikboard.sass */
+#items ul {
+  list-style: none;
+}
+
+/* line 96, ../sass/unikboard.sass */
+#publish input[type='submit'] {
+  display: none;
+}

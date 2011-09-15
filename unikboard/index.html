@@ -10,9 +10,18 @@
     <![endif]-->
   </head>
   <body>
-    <div id='container'>
-      hi
+    <div id='header'>
+      <h1>Unik Board</h1>
     </div>
+    <section id='container'>
+      <h2>Vous avez un grain?</h2>
+      <form enctype='multipart/form-data' id='publish' method='POST'>
+        <input id='_attachments' name='_attachments' type='file'>
+        <input type='submit' value='OK'>
+      </form>
+      <h3>Derniers grains</h3>
+    </section>
     <script charset='utf-8' src='js/default.js' type='text/javascript'></script>
+    <script charset='utf-8' src='/_utils/script/jquery.form.js' type='text/javascript'></script>
   </body>
 </html>
