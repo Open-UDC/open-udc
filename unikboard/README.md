@@ -40,3 +40,8 @@ To generate html files form haml:
 
 Then upload a grain file:
     curl -F _attachments=@../extras/firstbill.gpg http://localhost:5984/upload
+
+### Note for grain validation
+
+We need to modify and improve the couchdb validation process so that only correct files can be uploaded. The rules are managed as a javascript file:
+    db/validate_doc_update.js

@@ -20,10 +20,7 @@ $('#publish').submit ->
     alert('The uploaded grain is not a *.gpg file')
     return
 
-  #docToSave = { '_id' : name.replace(ext, '') }
-
   $("#publish").ajaxSubmit
-    #url: "/unikboard/"+resp.id,
     url: "/upload",
     resetForm: true,
     success: (data, statusText) ->

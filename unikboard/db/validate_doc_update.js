@@ -1,7 +1,7 @@
 // This method is called as a validation before any document upload
 function(newDoc, oldDoc, userCtx) {
-  log('A new file is being uploaded');
-  log(userCtx);
+  log('______________________________________________');
+  log('Validating file');
 
   function required(field, message /* optional */) {
     message = message || "Document must have a " + field;
@@ -19,8 +19,10 @@ function(newDoc, oldDoc, userCtx) {
     required("content");
     required("_attachments");
 
-    if (newDoc._rev != undefined) {
+    if (oldDoc != null || newDoc._rev != undefined) {
       throw({forbidden : 'You can not modify this grain'});
     }
   }
+  log('File validated');
+  log('______________________________________________');
 }
