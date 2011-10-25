@@ -23,18 +23,19 @@ Request for Comments:                                      Open-UDC Team
     4.3 Implicit living trust level .................................
     4.4 Explicit living trust level .................................
     4.5 Proof of life ...............................................
- 5. Node Authentication .............................................
+ 5. Bot Authentication .............................................
+ 6. Node Authentication .............................................
 
 1.== Introduction ==
 
   The OpenUDC project aims to provide a open, democratic and secure
-  monetary system, compatible with universal dividende.
+  monetary system, compatible with universal dividend.
 
   This document describe the authentication mechanisms used in the
   OpenUDC implementations.
 
-  This document also describe how to use the OpenPGP standard [RFC4880]
-  in order to conform to the OpenUDC specifications.
+  This authentication mechanisms use and are compliant with the OpenPGP
+  standard [RFC4880].
 
 2.== Conventions Used in This Document ==
 
@@ -72,6 +73,8 @@ Request for Comments:                                      Open-UDC Team
         Was used for Human Authentication, now deprecated.
     - "udid2"
         Used for Human Authentication.
+    - "udbot1"
+        Used for Bot Authentication.
     - "udnode1"
         Used for Node Authentication.
 
@@ -84,8 +87,11 @@ Request for Comments:                                      Open-UDC Team
     We recommended to use a big main key of for the OpenPGP certificate,
     and at least 2 subkeys in it :
     - 1 for encryption.
-    - at least one for signing udc-unit signing chain. As smallest key
-      implie smallest signature, it is recommended to use ECC Keys.
+    - 1 for signing OpenUDC transactions and so to be use as nominative
+      account.
+
+    As smallest keys implie smallest signatures, it is recommended to
+    use ECC Keys to improve performance of OpenUDC networks.
 
 3.3= Exporting =
 
@@ -164,8 +170,9 @@ Request for Comments:                                      Open-UDC Team
     The hashed version is obtained by applying the SHA1 algorithm on
     the clear version.
 
-    As we can know hash the udid we have no more place for fuzziness in
-    it, and so the rules of the clear version are very strict :
+    Because now we can hash the udid, we have no more place for
+    fuzziness in it, and so the rules of the clear version are very
+    strict :
 
     The clear version "udid2;c;" MUST be followed by 5 fields:
 
@@ -282,10 +289,12 @@ Request for Comments:                                      Open-UDC Team
 
 4.4= Explicit living trust level =
 
-    Also OpenUDC define two notations to be recognized inside a
+    Also OpenUDC define four notations to be recognized inside a
     certificate signature:
         _alive@-=YYYY-mm-dd
-        _died@-=YYYY-mm-dd
+        _dead@-=YYYY-mm-dd
+        _birth@-=YYYY-mm-dd
+        _death@-=YYYY-mm-dd
     
     Were the '-' character may be replaced by a string with any
     characters except the character '@' and the character '='. This
@@ -296,8 +305,12 @@ Request for Comments:                                      Open-UDC Team
     indicate when the signatorie have checked the identity and the life
     of the certificate's owner.
 
+    Note: The "_birth@..." and "_death@..." notations are reserved for
+    witnesses to such events.
+
     OpenUDC defines as "explicit living trust level" those relying on
-    this "_alive@..." and "_died@..." notations.
+    this 4 notations. If the "alive" status is not updated regularly,
+    individual may supposed to be dead.
     
 4.5= Proof of life =
 
@@ -317,7 +330,41 @@ Request for Comments:                                      Open-UDC Team
     noticed as such), then:
     investigation ("Cui prodest scelus is fecit"), prosecution, etc ...
 
-5.== Node Authentication ==
+5.== Bot Authentication ==
+
+  Only humans may be trusted and held responsible. But humans like to
+  build and use tool to improve their productivity and comfort.
+
+  Today science, mechanics and computer progress make the tools more
+  complex and independants. Humans may programm such tools to take
+  important decisions and make important actions.
+
+  This news tools are named robots or simply bots.
+
+  In OpenUDC networks there are bots to validate transactions. But
+  bots may be programmed to do nasty things, or to lie. 
+
+  To prevent that, each bot are authenticated as a human's minion:
+
+  Each bots have their own OpenPGP certificate, and one of the uid
+  comment field MUST begin with the special string "udbot1;" ,
+  followed immediately by the full udid2 of its master.
+
+  e.g.: the OpenPGP certificate of François-Xavier-Robert's bot MUST
+  have this string in the comment field of one of its uid:
+
+  udbot1;udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
+
+  And this OpenPGP uid MUST be signed by the human master to proove
+  she/he recognized this minion.
+
+  The bot certificate SHOULD design a key of it human master as
+  revocation key.
+
+  Note: take care that private key(s) of bots are often not protected
+  by a passphrase.
+
+6.== Node Authentication ==
 
     As long as a single network will be enough to trade efficiently in
     a given web of trust, splitting the network into different node will
