@@ -14,7 +14,6 @@ while true ; do
                      "Change registered key for Universal Monetary Dividend" \
                      "Generate/Check an udid2" \
                      "Signalize a (living/deceased) individual" \
-                     "Vouch (or no longer vouch) for someone else" \
                      "Synchronyse Monetary creation" \
                      "Check the local balance of your account(s)" \
                      "Make and send a transaction" \
@@ -22,6 +21,7 @@ while true ; do
                      "Validate a transaction file" \
                      "quit ${0##*/}" >&2
 #"Update all database" \
+#"Vouch (or no longer vouch) for someone else" \ 
     case $? in 
       1)
         # gpg --export ...
@@ -44,15 +44,15 @@ while true ; do
         echo "Sorry: Not implemented yet." >&2
         read -t 5
         ;;
+#      5)
+#        # gpg --sign-key -N _alive@-=2011-10-24 -N '!Iam@voucher=2011-10-12' -u mykey\! it's_udid2
+#        echo "Sorry: Not implemented yet." >&2
+#        read -t 5
+#        ;;
       5)
-        # gpg --sign-key -N _alive@-=2011-10-24 -N '!Iam@voucher=2011-10-12' -u mykey\! it's_udid2
-        echo "Sorry: Not implemented yet." >&2
-        read -t 5
-        ;;
-      6)
         UDsyncCreation
         ;;
-      7)
+      6)
       [[ "${myaccounts[0]}" ]] || echo "No account found."
         for account in "${myaccounts[@]}" ; do 
             echo -n "$account: "
@@ -60,7 +60,7 @@ while true ; do
         done
         read -t 5
         ;;
-      8)
+      7)
         if ((${#myaccounts[@]}>1)) ; then
             udc_chooseinlist "From which account ?" 1 "${myaccounts[@]}" >&2
             account="${myaccounts[$(($?-1))]}"
@@ -104,17 +104,17 @@ while true ; do
             fi
         fi
         ;;
-      9)
+      8)
         echo "Sorry: Not implemented yet." >&2
         read -t 5
         ;;
-      10)
+      9)
         read -p "filename ? " 
         UDvalidate "$REPLY"
         echo "function UDvalidate return $?"
         read -t 5
         ;;
-      11)
+      10)
         break
         ;;
       *)

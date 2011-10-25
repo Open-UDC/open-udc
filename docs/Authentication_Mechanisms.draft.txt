@@ -355,9 +355,11 @@ Request for Comments:                                      Open-UDC Team
 
   udbot1;udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
 
-  And the bot's OpenPGP certificate MUST be signed by its master, as
-  well as the master MUST signed the OpenPGP certificate of its minion
-  bots.
+  And this OpenPGP uid MUST be signed by the human master to proove
+  she/he recognized this minion.
+
+  The bot certificate SHOULD design a key of it human master as
+  revocation key.
 
   Note: take care that private key(s) of bots are often not protected
   by a passphrase.
