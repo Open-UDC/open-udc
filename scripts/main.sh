@@ -111,7 +111,7 @@ while true ; do
       9)
         read -p "filename ? " 
         UDvalidate "$REPLY"
-        echo "function UDvalidate return $?"
+        #echo "function UDvalidate return $?"
         read -t 5
         ;;
       10)
