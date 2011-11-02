@@ -10,9 +10,9 @@ if ((CONTENT_LENGTH>=2048)) ; then
  exit 101
 fi
 
-UDBot_fifo="/dev/shm/UDBot.fifo"
+UDBot_fifo="/dev/shm/ludd.fifo"
 if ! [[ -p "$UDBot_fifo" ]] ; then
- echo -e "OpenUDC deamon not available"
+ echo -e "OpenUDC validation deamon not available"
  exit 102
 fi
 
