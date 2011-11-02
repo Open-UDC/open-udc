@@ -33,7 +33,7 @@ done
 
 if jobs 1 > /dev/null ; then
  kill -9 $!
- echo "TimeOut"
+# echo "TimeOut"
 fi
 
 rm -f "$filename.fifo" "$filename"
