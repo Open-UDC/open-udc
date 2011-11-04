@@ -38,13 +38,13 @@ while true ; do
             PRIVMSG)
                 SrcNick="${src%%\!*}"
                 case "$target" in
-                    "$IrcChan")
+                  "$IrcChan")
 			tmplogfile="$(date "+%Y/%m/%d").txt"
 			mkdir -p "$Irclogdir/${tmplogfile%/*}"
         		echo "$(date "+%X%z"): $SrcNick $args" >> "$Irclogdir/$tmplogfile"
                         #echo "Message in main chan from $SrcNick: $(echo "${args}" | hexdump -C)" >&2
                        ;;
-                    "$IrcNick") ((!(RANDOM%4))) && echo "$(fortune)" | while read line ; do echo "PRIVMSG $SrcNick :$line" ; done >> "$Ircfifo" ;;
+                  "$IrcNick") ((!(RANDOM%4))) && echo "$(fortune)" | while read line ; do echo "PRIVMSG $SrcNick :$line" ; done >> "$Ircfifo" ;;
                 esac
         esac
     done < <( ( echo -e "USER $IrcUser 0 _ :$IrcComment\nNICK $IrcNick\nJOIN $IrcChan" ; tail -f "$Ircfifo" ) | nc $IrcServ )
