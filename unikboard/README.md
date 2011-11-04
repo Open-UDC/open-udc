@@ -34,3 +34,14 @@ or
 During development it's even easier, this will follow your changes and
 automatically deploy them:
     soca autopush
+
+To generate html files form haml:
+    haml -f html5 haml/index.haml index.html
+
+Then upload a grain file:
+    curl -F _attachments=@../extras/firstbill.gpg http://localhost:5984/upload
+
+### Note for grain validation
+
+We need to modify and improve the couchdb validation process so that only correct files can be uploaded. The rules are managed as a javascript file:
+    db/validate_doc_update.js

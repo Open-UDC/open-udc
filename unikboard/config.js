@@ -3,6 +3,7 @@
   "mapDirectories": {
     "Jimfile": false,
     "sass": false,
+    "haml": false,
     "css": "_attachments/css",
     "config.js": "",
     "templates": "_attachments/templates",

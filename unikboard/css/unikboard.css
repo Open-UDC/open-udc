@@ -1,0 +1,118 @@
+/* add styles here */
+/* line 3, ../sass/unikboard.sass */
+html {
+  color: black;
+  background-color: black;
+  background-image: url("../images/background_matrix.jpg");
+}
+
+/* line 8, ../sass/unikboard.sass */
+body {
+  width: 80em;
+  margin: 2em auto;
+  padding: 1em;
+  max-width: 90%;
+  text-align: center;
+  box-shadow: 2px 2px 8px #aaaaff;
+  border-radius: 5px;
+  background-color: white;
+}
+
+/* line 18, ../sass/unikboard.sass */
+header {
+  margin: 0 auto;
+}
+/* line 20, ../sass/unikboard.sass */
+header a {
+  color: #ffeeff;
+}
+
+/* line 23, ../sass/unikboard.sass */
+h1 {
+  font-size: xx-large;
+  margin-top: 0;
+  text-align: left;
+  text-shadow: 2px 2px 3px #ffffaa;
+  margin-bottom: 0.6em;
+}
+
+/* line 30, ../sass/unikboard.sass */
+section {
+  display: inline-block;
+  text-align: left;
+  vertical-align: top;
+}
+
+/* line 35, ../sass/unikboard.sass */
+#container {
+  width: 60%;
+  border: 4px solid #ddddee;
+  padding: 8px;
+  background: #eeeeff;
+  margin-right: 1%;
+  border-radius: 5px;
+}
+
+/* line 43, ../sass/unikboard.sass */
+#sidebar {
+  width: 30%;
+  border: 4px solid #bbbbbb;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: #cccccc;
+}
+
+/* line 50, ../sass/unikboard.sass */
+#container li {
+  border: 4px solid #f5f5ff;
+  margin: 4px 0;
+  padding: 8px;
+  background: white;
+}
+
+/* line 56, ../sass/unikboard.sass */
+form {
+  margin: 6px;
+  padding: 4px;
+  background-color: #dddddd;
+}
+
+/* line 62, ../sass/unikboard.sass */
+form#publish input, form#publish textarea {
+  vertical-align: middle;
+}
+
+/* line 65, ../sass/unikboard.sass */
+div.avatar {
+  float: left;
+  width: 60px;
+  height: 60px;
+  padding: 2px;
+  font-size: 0.78em;
+  text-align: center;
+  margin-right: 4px;
+  padding-bottom: 0;
+}
+
+/* line 75, ../sass/unikboard.sass */
+div.avatar .name {
+  padding-top: 2px;
+}
+
+/* line 78, ../sass/unikboard.sass */
+div.avatar img {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* line 84, ../sass/unikboard.sass */
+#items ul {
+  list-style: none;
+}
+
+/* line 87, ../sass/unikboard.sass */
+#publish input[type='submit'] {
+  display: none;
+}
