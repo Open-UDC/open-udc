@@ -3,7 +3,7 @@
 if [[ "$REQUEST_METHOD" != POST ]] ; then
 # echo -e  "Content-type: text/plain\n"
  echo -e "Content-type: text/udc-report;charset=UTF-8\n"
- echo "scode=400" 
+ echo "scode=405" 
  echo "sreport=\"Invalid HTTP METHOD\"" 
  exit 100 
 fi
@@ -16,10 +16,10 @@ fi
 #  fi
 
 UDBot_fifo="/dev/shm/ludd.fifo"
-#if ! [[ -p "$UDBot_fifo" ]] ; then
-if false ; then
+#if false ; then
+if ! [[ -p "$UDBot_fifo" ]] ; then
  echo -e "Content-type: text/udc-report;charset=UTF-8\n"
- echo "scode=000" 
+ echo "scode=503" 
  echo "sreport=\"OpenUDC deamon not available\""
  exit 102
 fi
@@ -29,12 +29,12 @@ filename="$(mktemp --tmpdir=/dev/shm/ tmpPOST.XXXX)"
 
 case "${CONTENT_TYPE,,}" in 
  multipart/*|application/udc-*)
-  echo "$CONTENT_TYPE" > "$filename" ;;
- *) # WTF has been send ??
+  echo -e "$CONTENT_TYPE\n" > "$filename" ;;
+ *) # WTF ?? search a line beginning with "Content-Type:" in the data.
   while read line ; do
-   [[ "${line::13}" == "Content-Type:" ]] && break
+   [[ "${line::13}" == "Content-Type:" ]] && found=1 && break
   done
-  if [[ "$line" ]] ; then 
+  if ((found)) ; then 
    echo "$line" > "$filename"
   else
    echo -e "Content-type: text/udc-report;charset=UTF-8\n"
@@ -51,13 +51,14 @@ mkfifo "$filename.fifo"
 chmod 664 "$filename.fifo"
 # Copy input into the temporary file
 cat > "$filename"
+# Note: filename is today not a fifo, to not slow/block the daemon which is not multithreaded (today).
 
 # Tell the daemon to manage this input
 echo "$filename.fifo $filename" >> "$UDBot_fifo"
 
 # And output its answer
 cat "$filename.fifo" &
-echo "$filename.fifo" >> "$filename.fifo"
+#echo "$filename.fifo" >> "$filename.fifo"
 
 # Max 5 second before timeout !
 t=5
