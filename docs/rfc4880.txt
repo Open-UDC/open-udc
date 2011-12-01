@@ -5,8 +5,8 @@
 
 
 Network Working Group                                          J. Callas
-Request for Comments:                                    PGP Corporation
-Obsoletes: 1991, 2440, 4880                               L. Donnerhacke
+Request for Comments: 4880                               PGP Corporation
+Obsoletes: 1991, 2440                                     L. Donnerhacke
 Category: Standards Track                                       IKS GmbH
                                                                H. Finney
                                                          PGP Corporation
@@ -136,8 +136,6 @@ RFC 4880                 OpenPGP Message Format            November 2007
                   5.2.3.24. Features .................................36
                   5.2.3.25. Signature Target .........................36
                   5.2.3.26. Embedded Signature .......................37
-                  5.2.3.27. Recipient
-                  5.2.3.28. Open-UDC buyer/donor ID
            5.2.4. Computing Signatures ...............................37
                   5.2.4.1. Subpacket Hints ...........................38
       5.3. Symmetric-Key Encrypted Session Key Packets (Tag 3) .......38
@@ -1432,8 +1430,6 @@ RFC 4880                 OpenPGP Message Format            November 2007
            30 = Features
            31 = Signature Target
            32 = Embedded Signature
-           33 = Recipient
-           34 = Open-UDC buyer/donor ID
    100 To 110 = Private or experimental
 
    An implementation SHOULD ignore any subpacket of a type that it does
@@ -1871,14 +1867,8 @@ RFC 4880                 OpenPGP Message Format            November 2007
 
        0x20 - This key may be used for authentication.
 
-       0x40 - This key may be used in a signing chain.
-
        0x80 - The private component of this key may be in the
               possession of more than one person.
-
-       Second octet:
-
-       0x01 - This key may be used to sign a money unit signing chain.
 
    Usage notes:
 
@@ -2037,24 +2027,6 @@ RFC 4880                 OpenPGP Message Format            November 2007
    This subpacket contains a complete Signature packet body as
    specified in Section 5.2 above.  It is useful when one signature
    needs to refer to, or be incorporated in, another signature.
-
-5.2.3.27.  Recipient
-
-   (8-octet Key ID)
-
-   The OpenPGP Key ID of the recipient of the signature.
-
-   This subpacket may be used for signing chain, and so in the hashed
-   subpacket data set. This subpacket may be used many times if there
-   are different recipients.
-
-5.2.3.28.  Open-UDC buyer/donor ID
-
-    (String)
-    
-    This subpacket contains an Open-UDC udid or udnode and is used by
-    Open-UDC implementations when the key ID isn't enough to identify
-    the previous keyholder. Typically when disconnected transactions.
 
 5.2.4.  Computing Signatures
 
