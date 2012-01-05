@@ -35,6 +35,18 @@ while true ; do
             NOTICE) echo >> "$Ircfifo" ;;
             #43?) IrcNick="_$IrcNick" ; echo -e "NICK $IrcNick\nJOIN $IrcChan" | $IrcLogpipe >> "$Ircfifo" ;;
             43?) IrcNick="_$IrcNick" ; echo -e "NICK $IrcNick\nJOIN $IrcChan" >> "$Ircfifo" ;;
+            JOIN|PART|QUIT)
+                SrcNick="${src%%\!*}"
+                tmplogfile="$(date "+%Y/%m/%d").txt"
+                mkdir -p "$Irclogdir/${tmplogfile%/*}"
+                echo "// $(date "+%X%z"): $SrcNick $command // $target" >> "$Irclogdir/$tmplogfile"
+                ;;
+            NICK)
+                SrcNick="${src%%\!*}"
+                tmplogfile="$(date "+%Y/%m/%d").txt"
+                mkdir -p "$Irclogdir/${tmplogfile%/*}"
+                echo "// $(date "+%X%z"): $SrcNick is now know as //$target" >> "$Irclogdir/$tmplogfile"
+                ;;
             PRIVMSG)
                 SrcNick="${src%%\!*}"
                 case "$target" in
