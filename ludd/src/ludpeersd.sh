@@ -1,87 +1,129 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 
-Currency="test2"
-Ircfifo="/tmp/ircfifo"
-
-mkdir -p "$TmpDir/peersd"
-
-fd=10
-
-for vpool in "${vpools[@]}" ; do
-    if ! [[ vpool =~ ^irc://([^:/]*):?([0-9])*/([^/]+)$ ]] ; then 
-        echo "Warning: unsupported vpool uri: $vpool" >&2
-    else
-        server="${BASH_REMATCH[1]}"
-        port="${BASH_REMATCH[2]:-6667}"
-        channel="$(urldecode "${BASH_REMATCH[3]}")"
-        mkfifo "$TmpDir/peersd/$server.out"
-        mkfifo "$TmpDir/peersd/$server.in"
-        exec $((fd++))<> "$TmpDir/peersd/$server.out"
-
-
-
-
-function peerdiscoverd {
     # irc.cat.pdx.edu 6667 : Why not ?
     # irc.oftc.net 6667    : Good
     # irc.lfnet.org 6667   : The same as bitcoin, solidcoin, namecoin ... ;-)
 
-local line IrcLogpipe IrcNick src command target args i free IrcDate SrcCurrent=() SrcTimeIn=() 
-local IrcUser="bot"
-local IrcComment="http://..."
-local IrcChan="#udc.$Currency"
-#local Irclogfile="/tmp/irc_$IrcUser.log"
-local Irclogdir="$1/$Currency/irc_logs/$IrcChan"
-#[[ "$2" ]] && IrcLogpipe="tee -a $Irclogfile" || IrcLogpipe="cat"
-local IrcServ="irc.lfnet.org 6667"
+function udc_peerw2alljobspipe {
+    jobs -r | while IFS="]" read job etc ; do 
+        echo -e "$1" > "$TmpDir/peersd/${job:1}.in"
+    done
+}
 
-trap "rm -vf \"$Ircfifo\" ; ps -o pid,command | while read pid comm ; do [[ \"\$comm\" =~ ^\"tail -f $Ircfifo\" ]] && kill \$pid ; done " EXIT
+function udc_peerk9alljobs {
+    jobs | while IFS="]" read job etc ; do 
+        kill -9 %${job:1}
+    done
+}
+
+function peerdiscoverd {
+# discover and update peer list
+# Argument 1: IrcUser
+# Argument 2: IrcComment (which contain protocol, port and directory where to reach OpenUDC API)
+# Argument 3: base of IrcNick (to search for other peers)
+# Argument 4...: uri where to find/get peers 
+
+allout="$TmpDir/peersd/all.out"
+IrcUser="${1:-ludd}"
+#IrcComment="http://:80/OpenUDC/$Currency"
+IrcComment="$2"
+IrcNickb="${3:-$Currency}"
+shift 3
+vpools=("$@")
+
+local line IrcLogpipe IrcNick src command target args i free IrcDate SrcCurrent=() SrcTimeIn=() 
 
 while true ; do 
-    IrcNick="logger"
-    mkfifo "$Ircfifo" || return 249
+    mkdir -p "$TmpDir/peersd"
+    mkfifo "$allout"
+    fdins=10
+    fdi=1
+    IrcNickn="$(date +"%s")"
+    ptime="0"
 
-    while read -t 510 src command target args ; do
+    # Initialize Connections
+    for vpool in "${vpools[@]}" ; do
+        if [[ "$vpool" =~ ^irc://([^/:]*)(:([0-9]*))?/ ]] ; then # Note: this pattern don't support IPv6 address.
+            server="${BASH_REMATCH[1]}"
+            port="${BASH_REMATCH[3]:-6667}"
+            mkfifo "$TmpDir/peersd/$fdi.in"
+            exec $((fdins+fdi))<> "$TmpDir/peersd/$fdi.in"
+            nc "$server" "$port" <&$((fdins+fdi)) >> "$allout" &
+            ((fdi++))
+        else
+            echo "Warning: unsupported vpool uri: $vpool" >&2
+        fi
+    done
+
+    udc_peerw2alljobspipe "USER $IrcUser 0 _ :$IrcComment\nNICK ${IrcNickb}_$IrcNickn\nMODE ${IrcNickb}_$IrcNick -i"
+
+    while read -t 600 src command target args ; do
         #[[ "$IrcLogpipe" != "cat" ]] && echo "$(date -R)<- $src $command $target $args" >> "$Irclogfile"
         case "$src" in
             #"PING") echo "PONG :hostname" | $IrcLogpipe >> "$Ircfifo" ;;
-            "PING") echo "PONG :hostname" >> "$Ircfifo" ;;
-            "ERROR") break ;;
+            "PING") udc_peerw2alljobspipe "PONG $command" ;;
+            "ERROR") continue ;;
         esac
-        src="${src:1}" # Remove 1st char ':' 
+        #src="${src:1}" # Remove 1st char ':' 
         case "$command" in
-            NOTICE) echo >> "$Ircfifo" ;;
-            #43?) IrcNick="_$IrcNick" ; echo -e "NICK $IrcNick\nJOIN $IrcChan" | $IrcLogpipe >> "$Ircfifo" ;;
-            43?) IrcNick="_$IrcNick" ; echo -e "NICK $IrcNick\nJOIN $IrcChan" >> "$Ircfifo" ;;
-            JOIN|PART|QUIT)
-                SrcNick="${src%%\!*}"
-                tmplogfile="$(date "+%Y/%m/%d").txt"
-                mkdir -p "$Irclogdir/${tmplogfile%/*}"
-                echo "// $(date "+%X%z"): $SrcNick $command // $target" >> "$Irclogdir/$tmplogfile"
+            43[1-6])
+                ((IrcNickn-=600))
+                udc_peerw2alljobspipe "NICK ${IrcNickb}_$IrcNickn\nMODE ${IrcNickb}_$IrcNickn -i"
                 ;;
-            NICK)
-                SrcNick="${src%%\!*}"
-                tmplogfile="$(date "+%Y/%m/%d").txt"
-                mkdir -p "$Irclogdir/${tmplogfile%/*}"
-                echo "// $(date "+%X%z"): $SrcNick is now know as //$target" >> "$Irclogdir/$tmplogfile"
+            352)
+                read channel username address server nick flags hops info < <(echo "$args")
+                if [[ "$info" =~ ^(https?)://([^/:]*)(:([0-9]*))?/([^ ]*) ]] ; then
+                    address="${BASH_REMATCH[2]:-$address}"
+                    case "${BASH_REMATCH[1]}" in 
+                        http) port="${BASH_REMATCH[4]:-80}" ;;
+                        https) port="${BASH_REMATCH[4]:-443}" ;;
+                    esac
+                    udc_peercheck "${BASH_REMATCH[1]}://$address:$port/${BASH_REMATCH[5]}" "1200" # check peer (if not checked in the 1200sec=20min before)
+                fi
                 ;;
-            PRIVMSG)
-                SrcNick="${src%%\!*}"
-                case "$target" in
-                  "$IrcChan")
-			tmplogfile="$(date "+%Y/%m/%d").txt"
-			mkdir -p "$Irclogdir/${tmplogfile%/*}"
-        		echo "$(date "+%X%z"): $SrcNick $args" >> "$Irclogdir/$tmplogfile"
-                        #echo "Message in main chan from $SrcNick: $(echo "${args}" | hexdump -C)" >&2
-                       ;;
-                  "$IrcNick") ((!(RANDOM%4))) && echo "$(fortune)" | while read line ; do echo "PRIVMSG $SrcNick :$line" ; done >> "$Ircfifo" ;;
-                esac
         esac
-    done < <( ( echo -e "USER $IrcUser 0 _ :$IrcComment\nNICK $IrcNick\nJOIN $IrcChan" ; tail -f "$Ircfifo" ) | nc $IrcServ )
-    ps -o pid,command | while read pid comm ; do [[ "$comm" =~ ^"tail -f $Ircfifo" ]] && kill $pid ; done 
-    rm -f "$Ircfifo" 
+        ((i++%8)) || ctime=$(date +"%s")  # "i++%8" to avoid to fork to call $(date ...) each time.
+        if ((ctime-ptime>900)) ; then # each 900sec=15min or more
+            ptime=$ctime
+            udc_peerw2alljobspipe "WHO ${IrcNickb}_*"
+            ((j++%32)) || udc_peerclean "86400" # each 32*15min=8h or more, clean peers which have not been checked in the last 86400sec=24hours
+        fi
+
+    done < "all.out"
+
+    udc_peerk9alljobs
+    rm -rf "$TmpDir/peersd"
 done
 }
 
-irclogger "${1:-/home/www/OpenUDC}"
+function garbage {
+    echo -e "USER $IrcUser 0 _ :$IrcComment\nNICK ${IrcNickb[$fdi]}$IrcNickn\n" >&$((fdins+fdi))
+    logstatus=0
+
+    while ((logstatus==0)) ; do 
+        if read -t 5 src command target args < "$TmpDir/peersd/[$fdi].out" ; then 
+
+            case "$src" in
+                "ERROR") logstatus=-1 ;;
+            esac
+            src="${src:1}" # Remove 1st char ':' 
+            case "$command" in
+                NOTICE) echo >> "$Ircfifo" ;;
+                43[1-6]) echo -e "NICK ${IrcNickb[$fdi]}$((--IrcNickn))\n" >&$((fdins+fdi)) ;;
+                001) logstatus=1 ;;
+            esac
+        else
+            logstatus=-2
+        fi
+    done
+    if ((logstatus<0)) ; then 
+        kill %$fdi
+        exec $((fdins+fdi))<&-
+        exec $((fdouts+fdi))>&-
+        rm "$TmpDir/peersd/$fdi."*
+    else
+        exec $((fdouts+fdi))>> "$allout"
+        ((fdi++))
+    fi
+}
 
