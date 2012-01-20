@@ -23,27 +23,29 @@ function peerdiscoverd {
 # Argument 3: base of IrcNick (to search for other peers)
 # Argument 4...: uri where to find/get peers 
 
-allout="$TmpDir/peersd/all.out"
-IrcUser="${1:-ludd}"
+local wdir="$TmpDir/peersd"
+local allout="$wdir/all.out"
+local IrcUser="${1:-ludd}"
 #IrcComment="http://:80/OpenUDC/$Currency"
-IrcComment="$2"
-IrcNickb="${3:-$Currency}"
+local IrcComment="$2"
+local IrcNickb="${3:-$Currency}"
 shift 3
-vpools=("$@")
-
-local line IrcLogpipe IrcNick src command target args i free IrcDate SrcCurrent=() SrcTimeIn=() 
+local pools=("$@")
+local fdins=10
+local fdi IrcNickn ptime ctime pool server port src command target args
+local channel username address server nick flags hops info i j 
 
 while true ; do 
-    mkdir -p "$TmpDir/peersd"
+    mkdir -p "$wdir"
     mkfifo "$allout"
-    fdins=10
     fdi=1
     IrcNickn="$(date +"%s")"
-    ptime="0"
+    ptime=0 ; ctime=0
+    i=0 ; j=0
 
     # Initialize Connections
-    for vpool in "${vpools[@]}" ; do
-        if [[ "$vpool" =~ ^irc://([^/:]*)(:([0-9]*))?/ ]] ; then # Note: this pattern don't support IPv6 address.
+    for pool in "${pools[@]}" ; do
+        if [[ "$pool" =~ ^irc://([^/:]*)(:([0-9]*))?/ ]] ; then # Note: this pattern don't support IPv6 address.
             server="${BASH_REMATCH[1]}"
             port="${BASH_REMATCH[3]:-6667}"
             mkfifo "$TmpDir/peersd/$fdi.in"
@@ -51,7 +53,7 @@ while true ; do
             nc "$server" "$port" <&$((fdins+fdi)) >> "$allout" &
             ((fdi++))
         else
-            echo "Warning: unsupported vpool uri: $vpool" >&2
+            echo "Warning: unsupported vpool uri: $pool" >&2
         fi
     done
 
@@ -78,7 +80,7 @@ while true ; do
                         http) port="${BASH_REMATCH[4]:-80}" ;;
                         https) port="${BASH_REMATCH[4]:-443}" ;;
                     esac
-                    udc_peercheck "${BASH_REMATCH[1]}://$address:$port/${BASH_REMATCH[5]}" "1200" # check peer (if not checked in the 1200sec=20min before)
+                    udc_peercheck "${BASH_REMATCH[1]}://$address:$port/${BASH_REMATCH[5]}" "1800" # check peer (if not checked in the 1800sec=30min before)
                 fi
                 ;;
         esac
@@ -92,38 +94,7 @@ while true ; do
     done < "all.out"
 
     udc_peerk9alljobs
-    rm -rf "$TmpDir/peersd"
+    rm -rf "$wdir"
 done
-}
-
-function garbage {
-    echo -e "USER $IrcUser 0 _ :$IrcComment\nNICK ${IrcNickb[$fdi]}$IrcNickn\n" >&$((fdins+fdi))
-    logstatus=0
-
-    while ((logstatus==0)) ; do 
-        if read -t 5 src command target args < "$TmpDir/peersd/[$fdi].out" ; then 
-
-            case "$src" in
-                "ERROR") logstatus=-1 ;;
-            esac
-            src="${src:1}" # Remove 1st char ':' 
-            case "$command" in
-                NOTICE) echo >> "$Ircfifo" ;;
-                43[1-6]) echo -e "NICK ${IrcNickb[$fdi]}$((--IrcNickn))\n" >&$((fdins+fdi)) ;;
-                001) logstatus=1 ;;
-            esac
-        else
-            logstatus=-2
-        fi
-    done
-    if ((logstatus<0)) ; then 
-        kill %$fdi
-        exec $((fdins+fdi))<&-
-        exec $((fdouts+fdi))>&-
-        rm "$TmpDir/peersd/$fdi."*
-    else
-        exec $((fdouts+fdi))>> "$allout"
-        ((fdi++))
-    fi
 }
 
