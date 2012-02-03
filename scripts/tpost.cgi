@@ -16,8 +16,8 @@ fi
 #  fi
 
 UDBot_fifo="/dev/shm/ludd.fifo"
-#if false ; then
 if ! [[ -p "$UDBot_fifo" ]] ; then
+#if false ; then
  echo -e "Content-type: text/udc-report;charset=UTF-8\n"
  echo "scode=503" 
  echo "sreport=\"OpenUDC deamon not available\""
@@ -26,16 +26,24 @@ fi
 
 # Create a temporary file
 filename="$(mktemp --tmpdir=/dev/shm/ tmpPOST.XXXX)"
+# Note: filename is today not a fifo, to not slow/block the daemon which is not multithreaded (today with no lock on grain database).
 
 case "${CONTENT_TYPE,,}" in 
  multipart/*|application/udc-*)
-  echo -e "$CONTENT_TYPE\n" > "$filename" ;;
+  echo -e "$CONTENT_TYPE\n" > "$filename" 
+# Copy input into the temporary file
+  head -c $CONTENT_LENGTH >> "$filename"
+  ;;
  *) # WTF ?? search a line beginning with "Content-Type:" in the data.
   while read line ; do
    [[ "${line::13}" == "Content-Type:" ]] && found=1 && break
   done
   if ((found)) ; then 
    echo "$line" > "$filename"
+# Copy input into the temporary file
+   while read -t 1 line ; do 
+    echo "$line" >> "$filename"
+   done
   else
    echo -e "Content-type: text/udc-report;charset=UTF-8\n"
    echo "scode=400" 
@@ -49,10 +57,6 @@ esac
 # Create pipe were deamon will write its output
 mkfifo "$filename.fifo"
 chmod 664 "$filename.fifo"
-# Copy input into the temporary file
-cat > "$filename"
-# Note: filename is today not a fifo, to not slow/block the daemon which is not multithreaded (today).
-
 # Tell the daemon to manage this input
 echo "$filename.fifo $filename" >> "$UDBot_fifo"
 
@@ -60,8 +64,8 @@ echo "$filename.fifo $filename" >> "$UDBot_fifo"
 cat "$filename.fifo" &
 #echo "$filename.fifo" >> "$filename.fifo"
 
-# Max 5 second before timeout !
-t=5
+# Max seconds before timeout !
+t=30
 while jobs 1 > /dev/null && ((t--)) ; do
   sleep 1
 done
