@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created by diasvg.py -->
+<svg width="131.077cm" height="127.975cm" viewBox="-53.615 4.113 77.461 132.088"
+ xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="23.881,4.163 27.454,5.950 23.881,7.737 20.308,5.950 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.881,4.163 27.454,5.950 23.881,7.737 20.308,5.950 "/>
+<text x="23.881" y="6.145"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Installer ?</text>
+<line x1="23.892" y1="7.781" x2="23.894" y2="8.114" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.896,8.489 23.643,7.991 23.894,8.114 24.143,7.988 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.896,8.489 23.643,7.991 23.894,8.114 24.143,7.988 "/>
+<text x="19.100" y="6.800"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<line x1="24.237" y1="30.462" x2="24.265" y2="31.557" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="24.274,31.932 24.011,31.438 24.265,31.557 24.511,31.426 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="24.274,31.932 24.011,31.438 24.265,31.557 24.511,31.426 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="20.258,5.950 9.000,5.950 9.000,38.779 13.441,38.779 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="13.816,38.779 13.316,39.029 13.441,38.779 13.316,38.529 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="13.816,38.779 13.316,39.029 13.441,38.779 13.316,38.529 "/>
+<text x="24.500" y="8.250"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="23.452,49.733 25.452,49.733 24.452,47.533 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.452,49.733 25.452,49.733 24.452,47.533 "/>
+<line x1="24.450" y1="45.496" x2="24.451" y2="47.046" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="24.452,47.421 24.201,46.921 24.451,47.046 24.701,46.921 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="24.452,47.421 24.201,46.921 24.451,47.046 24.701,46.921 "/>
+<rect x="67.107" y="54.892" width="10.197" height="4.475" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="67.107" y="54.892" width="10.197" height="4.475" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="68.087" y="55.846" width="7.380" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="68.087" y="55.846" width="7.380" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="71.777" y="56.991"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Maintenir les paires</text>
+<text x="67.124" y="54.323"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Demon connaissance des paires</text>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="71.777,57.796 71.777,58.331 76.350,58.331 76.350,56.796 76.004,56.796 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="75.629,56.796 76.129,56.546 76.004,56.796 76.129,57.046 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="75.629,56.796 76.129,56.546 76.004,56.796 76.129,57.046 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="23.952,48.633 23.952,48.626 -10.455,48.626 -10.455,54.395 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-10.455,54.770 -10.705,54.270 -10.455,54.395 -10.205,54.270 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-10.455,54.770 -10.705,54.270 -10.455,54.395 -10.205,54.270 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="24.452,49.733 24.452,52.322 24.403,52.322 24.403,54.424 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="24.403,54.799 24.153,54.299 24.403,54.424 24.653,54.299 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="24.403,54.799 24.153,54.299 24.403,54.424 24.653,54.299 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="24.452,49.733 24.452,52.333 51.849,52.333 51.849,54.450 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.849,54.825 51.599,54.325 51.849,54.450 52.099,54.325 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.849,54.825 51.599,54.325 51.849,54.450 52.099,54.325 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="24.952,48.633 24.952,48.680 66.616,48.680 66.616,54.406 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="66.616,54.781 66.366,54.281 66.616,54.406 66.866,54.281 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="66.616,54.781 66.366,54.281 66.616,54.406 66.866,54.281 "/>
+<rect x="-20.556" y="54.882" width="31.620" height="22.710" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-20.556" y="54.882" width="31.620" height="22.710" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-20.616" y="54.351"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Demon requete POST/HTTP</text>
+<rect x="-6.452" y="56.900" width="6.170" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-6.452" y="56.900" width="6.170" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-3.367" y="58.045"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente requete</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="-3.367,60.513 0.247,62.321 -3.367,64.128 -6.982,62.321 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-3.367,60.513 0.247,62.321 -3.367,64.128 -6.982,62.321 "/>
+<text x="-3.367" y="62.516"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Requete ?</text>
+<line x1="-3.367" y1="58.850" x2="-3.367" y2="59.977" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-3.367,60.352 -3.617,59.852 -3.367,59.977 -3.117,59.852 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-3.367,60.352 -3.617,59.852 -3.367,59.977 -3.117,59.852 "/>
+<rect x="-18.622" y="65.405" width="12.190" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-18.622" y="65.405" width="12.190" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-12.527" y="66.550"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Authentification (signer challenge)</text>
+<rect x="-2.055" y="64.533" width="12.315" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-2.055" y="64.533" width="12.315" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="4.103" y="65.678"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Signer des donnees publiques</text>
+<rect x="-8.304" y="68.691" width="4.758" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-8.304" y="68.691" width="4.758" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-5.925" y="69.836"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Transaction</text>
+<rect x="-2.486" y="68.909" width="3.808" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-2.486" y="68.909" width="3.808" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-0.582" y="70.054"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Creation</text>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -4.809,61.184 A 5.260,5.260 0 0,0 -12.469,64.874 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-12.524,65.244 -12.729,64.724 -12.491,64.870 -12.231,64.768 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-12.524,65.244 -12.729,64.724 -12.491,64.870 -12.231,64.768 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 4.203,64.000 A 4.102,4.102 0 0,0 -2.163,61.065 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="4.231,64.371 3.982,63.870 4.232,63.996 4.482,63.872 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="4.231,64.371 3.982,63.870 4.232,63.996 4.482,63.872 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -4.520,63.600 A 8.017,8.017 0 0,0 -6.038,68.155 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-6.036,68.529 -6.308,68.041 -6.053,68.155 -5.808,68.019 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-6.036,68.529 -6.308,68.041 -6.053,68.155 -5.808,68.019 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -3.417,64.150 A 8.573,8.573 0 0,0 -1.830,68.472 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-1.605,68.772 -2.114,68.540 -1.841,68.480 -1.725,68.226 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-1.605,68.772 -2.114,68.540 -1.841,68.480 -1.725,68.226 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="-4.363,73.130 -2.363,73.130 -3.363,75.330 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-4.363,73.130 -2.363,73.130 -3.363,75.330 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -2.430,74.565 A 5.980,5.980 0 0,0 4.637,66.482 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-2.789,74.458 -2.234,74.391 -2.435,74.585 -2.402,74.862 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-2.789,74.458 -2.234,74.391 -2.435,74.585 -2.402,74.862 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -12.750,67.356 A 6.596,6.596 0 0,0 -4.285,74.591 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-3.931,74.472 -4.306,74.887 -4.280,74.608 -4.487,74.421 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-3.931,74.472 -4.306,74.887 -4.280,74.608 -4.487,74.421 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -6.016,70.641 A 3.954,3.954 0 0,0 -4.462,73.640 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-4.157,73.853 -4.715,73.816 -4.481,73.663 -4.462,73.384 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-4.157,73.853 -4.715,73.816 -4.481,73.663 -4.462,73.384 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -2.293,73.862 A 3.492,3.492 0 0,0 -0.457,70.858 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-2.628,74.023 -2.247,73.614 -2.277,73.892 -2.073,74.083 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-2.628,74.023 -2.247,73.614 -2.277,73.892 -2.073,74.083 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="-3.363,75.330 -3.363,76.380 -19.521,76.380 -19.521,55.850 -3.367,55.850 -3.367,56.413 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-3.367,56.788 -3.617,56.288 -3.367,56.413 -3.117,56.288 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-3.367,56.788 -3.617,56.288 -3.367,56.413 -3.117,56.288 "/>
+<rect x="38.250" y="54.946" width="27.197" height="37.085" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="38.250" y="54.946" width="27.197" height="37.085" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="38.356" y="54.581"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Demon de transaction</text>
+<rect x="49.025" y="55.877" width="5.605" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="49.025" y="55.877" width="5.605" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="51.827" y="57.022"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente (FIFO)</text>
+<rect x="53.941" y="87.918" width="4.940" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="53.941" y="87.918" width="4.940" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="56.411" y="89.063"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Propagation</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="51.832,58.883 55.962,60.947 51.832,63.012 47.703,60.947 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.832,58.883 55.962,60.947 51.832,63.012 47.703,60.947 "/>
+<text x="51.832" y="61.142"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Bon format ?</text>
+<line x1="51.829" y1="57.827" x2="51.829" y2="58.347" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.830,58.722 51.579,58.222 51.829,58.347 52.079,58.222 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.830,58.722 51.579,58.222 51.829,58.347 52.079,58.222 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="51.996,64.276 56.385,66.471 51.996,68.666 47.606,66.471 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.996,64.276 56.385,66.471 51.996,68.666 47.606,66.471 "/>
+<text x="51.996" y="66.666"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Signature OK ?</text>
+<line x1="51.894" y1="63.031" x2="51.916" y2="63.772" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.927,64.147 51.662,63.655 51.916,63.772 52.162,63.640 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.927,64.147 51.662,63.655 51.916,63.772 52.162,63.640 "/>
+<text x="52.505" y="63.741"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<text x="43.846" y="59.052"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<text x="59.862" y="62.159"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<text x="50.537" y="74.379"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="45.952,79.065 49.951,81.064 45.952,83.064 41.952,81.064 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="45.952,79.065 49.951,81.064 45.952,83.064 41.952,81.064 "/>
+<text x="45.952" y="81.259"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Coherence ?</text>
+<rect x="42.891" y="84.422" width="6.112" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="42.891" y="84.422" width="6.112" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="45.947" y="85.567"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Blacklister cles</text>
+<line x1="45.949" y1="83.111" x2="45.949" y2="83.886" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="45.948,84.261 45.699,83.760 45.949,83.886 46.199,83.761 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="45.948,84.261 45.699,83.760 45.949,83.886 46.199,83.761 "/>
+<text x="46.648" y="83.722"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<rect x="41.147" y="87.966" width="9.600" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="41.147" y="87.966" width="9.600" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="45.947" y="89.111"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Mise a jour etat des grains</text>
+<line x1="45.947" y1="86.370" x2="45.947" y2="87.431" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="45.947,87.806 45.697,87.306 45.947,87.431 46.197,87.306 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="45.947,87.806 45.697,87.306 45.947,87.431 46.197,87.306 "/>
+<text x="39.559" y="84.976"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="50.854,77.604 52.854,77.604 51.854,75.404 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="50.854,77.604 52.854,77.604 51.854,75.404 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="45.947,89.866 45.947,91.020 38.900,91.020 38.900,56.827 48.500,56.827 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="48.875,56.827 48.375,57.077 48.500,56.827 48.375,56.577 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="48.875,56.827 48.375,57.077 48.500,56.827 48.375,56.577 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="56.415,79.580 59.724,81.234 56.415,82.889 53.105,81.234 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.415,79.580 59.724,81.234 56.415,82.889 53.105,81.234 "/>
+<text x="56.415" y="81.429"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Signer ?</text>
+<rect x="49.368" y="84.434" width="14.020" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="49.368" y="84.434" width="14.020" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="56.378" y="85.579"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente de lecture des autres signatures</text>
+<line x1="56.387" y1="86.381" x2="56.397" y2="87.384" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.400,87.759 56.145,87.262 56.397,87.384 56.645,87.257 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.400,87.759 56.145,87.262 56.397,87.384 56.645,87.257 "/>
+<line x1="56.399" y1="82.930" x2="56.391" y2="83.898" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.387,84.273 56.142,83.771 56.391,83.898 56.642,83.775 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.387,84.273 56.142,83.771 56.391,83.898 56.642,83.775 "/>
+<text x="63.902" y="85.482"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<text x="57.263" y="83.380"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 56.435,66.451 A 5.335,5.335 0 0,0 55.160,56.362 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="54.791,56.306 55.311,56.103 55.164,56.340 55.266,56.601 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="54.791,56.306 55.311,56.103 55.164,56.340 55.266,56.601 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 50.158,55.647 A 3.407,3.407 0 1,0 50.045,62.168 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="50.506,55.778 49.947,55.784 50.169,55.614 50.166,55.334 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="50.506,55.778 49.947,55.784 50.169,55.614 50.166,55.334 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 56.328,79.080 A 3.885,3.885 0 0,0 52.377,76.432 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.430,79.439 56.087,78.997 56.356,79.071 56.577,78.899 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.430,79.439 56.087,78.997 56.356,79.071 56.577,78.899 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 51.342,76.417 A 4.845,4.845 0 0,0 46.604,78.798 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="46.428,79.128 46.407,78.569 46.583,78.786 46.862,78.776 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="46.428,79.128 46.407,78.569 46.583,78.786 46.862,78.776 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 42.864,81.569 A 4.037,4.037 0 0,0 41.906,87.572 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="42.156,87.848 41.621,87.687 41.883,87.591 41.964,87.323 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="42.156,87.848 41.621,87.687 41.883,87.591 41.964,87.323 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 59.415,89.693 A 4.653,4.653 0 0,0 58.288,80.466 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="59.042,89.707 59.550,89.472 59.417,89.718 59.534,89.972 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="59.042,89.707 59.550,89.472 59.417,89.718 59.534,89.972 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 48.529,57.864 A 13.628,13.628 0 0,0 44.475,79.754 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="48.872,57.711 48.507,58.135 48.526,57.856 48.314,57.674 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="48.872,57.711 48.507,58.135 48.526,57.856 48.314,57.674 "/>
+<text x="41.251" y="69.615"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Non definit</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="51.824,70.366 54.891,71.899 51.824,73.432 48.757,71.899 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.824,70.366 54.891,71.899 51.824,73.432 48.757,71.899 "/>
+<text x="51.824" y="72.094"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Recu ?</text>
+<line x1="51.926" y1="68.679" x2="51.889" y2="69.854" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.877,70.228 51.643,69.721 51.889,69.854 52.142,69.737 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.877,70.228 51.643,69.721 51.889,69.854 52.142,69.737 "/>
+<line x1="51.834" y1="73.475" x2="51.844" y2="74.914" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.846,75.289 51.593,74.790 51.844,74.914 52.093,74.787 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.846,75.289 51.593,74.790 51.844,74.914 52.093,74.787 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 53.610,72.589 A 8.501,8.501 0 0,0 55.164,55.883 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="54.791,55.917 55.255,55.606 55.163,55.870 55.318,56.102 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="54.791,55.917 55.255,55.606 55.163,55.870 55.318,56.102 "/>
+<text x="62.389" y="65.513"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<rect x="12.357" y="54.911" width="24.092" height="14.367" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="12.357" y="54.911" width="24.092" height="14.367" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="12.357" y="54.478"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Demon de fiche de creation</text>
+<rect x="22.218" y="56.714" width="5.677" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="22.218" y="56.714" width="5.677" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="25.057" y="57.859"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente (FIFO)</text>
+<rect x="22.569" y="65.628" width="4.940" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="22.569" y="65.628" width="4.940" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="25.039" y="66.773"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Propagation</text>
+<rect x="14.856" y="59.788" width="20.547" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="14.856" y="59.788" width="20.547" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="25.130" y="60.933"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Verification (Signature initiateur + clefs publiques membres)</text>
+<rect x="21.011" y="62.731" width="7.985" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="21.011" y="62.731" width="7.985" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="25.004" y="63.876"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Verification des votes</text>
+<line x1="25.080" y1="58.664" x2="25.094" y2="59.252" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="25.103,59.626 24.842,59.133 25.094,59.252 25.341,59.121 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.103,59.626 24.842,59.133 25.094,59.252 25.341,59.121 "/>
+<line x1="25.087" y1="61.733" x2="25.067" y2="62.201" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="25.051,62.575 24.823,62.065 25.067,62.201 25.322,62.086 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.051,62.575 24.823,62.065 25.067,62.201 25.322,62.086 "/>
+<line x1="25.016" y1="64.682" x2="25.021" y2="65.091" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="25.026,65.466 24.770,64.969 25.021,65.091 25.269,64.963 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.026,65.466 24.770,64.969 25.021,65.091 25.269,64.963 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="25.039,67.528 25.039,68.578 13.955,68.578 13.955,55.664 25.057,55.664 25.057,56.228 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="25.057,56.603 24.807,56.103 25.057,56.228 25.307,56.103 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="25.057,56.603 24.807,56.103 25.057,56.228 25.307,56.103 "/>
+<rect x="13.977" y="32.093" width="20.938" height="13.372" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="13.977" y="32.093" width="20.938" height="13.372" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="18.901" y="32.900" width="9.797" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="18.901" y="32.900" width="9.797" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.800" y="34.045"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Recuperer la liste des pairs</text>
+<rect x="17.453" y="36.200" width="12.575" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="17.453" y="36.200" width="12.575" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.741" y="37.345"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Mise a jour des fiches de creations</text>
+<rect x="17.222" y="39.350" width="13.238" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="17.222" y="39.350" width="13.238" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.841" y="40.495"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Mise a jour des etats de transactions</text>
+<line x1="23.700" y1="35.000" x2="23.724" y2="35.713" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.737,36.088 23.470,35.597 23.724,35.713 23.970,35.580 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.737,36.088 23.470,35.597 23.724,35.713 23.970,35.580 "/>
+<line x1="23.772" y1="38.150" x2="23.793" y2="38.813" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.805,39.188 23.540,38.696 23.793,38.813 24.039,38.680 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.805,39.188 23.540,38.696 23.793,38.813 24.039,38.680 "/>
+<rect x="16.149" y="42.550" width="4.902" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="16.149" y="42.550" width="4.902" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="18.600" y="43.695"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Backtracing</text>
+<rect x="23.686" y="42.600" width="10.127" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="23.686" y="42.600" width="10.127" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="28.750" y="43.745"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Faire confiance aux pointers</text>
+<line x1="22.202" y1="41.300" x2="20.654" y2="42.246" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="20.334,42.441 20.630,41.967 20.654,42.246 20.891,42.394 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="20.334,42.441 20.630,41.967 20.654,42.246 20.891,42.394 "/>
+<line x1="25.351" y1="41.300" x2="26.833" y2="42.281" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="27.146,42.488 26.591,42.421 26.833,42.281 26.867,42.004 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="27.146,42.488 26.591,42.421 26.833,42.281 26.867,42.004 "/>
+<rect x="10.012" y="8.650" width="27.900" height="21.761" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="10.012" y="8.650" width="27.900" height="21.761" fill="none" stroke="#000000" stroke-width="0.100" />
+<rect x="20.299" y="9.750" width="7.102" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="20.299" y="9.750" width="7.102" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.850" y="10.895"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Installation logiciel</text>
+<rect x="19.996" y="13.100" width="7.707" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="19.996" y="13.100" width="7.707" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.850" y="14.245"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Generation certificat</text>
+<rect x="10.757" y="16.500" width="26.368" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="10.757" y="16.500" width="26.368" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.941" y="17.645"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Faire signer certificat par un nominatif vivant (utilisation d&apos;une clef de compte)</text>
+<rect x="12.940" y="20.050" width="22.120" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="12.940" y="20.050" width="22.120" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="24.000" y="21.195"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Determiner la tranche (range) en fontion de la capacite hardware</text>
+<rect x="18.859" y="24.050" width="10.300" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="18.859" y="24.050" width="10.300" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="24.009" y="25.195"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Fournir la fiche de creation 0</text>
+<line x1="23.850" y1="11.700" x2="23.850" y2="12.563" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.850,12.938 23.600,12.438 23.850,12.563 24.100,12.438 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.850,12.938 23.600,12.438 23.850,12.563 24.100,12.438 "/>
+<line x1="23.877" y1="15.050" x2="23.901" y2="15.964" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.911,16.338 23.648,15.845 23.901,15.964 24.148,15.832 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.911,16.338 23.648,15.845 23.901,15.964 24.148,15.832 "/>
+<line x1="23.957" y1="18.449" x2="23.975" y2="19.514" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.981,19.889 23.723,19.393 23.975,19.514 24.223,19.385 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.981,19.889 23.723,19.393 23.975,19.514 24.223,19.385 "/>
+<line x1="24.002" y1="22.000" x2="24.006" y2="23.513" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="24.007,23.888 23.756,23.388 24.006,23.513 24.256,23.387 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="24.007,23.888 23.756,23.388 24.006,23.513 24.256,23.387 "/>
+<rect x="20.026" y="27.568" width="7.935" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="20.026" y="27.568" width="7.935" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="23.994" y="28.713"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Fournir le pool recent</text>
+<line x1="24.005" y1="26.000" x2="24.000" y2="27.031" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="23.999,27.406 23.751,26.905 24.000,27.031 24.251,26.907 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="23.999,27.406 23.751,26.905 24.000,27.031 24.251,26.907 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="23.952,48.633 23.952,48.626 -37.746,48.626 -37.746,54.439 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-37.746,54.814 -37.996,54.314 -37.746,54.439 -37.496,54.314 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-37.746,54.814 -37.996,54.314 -37.746,54.439 -37.496,54.314 "/>
+<rect x="38.180" y="94.953" width="27.197" height="37.085" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="38.180" y="94.953" width="27.197" height="37.085" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="38.285" y="94.588"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Demon de transaction (version avec transaction en attente si dest. non joingnable)</text>
+<rect x="48.954" y="95.884" width="5.605" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="48.954" y="95.884" width="5.605" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="51.757" y="97.029"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente (FIFO)</text>
+<rect x="53.870" y="127.925" width="4.940" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="53.870" y="127.925" width="4.940" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="56.340" y="129.070"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Propagation</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="51.761,98.890 55.891,100.955 51.761,103.019 47.632,100.955 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.761,98.890 55.891,100.955 51.761,103.019 47.632,100.955 "/>
+<text x="51.761" y="101.150"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Bon format ?</text>
+<line x1="51.758" y1="97.835" x2="51.759" y2="98.354" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.759,98.729 51.508,98.230 51.759,98.354 52.008,98.229 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.759,98.729 51.508,98.230 51.759,98.354 52.008,98.229 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="51.925,104.283 56.314,106.478 51.925,108.673 47.536,106.478 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.925,104.283 56.314,106.478 51.925,108.673 47.536,106.478 "/>
+<text x="51.925" y="106.673"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Signature OK ?</text>
+<line x1="51.823" y1="103.038" x2="51.845" y2="103.780" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.856,104.154 51.592,103.662 51.845,103.780 52.091,103.647 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.856,104.154 51.592,103.662 51.845,103.780 52.091,103.647 "/>
+<text x="52.434" y="103.748"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<text x="43.776" y="99.059"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<text x="59.791" y="102.167"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<text x="50.466" y="114.386"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="45.881,119.072 49.881,121.072 45.881,123.071 41.882,121.072 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="45.881,119.072 49.881,121.072 45.881,123.071 41.882,121.072 "/>
+<text x="45.881" y="121.267"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Coherence ?</text>
+<rect x="42.820" y="124.429" width="6.112" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="42.820" y="124.429" width="6.112" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="45.876" y="125.574"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Blacklister cles</text>
+<line x1="45.879" y1="123.118" x2="45.878" y2="123.893" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="45.878,124.268 45.628,123.768 45.878,123.893 46.128,123.768 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="45.878,124.268 45.628,123.768 45.878,123.893 46.128,123.768 "/>
+<text x="46.577" y="123.729"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<rect x="41.076" y="127.973" width="9.600" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="41.076" y="127.973" width="9.600" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="45.876" y="129.118"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Mise a jour etat des grains</text>
+<line x1="45.876" y1="126.378" x2="45.876" y2="127.438" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="45.876,127.813 45.626,127.313 45.876,127.438 46.126,127.313 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="45.876,127.813 45.626,127.313 45.876,127.438 46.126,127.313 "/>
+<text x="39.489" y="124.983"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="50.784,117.611 52.784,117.611 51.784,115.411 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="50.784,117.611 52.784,117.611 51.784,115.411 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="45.876,129.873 45.876,131.028 38.829,131.028 38.829,96.834 48.429,96.834 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="48.804,96.834 48.304,97.084 48.429,96.834 48.304,96.584 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="48.804,96.834 48.304,97.084 48.429,96.834 48.304,96.584 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="56.344,119.587 59.653,121.242 56.344,122.896 53.034,121.242 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.344,119.587 59.653,121.242 56.344,122.896 53.034,121.242 "/>
+<text x="56.344" y="121.437"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Signer ?</text>
+<rect x="49.297" y="124.441" width="14.020" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="49.297" y="124.441" width="14.020" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="56.307" y="125.586"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente de lecture des autres signatures</text>
+<line x1="56.316" y1="126.388" x2="56.326" y2="127.392" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.329,127.767 56.075,127.269 56.326,127.392 56.575,127.264 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.329,127.767 56.075,127.269 56.326,127.392 56.575,127.264 "/>
+<line x1="56.329" y1="122.937" x2="56.320" y2="123.905" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.317,124.280 56.071,123.778 56.320,123.905 56.571,123.783 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.317,124.280 56.071,123.778 56.320,123.905 56.571,123.783 "/>
+<text x="63.831" y="125.490"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<text x="57.193" y="123.387"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+OUI</text>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 56.364,106.458 A 5.335,5.335 0 0,0 55.089,96.369 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="54.720,96.313 55.241,96.110 55.093,96.348 55.195,96.608 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="54.720,96.313 55.241,96.110 55.093,96.348 55.195,96.608 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 50.088,95.654 A 3.407,3.407 0 1,0 49.974,102.175 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="50.435,95.785 49.876,95.791 50.098,95.621 50.095,95.341 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="50.435,95.785 49.876,95.791 50.098,95.621 50.095,95.341 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 56.257,119.088 A 3.885,3.885 0 0,0 52.307,116.439 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="56.359,119.446 56.016,119.004 56.286,119.078 56.506,118.907 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="56.359,119.446 56.016,119.004 56.286,119.078 56.506,118.907 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 51.272,116.425 A 4.845,4.845 0 0,0 46.533,118.806 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="46.357,119.135 46.336,118.576 46.512,118.793 46.792,118.783 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="46.357,119.135 46.336,118.576 46.512,118.793 46.792,118.783 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 42.793,121.577 A 4.037,4.037 0 0,0 41.835,127.580 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="42.085,127.856 41.550,127.694 41.813,127.598 41.893,127.331 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="42.085,127.856 41.550,127.694 41.813,127.598 41.893,127.331 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 59.345,129.700 A 4.653,4.653 0 0,0 58.217,120.474 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="58.972,129.714 59.479,129.480 59.346,129.726 59.464,129.979 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="58.972,129.714 59.479,129.480 59.346,129.726 59.464,129.979 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 48.459,97.871 A 13.628,13.628 0 0,0 44.404,119.761 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="48.801,97.719 48.436,98.142 48.455,97.863 48.243,97.681 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="48.801,97.719 48.436,98.142 48.455,97.863 48.243,97.681 "/>
+<text x="41.180" y="109.623"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Non definit</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="51.753,110.373 54.820,111.906 51.753,113.440 48.686,111.906 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.753,110.373 54.820,111.906 51.753,113.440 48.686,111.906 "/>
+<text x="51.753" y="112.101"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Recu ?</text>
+<line x1="51.855" y1="108.686" x2="51.818" y2="109.861" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.806,110.236 51.572,109.728 51.818,109.861 52.072,109.744 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.806,110.236 51.572,109.728 51.818,109.861 52.072,109.744 "/>
+<line x1="51.764" y1="113.482" x2="51.773" y2="114.921" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="51.776,115.296 51.522,114.798 51.773,114.921 52.022,114.794 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="51.776,115.296 51.522,114.798 51.773,114.921 52.022,114.794 "/>
+<text x="54.588" y="109.028"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+NON</text>
+<rect x="55.249" y="109.824" width="9.680" height="4.300" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="55.249" y="109.824" width="9.680" height="4.300" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="60.089" y="110.969"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Ajouter transaction dans</text>
+<text x="60.089" y="111.769"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+arborescence &quot;attente&quot;</text>
+<text x="60.089" y="112.569"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+(peut etre le situer apres</text>
+<text x="60.089" y="113.369"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+la maj de l&apos;etat des grains)</text>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 57.339,109.603 A 4.670,4.670 0 0,0 52.600,110.747 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="57.690,109.731 57.132,109.757 57.347,109.579 57.334,109.300 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="57.690,109.731 57.132,109.757 57.347,109.579 57.334,109.300 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M 52.773,116.320 A 13.998,13.998 0 0,0 57.611,114.174 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="52.407,116.400 52.850,116.059 52.775,116.328 52.946,116.549 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="52.407,116.400 52.850,116.059 52.775,116.328 52.946,116.549 "/>
+<rect x="-53.556" y="54.926" width="31.620" height="22.710" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-53.556" y="54.926" width="31.620" height="22.710" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-53.615" y="54.394"  fill="#000000" text-anchor="start" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Demon requete GET/HTTP</text>
+<rect x="-39.452" y="56.943" width="6.170" height="1.900" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-39.452" y="56.943" width="6.170" height="1.900" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-36.367" y="58.088"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Attente requete</text>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="-36.367,60.557 -32.753,62.364 -36.367,64.171 -39.981,62.364 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-36.367,60.557 -32.753,62.364 -36.367,64.171 -39.981,62.364 "/>
+<text x="-36.367" y="62.559"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Requete ?</text>
+<line x1="-36.367" y1="58.893" x2="-36.367" y2="60.020" stroke="#000000" stroke-width="0.100" />
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-36.367,60.395 -36.617,59.895 -36.367,60.020 -36.117,59.895 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-36.367,60.395 -36.617,59.895 -36.367,60.020 -36.117,59.895 "/>
+<rect x="-45.793" y="67.171" width="7.875" height="2.700" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-45.793" y="67.171" width="7.875" height="2.700" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-41.856" y="68.316"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Quantite monnaie en</text>
+<text x="-41.856" y="69.116"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+fonction des grains</text>
+<rect x="-34.183" y="67.111" width="8.633" height="2.700" fill="#FFFFFF" stroke="none" stroke-width="0"/>
+<rect x="-34.183" y="67.111" width="8.633" height="2.700" fill="none" stroke="#000000" stroke-width="0.100" />
+<text x="-29.867" y="68.256"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+Transactions en attente</text>
+<text x="-29.867" y="69.056"  fill="#000000" text-anchor="middle" font-size="0.80" font-family="sans" font-style="normal" font-weight="400">
+non-recus</text>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -38.746,63.031 A 5.851,5.851 0 0,0 -41.653,66.648 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-41.742,67.011 -41.895,66.473 -41.673,66.643 -41.404,66.566 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-41.742,67.011 -41.895,66.473 -41.673,66.643 -41.404,66.566 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -30.236,66.597 A 6.394,6.394 0 0,0 -33.709,62.892 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-30.119,66.953 -30.493,66.537 -30.219,66.591 -30.011,66.404 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-30.119,66.953 -30.493,66.537 -30.219,66.591 -30.011,66.404 "/>
+<polygon fill="#FFFFFF" stroke="none" stroke-width="0.100" points="-37.363,73.174 -35.363,73.174 -36.363,75.374 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-37.363,73.174 -35.363,73.174 -36.363,75.374 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -35.333,74.274 A 5.984,5.984 0 0,0 -30.069,69.860 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-35.707,74.295 -35.208,74.043 -35.332,74.293 -35.205,74.543 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-35.707,74.295 -35.208,74.043 -35.332,74.293 -35.205,74.543 "/>
+<path stroke="#000000" fill="none" stroke-width="0.100"  d ="M -41.632,69.889 A 6.068,6.068 0 0,0 -37.426,74.077 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-37.063,74.167 -37.602,74.317 -37.431,74.096 -37.506,73.827 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-37.063,74.167 -37.602,74.317 -37.431,74.096 -37.506,73.827 "/>
+<polyline fill="none" stroke="#000000" stroke-width="0.100"  points="-36.363,75.374 -36.363,76.424 -52.520,76.424 -52.520,55.893 -36.367,55.893 -36.367,56.456 "/>
+<polygon fill="#000000" stroke="none" stroke-width="0.100" points="-36.367,56.831 -36.617,56.331 -36.367,56.456 -36.117,56.331 "/>
+<polygon fill="none" stroke="#000000" stroke-width="0.100"  points="-36.367,56.831 -36.617,56.331 -36.367,56.456 -36.117,56.331 "/>
+</svg>
