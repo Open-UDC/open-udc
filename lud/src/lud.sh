@@ -9,7 +9,7 @@ UDinit
 . ugenid.env
 
 while true ; do 
-    udc_chooseinlist "Please choose what to do ?" 1 \
+    lud_utils_chooseinlist "Please choose what to do ?" 1 \
                      "Register your udid2 for Universal Monetary Dividend" \
                      "Change registered key for Universal Monetary Dividend" \
                      "Generate/Check an udid2" \
@@ -56,19 +56,19 @@ while true ; do
       [[ "${myaccounts[0]}" ]] || echo "No account found."
         for account in "${myaccounts[@]}" ; do 
             echo -n "$account: "
-            udc_freadbalance "$account"
+            lud_wallet_freadbalance "$account"
         done
         read -t 5
         ;;
       7)
         if ((${#myaccounts[@]}>1)) ; then
-            udc_chooseinlist "From which account ?" 1 "${myaccounts[@]}" >&2
+            lud_utils_chooseinlist "From which account ?" 1 "${myaccounts[@]}" >&2
             account="${myaccounts[$(($?-1))]}"
         else
             account="${myaccounts[0]}"
         fi
         read -p "How much ? " amount >&2
-        grains=($(udc_preparetransaction $((amount)) "$account"))
+        grains=($(lud_wallet_preparetransaction $((amount)) "$account"))
         ret="$?"
         if ((ret==255)) ; then
             echo "Unknow error" >&2
@@ -92,12 +92,12 @@ while true ; do
             fi
             if ((!ret)) ; then
                 mapfile < <(sed -n ' s,^[[:xdigit:]]\{40\}:,,p ' "$udcHOME/$Currency/adressbook")
-                udc_chooseinlist "To which account ?" 1 "${MAPFILE[@]}" "Other..."
+                lud_utils_chooseinlist "To which account ?" 1 "${MAPFILE[@]}" "Other..."
                 destkey=$(sed -n "$?p" <(sed -n ' s,^\([[:xdigit:]]\{40\}\):.*,\1,p ' "$udcHOME/$Currency/adressbook"))
                 [[ "$destkey" ]] || read -p "Enter the fingerprint of destination account: " destkey >&2
                 #echo -n sended_amount
                 echo "$account -> $destkey" >&2
-                if ! udc_maketransaction "$account" "$destkey" "${grains[@]}" >&2 ; then
+                if ! lud_wallet_maketransaction "$account" "$destkey" "${grains[@]}" >&2 ; then
                     echo "Making transaction failed. Return code = $? " >&2
                 #else # Send it now ...
                 fi

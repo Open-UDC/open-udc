@@ -4,19 +4,21 @@
     # irc.oftc.net 6667    : Good
     # irc.lfnet.org 6667   : The same as bitcoin, solidcoin, namecoin ... ;-)
 
-function udc_peerw2alljobspipe {
+function ludd_peers_w2alljobspipe {
     jobs -r | while IFS="]" read job etc ; do 
         echo -e "$1" > "$TmpDir/peersd/${job:1}.in"
     done
 }
 
-function udc_peerk9alljobs {
+function ludd_peers_k9alljobs {
     jobs | while IFS="]" read job etc ; do 
         kill -9 %${job:1}
     done
 }
 
-function peerdiscoverd {
+
+# replaced old name UDpeersdiscover by the module name
+function ludd_peers {
 # discover and update peer list
 # Argument 1: IrcUser
 # Argument 2: IrcComment (which contain protocol, port and directory where to reach OpenUDC API)
@@ -57,20 +59,20 @@ while true ; do
         fi
     done
 
-    udc_peerw2alljobspipe "USER $IrcUser 0 _ :$IrcComment\nNICK ${IrcNickb}_$IrcNickn\nMODE ${IrcNickb}_$IrcNick -i"
+    ludd_peers_w2alljobspipe "USER $IrcUser 0 _ :$IrcComment\nNICK ${IrcNickb}_$IrcNickn\nMODE ${IrcNickb}_$IrcNick -i"
 
     while read -t 600 src command target args ; do
         #[[ "$IrcLogpipe" != "cat" ]] && echo "$(date -R)<- $src $command $target $args" >> "$Irclogfile"
         case "$src" in
             #"PING") echo "PONG :hostname" | $IrcLogpipe >> "$Ircfifo" ;;
-            "PING") udc_peerw2alljobspipe "PONG $command" ;;
+            "PING") ludd_peers_w2alljobspipe "PONG $command" ;;
             "ERROR") continue ;;
         esac
         #src="${src:1}" # Remove 1st char ':' 
         case "$command" in
             43[1-6])
                 ((IrcNickn-=600))
-                udc_peerw2alljobspipe "NICK ${IrcNickb}_$IrcNickn\nMODE ${IrcNickb}_$IrcNickn -i"
+                ludd_peers_w2alljobspipe "NICK ${IrcNickb}_$IrcNickn\nMODE ${IrcNickb}_$IrcNickn -i"
                 ;;
             352)
                 read channel username address server nick flags hops info < <(echo "$args")
@@ -80,21 +82,24 @@ while true ; do
                         http) port="${BASH_REMATCH[4]:-80}" ;;
                         https) port="${BASH_REMATCH[4]:-443}" ;;
                     esac
-                    udc_peercheck "${BASH_REMATCH[1]}://$address:$port/${BASH_REMATCH[5]}" "1800" # check peer (if not checked in the 1800sec=30min before)
+                    ludd_peers_check "${BASH_REMATCH[1]}://$address:$port/${BASH_REMATCH[5]}" "1800" # check peer (if not checked in the 1800sec=30min before)
                 fi
                 ;;
         esac
         ((i++%8)) || ctime=$(date +"%s")  # "i++%8" to avoid to fork to call $(date ...) each time.
         if ((ctime-ptime>900)) ; then # each 900sec=15min or more
             ptime=$ctime
-            udc_peerw2alljobspipe "WHO ${IrcNickb}_*"
-            ((j++%32)) || udc_peerclean "86400" # each 32*15min=8h or more, clean peers which have not been checked in the last 86400sec=24hours
+            ludd_peers_w2alljobspipe "WHO ${IrcNickb}_*"
+            ((j++%32)) || ludd_peers_clean "86400" # each 32*15min=8h or more, clean peers which have not been checked in the last 86400sec=24hours
         fi
 
     done < "all.out"
 
-    udc_peerk9alljobs
+    ludd_peers_k9alljobs
     rm -rf "$wdir"
 done
 }
 
+# Local Variables:
+# mode: sh
+# End:
