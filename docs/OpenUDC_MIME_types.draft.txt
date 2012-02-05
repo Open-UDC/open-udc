@@ -30,8 +30,8 @@ Request for Comments:                                      Open-UDC Team
   Only the Content-Type field is used, which permit more flexible uses:
   It make it compatible with almost all multipart media type as defined
   in section 5.1 of [RFC2046].
-  But 
-  
+  But
+
   OpenPGP standard [RFC4880].
 
 2.== Conventions Used in This Document ==
@@ -52,7 +52,7 @@ MIME types used by OpenUDC Nodes and Clients
 
     text/udc-report
 
-contain status code of the transaction, and a status string. 
+contain status code of the transaction, and a status string.
 
     application/udc-t-cheque ("cheque")
 
@@ -70,9 +70,9 @@ test2
 20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD
 1
 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D
-4-3-1 1  
-32-2-0 1  
-64-2-0 1  
+4-3-1 1
+32-2-0 1
+64-2-0 1
 
     application/pgp-signature ("receipt of the cheque")
 
@@ -80,7 +80,7 @@ contain detached signature (ASCII-armored or not) of the application/udc-t-chequ
 
     application/udc-t-validation
 
-contain detached signature (ASCII-armored or not), signed by a validation node of : 
+contain detached signature (ASCII-armored or not), signed by a validation node of :
 
     the application/udc-t-cheque content
 
@@ -122,7 +122,7 @@ AB49FC7C3EC6D4A2259B0508FB29CDDA17A7E2AE:-:udid2;h;e29e9cd71ee03702c8a51b37380cc
 
     application/pgp-signature ("vote of the creation sheet")
 
-    application/pgp-keys 
+    application/pgp-keys
 
     application/udc-a-request
 
@@ -201,4 +201,3 @@ Arborescence of node resources :
 |-- udc.conf
 `-- udid2
     `-- geolist_FRA.txt.asc
-

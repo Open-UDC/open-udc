@@ -23,7 +23,7 @@ local IrcNickb="_rec_"
 local IrcNick="$IrcNickb$((RANDOM%8388608))"
 local line src command target args
 
-while true ; do 
+while true ; do
 
     mkfifo "$Tmpdir/irc.in" || return 249
     mkfifo "$Tmpdir/irc.out" || return 249
@@ -36,39 +36,39 @@ while true ; do
     echo -e "\nUSER $IrcUser 0 _ :$IrcComment\nNICK $IrcNick\nJOIN $IrcChan" >&10
 
     while read -t 510 src command target args <&11 ; do
-        #echo "$(date -R)<- $src $command $target $args"
-        case "$src" in
-            "PING") echo "PONG $command" >&10 ;;
-            "ERROR") break ;;
-        esac
-        src="${src:1}" # Remove 1st char ':' 
-        case "$command" in
-            #NOTICE) echo >&10 ;;
-            43[1-6]) IrcNick="$IrcNickb$((RANDOM%8388608))" ; echo -e "NICK $IrcNick\nJOIN $IrcChan" >&10 ;;
-            JOIN|PART|QUIT)
-                SrcNick="${src%%\!*}"
-                tmplogfile="$(date "+%Y/%m/%d").txt"
-                mkdir -p "$Irclogdir/${tmplogfile%/*}"
-                echo "// $(date "+%X%z"): $SrcNick $command // $target" >> "$Irclogdir/$tmplogfile"
-                ;;
-            NICK)
-                SrcNick="${src%%\!*}"
-                tmplogfile="$(date "+%Y/%m/%d").txt"
-                mkdir -p "$Irclogdir/${tmplogfile%/*}"
-                echo "// $(date "+%X%z"): $SrcNick is now know as //$target" >> "$Irclogdir/$tmplogfile"
-                ;;
-            PRIVMSG)
-                SrcNick="${src%%\!*}"
-                case "$target" in
-                  "$IrcChan")
+	#echo "$(date -R)<- $src $command $target $args"
+	case "$src" in
+	    "PING") echo "PONG $command" >&10 ;;
+	    "ERROR") break ;;
+	esac
+	src="${src:1}" # Remove 1st char ':'
+	case "$command" in
+	    #NOTICE) echo >&10 ;;
+	    43[1-6]) IrcNick="$IrcNickb$((RANDOM%8388608))" ; echo -e "NICK $IrcNick\nJOIN $IrcChan" >&10 ;;
+	    JOIN|PART|QUIT)
+		SrcNick="${src%%\!*}"
+		tmplogfile="$(date "+%Y/%m/%d").txt"
+		mkdir -p "$Irclogdir/${tmplogfile%/*}"
+		echo "// $(date "+%X%z"): $SrcNick $command // $target" >> "$Irclogdir/$tmplogfile"
+		;;
+	    NICK)
+		SrcNick="${src%%\!*}"
+		tmplogfile="$(date "+%Y/%m/%d").txt"
+		mkdir -p "$Irclogdir/${tmplogfile%/*}"
+		echo "// $(date "+%X%z"): $SrcNick is now know as //$target" >> "$Irclogdir/$tmplogfile"
+		;;
+	    PRIVMSG)
+		SrcNick="${src%%\!*}"
+		case "$target" in
+		  "$IrcChan")
 			tmplogfile="$(date "+%Y/%m/%d").txt"
 			mkdir -p "$Irclogdir/${tmplogfile%/*}"
-        		echo "$(date "+%X%z"): $SrcNick $args" >> "$Irclogdir/$tmplogfile"
-                        #echo "Message in main chan from $SrcNick: $(echo "${args}" | hexdump -C)" >&2
-                       ;;
-                  "$IrcNick") ((!(RANDOM%4))) && echo "$(fortune)" | while read line ; do echo "PRIVMSG $SrcNick :$line" ; done >&10 ;;
-                esac
-        esac
+			echo "$(date "+%X%z"): $SrcNick $args" >> "$Irclogdir/$tmplogfile"
+			#echo "Message in main chan from $SrcNick: $(echo "${args}" | hexdump -C)" >&2
+		       ;;
+		  "$IrcNick") ((!(RANDOM%4))) && echo "$(fortune)" | while read line ; do echo "PRIVMSG $SrcNick :$line" ; done >&10 ;;
+		esac
+	esac
     done
     exec 10>&- 11>&-
     kill $(jobs -pr)
@@ -80,4 +80,3 @@ done
 
 ircbot $@
 exit $?
-

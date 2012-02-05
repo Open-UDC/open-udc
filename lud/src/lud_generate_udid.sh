@@ -4,4 +4,3 @@
 UDinit
 . ugenid.env
 UDgenudid "$@"
-
