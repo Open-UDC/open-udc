@@ -1,0 +1,6 @@
+OpenUDC CODING
+==============
+
+A set of rules have been defined to have a certain consistency in the project code. It is not a mandatory but you could try to fit your code as far as possible. Then if you would like to contribute please look at the rules below:
+
+1) In procedural programming and depending of the project part you're contributing, the files' name as well as the functions' name should begin by a prefix name with the context of your code followed by the char '_' (e.g. lud_ or ludd_).
