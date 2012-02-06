@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- mode: sh; tabstop: 4; shiftwidth: 4; softtabstop: 4; -*-
 
 #set -x
 . ${0%/*}/udini.env

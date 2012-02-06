@@ -1,4 +1,5 @@
-#!/usr/bin/bash
+#!/bin/bash
+# -*- mode: sh; tabstop: 4; shiftwidth: 4; softtabstop: 4; -*-
 
     # irc.cat.pdx.edu 6667 : Why not ?
     # irc.oftc.net 6667    : Good
