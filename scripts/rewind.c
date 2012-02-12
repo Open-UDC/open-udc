@@ -2,5 +2,5 @@
 #include <unistd.h>
 
 int main(int argc,char * argv[]) {
-    return lseek(atoi(argv[1]),0L,0);
+	return lseek(atoi(argv[1]),0L,0);
 }

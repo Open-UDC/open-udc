@@ -42,7 +42,7 @@ case "${CONTENT_TYPE,,}" in
    echo "$line" > "$filename"
 # Copy input into the temporary file
    while read -t 1 line ; do
-    echo "$line" >> "$filename"
+	echo "$line" >> "$filename"
    done
   else
    echo -e "Content-type: text/udc-report;charset=UTF-8\n"
