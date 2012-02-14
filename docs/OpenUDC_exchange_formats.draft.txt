@@ -2,7 +2,7 @@ Network Working Group                                       J.J. Brucker
 Request for Comments:                                      Open-UDC Team
 
 
-      ==== OpenUDC MIME types  ====
+      ==== OpenUDC Exchange Formats  ====
 
  === Abstract ===
 
@@ -16,8 +16,13 @@ Request for Comments:                                      Open-UDC Team
 
  1. Introduction ....................................................
  2. Conventions Used in This Document ...............................
- 3. .......
-    4.1 OpenPGP Human certificat ....................................
+ 3. Validation Nodes act as HTTP Servers ..........................
+ 4. Tree Structure of Validation Nodes ............................
+ 5. Data expected in the tree structure .............................
+    5.1 Formats used for creation sheets
+    5.2 Formats used for transactions
+    5.3 Formats used for authentication
+    5.4 Formats encapsulation.
 
 1.== Introduction ==
 
@@ -40,10 +45,102 @@ Request for Comments:                                      Open-UDC Team
   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
   document are to be interpreted as described in [RFC2119].
 
-3.== ...
+3.== Validation Nodes Overview ==
 
-DOC type de donnees
+  Validation Nodes, act as HTTP Servers.
+
+  There in no restriction on the port number to reach a Validation
+  Deamon, although port 12580 or 80 are recommanded.
+
+  Validation Nodes MUST manage "GET" and "POST" word as specified by
+  the protocol HTTP/1.0.
+
+  Validation Nodes SHOULD manage "HEAD" word and "Range" parameter, as
+  specified by the protocol HTTP/1.1, cf. [rfc2616].
+
+  Validation Nodes MUST manage the MIME types defined in this document
+  (cf sections ..) and send them them in the "Content-Type" parameter.
+
+4.== Tree Structure of Validation Nodes
+
+  As each Nodes act as an HTTP server, Node Ressources MUST be
+  available trough such kind of URL :
+
+    * http://NodeHostame[:port]/[Root/]...
+  or
+    * https://NodeIP[:port]/[Root/]...
+  ...
+
+  After a eventual Root depending on the node's configuration, in its
+  URL ; a node MUST provide determined ressources at determined
+  location.
+
+  Here is an OverView of such tree structure :
+
+http://hostname:port/[Root]]/CurrencyName/....
+|-- udid2
+|   `-- geolist_FRA.txt.asc
+`-- [CURRENCY NAME]
+    |-- c
+    |   |-- [CREATION_SHEET_ID].env
+    |   |-- [CREATION_SHEET_ID].list
+    |   |-- [CREATION_SHEET_ID].list.diff
+    |-- d
+    |   |-- 1-1.bdb
+    |   |-- ...
+    |   |-- 1024-3.bdb
+    |   `-- ...
+    `-- k
+        |-- 57A135297E9DF1BF
+        |   `-- u
+        |       `-- 6AEEFE2C96193F28
+        |-- 6AEEFE2C96193F28
+        |   |-- g
+        |   |   |-- 1024
+        |   |   |-- 128
+        |   |   |-- 16
+        |   |   |-- 256
+        |   |   |-- 32
+        |   |   |-- 512
+        |   |   |-- 64
+        |   |   |-- 8
+        |   |   `-- 8192
+        |   |-- s
+        |   |   `-- c.0.sig
+        |   |-- u
+        |   |   `-- 80B1DF4F7FE6695D
+        |   |-- v
+        |   |   |-- 1
+        |   |   `-- 2
+        |   `-- w
+        |       `-- 3
+        `-- 80B1DF4F7FE6695D
+            |-- g
+            |   |-- 1
+            |   |-- 128
+            |   |-- 16
+            |   |-- 2
+            |   |-- 256
+            |   |-- 32
+            |   |-- 4
+            |   |-- 512
+            |   |-- 64
+            |   |-- 8
+            |   `-- 8192
+            |-- s
+            |   |-- c.1.sig
+            |   |-- c.2.sig
+            |   `-- c.3.sig
+            |-- u
+            |   `-- 6AEEFE2C96193F28
+            |-- v
+            |   `-- 1
+            `-- w
+
 https://grepular.com/FireGPG_on_Firefox_5
+
+5.== Data expected in the tree structure ==
+
 This document describe the MIME-types used in to described the
   different datas which need are exchanged in OpenUDC implementations.
 cf: [RFC2046] : http://www.bortzmeyer.org/2046.html
@@ -134,70 +231,4 @@ MIME types for other applications (like mail client) :
 
     application/udc-creation
 
-Arborescence of node resources :
-[http://hostname:port/root]/Currencyname/....
-|-- [CURRENCY NAME]
-|   |-- c
-|   |   |-- [CREATION_SHEET_ID].env
-|   |   |-- [CREATION_SHEET_ID].list
-|   |   |-- [CREATION_SHEET_ID].list.diff
-|   |-- d
-|   |   |-- 1-1.bdb
-|   |   |-- ...
-|   |   |-- 1024-3.tdb
-|   |   `-- ...
-|   |-- k
-|   |   |-- 57A135297E9DF1BF
-|   |   |   `-- u
-|   |   |       `-- 6AEEFE2C96193F28
-|   |   |-- 6AEEFE2C96193F28
-|   |   |   |-- g
-|   |   |   |   |-- 1024
-|   |   |   |   |-- 128
-|   |   |   |   |-- 16
-|   |   |   |   |-- 256
-|   |   |   |   |-- 32
-|   |   |   |   |-- 512
-|   |   |   |   |-- 64
-|   |   |   |   |-- 8
-|   |   |   |   `-- 8192
-|   |   |   |-- s
-|   |   |   |   `-- c.0.sig
-|   |   |   |-- u
-|   |   |   |   `-- 80B1DF4F7FE6695D
-|   |   |   |-- v
-|   |   |   |   |-- 1
-|   |   |   |   |-- 2
-|   |   |   |   `-- 3
-|   |   |   `-- w
-|   |   |       |-- 1
-|   |   |       |-- 2
-|   |   |       `-- 3
-|   |   `-- 80B1DF4F7FE6695D
-|   |       |-- g
-|   |       |   |-- 1
-|   |       |   |-- 128
-|   |       |   |-- 16
-|   |       |   |-- 2
-|   |       |   |-- 256
-|   |       |   |-- 32
-|   |       |   |-- 4
-|   |       |   |-- 512
-|   |       |   |-- 64
-|   |       |   |-- 8
-|   |       |   `-- 8192
-|   |       |-- s
-|   |       |   |-- c.1.sig
-|   |       |   |-- c.2.sig
-|   |       |   `-- c.3.sig
-|   |       |-- u
-|   |       |   `-- 6AEEFE2C96193F28
-|   |       |-- v
-|   |       |   `-- 1
-|   |       `-- w
-|   |           `-- 1
-|   |-- myaccounts
-|   `-- test2.conf
-|-- udc.conf
-`-- udid2
-    `-- geolist_FRA.txt.asc
+
