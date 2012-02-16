@@ -77,69 +77,56 @@ Request for Comments:                                      Open-UDC Team
 
   Here is an OverView of such tree structure :
 
-http://hostname:port/[Root]]/CurrencyName/....
-|-- udid2
+http://hostname[:port]/[Root/]...
+|-- udid2/
 |   `-- geolist_FRA.txt.asc
-`-- [CURRENCY NAME]
-    |-- c
-    |   |-- [CREATION_SHEET_ID].env
-    |   |-- [CREATION_SHEET_ID].list
-    |   |-- [CREATION_SHEET_ID].list.diff
-    |-- d
-    |   |-- 1-1.bdb
-    |   |-- ...
-    |   |-- 1024-3.bdb
-    |   `-- ...
-    `-- k
-        |-- 57A135297E9DF1BF
-        |   `-- u
-        |       `-- 6AEEFE2C96193F28
-        |-- 6AEEFE2C96193F28
-        |   |-- g
-        |   |   |-- 1024
-        |   |   |-- 128
-        |   |   |-- 16
-        |   |   |-- 256
-        |   |   |-- 32
-        |   |   |-- 512
-        |   |   |-- 64
-        |   |   |-- 8
-        |   |   `-- 8192
-        |   |-- s
-        |   |   `-- c.0.sig
-        |   |-- u
-        |   |   `-- 80B1DF4F7FE6695D
-        |   |-- v
-        |   |   |-- 1
-        |   |   `-- 2
-        |   `-- w
-        |       `-- 3
-        `-- 80B1DF4F7FE6695D
-            |-- g
-            |   |-- 1
-            |   |-- 128
-            |   |-- 16
-            |   |-- 2
-            |   |-- 256
-            |   |-- 32
-            |   |-- 4
-            |   |-- 512
-            |   |-- 64
-            |   |-- 8
-            |   `-- 8192
-            |-- s
-            |   |-- c.1.sig
-            |   |-- c.2.sig
-            |   `-- c.3.sig
-            |-- u
-            |   `-- 6AEEFE2C96193F28
-            |-- v
-            |   `-- 1
-            `-- w
+`-- [CURRENCY NAME]/
+    |-- authent.cgi
+    |-- creation.cgi
+    |-- transaction.cgi
+    |-- sign.cgi
+    |-- self/
+    |   |-- cert.pgp
+    |   `-- peers.list
+    |-- c/
+    |   `-- [CREATION_SHEET_NUM]/
+    |       |-- [CREATION_SHEET_NUM].env
+    |       |-- [CREATION_SHEET_NUM].list
+    |       `-- [CREATION_SHEET_NUM].list.diff
+    |-- d/
+    |   `-- [CREATION_SHEET_NUM]/
+    |       |-- 1.bdb
+    |       |-- ...
+    |       |-- 1024.bdb
+    |       `-- ...
+    `-- k/
+        |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
+        |   |-- c/
+        |   |-- cert.gpg
+        |   `-- t/
+        |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
+        |   |-- c/
+        |   |   `-- 1.sig
+        |   |-- cert.gpg
+        |   `-- t/
+        |       |-- 1.gpg
+        |       |-- ...
+        |       `-- 3.gpg
+        `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
+            |-- c/
+            |   |-- 1.sig
+            |   |-- ...
+            |   `-- 3.sig
+            |-- cert.gpg
+            `-- t/
+                `-- 1.gpg
 
-https://grepular.com/FireGPG_on_Firefox_5
 
 5.== Data expected in the tree structure ==
+
+5.1= Formats used for creation sheets =
+5.3= Formats used for authentication =
+5.4= Formats encapsulation =
 
 This document describe the MIME-types used in to described the
   different datas which need are exchanged in OpenUDC implementations.
@@ -150,6 +137,8 @@ MIME types used by OpenUDC Nodes and Clients
     text/udc-report
 
 contain status code of the transaction, and a status string.
+
+5.2= Formats used for transactions =
 
     application/udc-t-cheque ("cheque")
 
@@ -231,4 +220,6 @@ MIME types for other applications (like mail client) :
 
     application/udc-creation
 
+
+https://grepular.com/FireGPG_on_Firefox_5
 
