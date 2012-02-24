@@ -66,7 +66,7 @@ function ludd_main {
 			stop)
 				;;
 			status)
-			ludd_status $*
+				ludd_status $*
 				;;
 			restart|reload)
 				;;
