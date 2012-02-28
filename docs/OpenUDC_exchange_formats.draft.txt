@@ -77,16 +77,16 @@ Request for Comments:                                      Open-UDC Team
 
   Here is an OverView of such tree structure :
 
-http://hostname[:port]/[Root/]...
+http[s]://Node[:port]/[Root/]...
 |-- udid2/
 |   `-- geolist_FRA.txt.asc
 `-- [CURRENCY NAME]/
-    |-- authent.cgi
-    |-- creation.cgi
-    |-- transaction.cgi
-    |-- sign.cgi
+    |-- authent.in
+    |-- creation.in
+    |-- transaction.in
+    |-- sign.in
     |-- self/
-    |   |-- cert.pgp
+    |   |-- cert.gpg
     |   `-- peers.list
     |-- c/
     |   `-- [CREATION_SHEET_NUM]/
@@ -142,22 +142,20 @@ contain status code of the transaction, and a status string.
 
     application/udc-t-cheque ("cheque")
 
-[VERSION_FORMAT]
-si VERSION_FORMAT == "d=tt2"
-[CURRENCY_NAME]
-[FINGERPRINT_SOURCE]
-[ID_SOURCE (INCREMENTAL)]
-[FINGERPRINT_DESTINATION]
-[BINARY_VALUE (POWER ?)]-[CREATION_SHEET_ID]-[JOB_ID] [EXCHANGE_COUNTER]
-[...]
+_VERSION_FORMAT_
+si _VERSION_FORMAT_ == "d=tt2"
+_CURRENCY_NAME_
+_FINGERPRINT_SOURCE_
+_FINGERPRINT_DESTINATION_
+_BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_ _EXCHANGE_COUNTER_ _FINGERPRINT_PREVIOUS_OWNER_ _BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_ _EXCHANGE_COUNTER_ 
+...
 Example:
 d=tt2
 test2
 20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD
-1
 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D
 4-3-1 1
-32-2-0 1
+32-2-8 2 D8ED280B1DF4F7FE669520D11AC53DAE0E19DFE  4-1-2 3
 64-2-0 1
 
     application/pgp-signature ("receipt of the cheque")
