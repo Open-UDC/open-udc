@@ -54,7 +54,7 @@ static void getword(char *word, char *line, char stop) {
     while((line[y++] = line[x++]));
 }
 
-static int getline(char *s, int n, FILE *f) {
+static int htgetline(char *s, int n, FILE *f) {
     register int i=0;
 
     while(1) {
@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
 
     found = 0;
     /* line we get is username:pwd, or possibly any other cruft */
-    while(!(getline(line,MAX_LINE_LEN,f))) {
+    while(!(htgetline(line,MAX_LINE_LEN,f))) {
         char *i;
 	
         if(found || (line[0] == '#') || (!line[0])) {
