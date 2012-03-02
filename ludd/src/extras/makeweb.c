@@ -48,6 +48,10 @@
 
 static char* argv0;
 
+void usage(void)
+{
+    printf("usage: %s [-d webdir] \n",argv0);
+}
 
 static void
 check_room( int size, int len )
@@ -121,28 +125,44 @@ This is probably a configuration error.\n", dirname );
 int
 main( int argc, char** argv )
     {
+    extern char *optarg;
     char* webdir;
     char* prefix;
     struct passwd* pwd;
     char* username;
     char* homedir;
+    int opts;
+    
     char dirname[5000];
     char linkname[5000];
     char linkbuf[5000];
     struct stat sb;
-
+    
     argv0 = argv[0];
-    if ( argc != 1 )
+        
+#ifndef TILDE_MAP_2
+    webdir = WEBDIR;
+#endif /* TILDE_MAP_2 */
+    
+    if ( (opts = getopt(argc, argv, "d:h")) != EOF )
+    {
+	switch (opts)
 	{
-	(void) fprintf( stderr, "usage:  %s\n", argv0 );
-	exit( 1 );
-	}
+	    case 'd': webdir = strdup(optarg); break;
+	    case 'h': usage(); return 1; break;
+	    default:
+		usage();
+		return 1;
+		break;
+        }
+	
+    }
 
     pwd = getpwuid( getuid() );
     if ( pwd == (struct passwd*) 0 )
 	{
 	(void) fprintf( stderr, "%s: can't find your username\n", argv0 );
-	exit( 1 );
+	exit ( 1 );
 	}
     username = pwd->pw_name;
     homedir = pwd->pw_dir;
@@ -159,11 +179,9 @@ main( int argc, char** argv )
     (void) strcat( dirname, TILDE_MAP_2 );
 
     check_dir( dirname, pwd->pw_uid, pwd->pw_gid );
-
+    
 #else /* TILDE_MAP_2 */
 
-    /* Gather the pieces. */
-    webdir = WEBDIR;
 #ifdef TILDE_MAP_1
     prefix = TILDE_MAP_1;
 #else /* TILDE_MAP_1 */

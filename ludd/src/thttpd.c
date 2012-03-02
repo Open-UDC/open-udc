@@ -68,6 +68,9 @@
 typedef long long int64_t;
 #endif
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
 
 static char* argv0;
 static int debug;
@@ -137,7 +140,7 @@ long stats_connections;
 off_t stats_bytes;
 int stats_simultaneous;
 
-static volatile int got_hup, got_usr1, watchdog_flag;
+static volatile int got_hup, got_usr1, got_bus, watchdog_flag;
 
 
 /* Forwards. */
@@ -326,6 +329,23 @@ handle_alrm( int sig )
     errno = oerrno;
     }
 
+/* SIGBUS is a workaround for Linux 2.4.x / NFS */
+static void
+handle_bus( int sig )
+{
+    const int oerrno = errno;
+
+#ifndef HAVE_SIGSET
+    /* Set up handler again. */
+    (void) signal( SIGBUG, handle_bus );
+#endif /* ! HAVE_SIGSET */
+
+    /* Just set a flag that we got the signal. */
+    got_bus = 1;
+    
+    /* Restore previous errno. */
+    errno = oerrno;
+}
 
 static void
 re_open_logfile( void )
@@ -616,6 +636,7 @@ main( int argc, char** argv )
     (void) sigset( SIGUSR1, handle_usr1 );
     (void) sigset( SIGUSR2, handle_usr2 );
     (void) sigset( SIGALRM, handle_alrm );
+    (void) sigset( SIGBUS, handle_bus );
 #else /* HAVE_SIGSET */
     (void) signal( SIGTERM, handle_term );
     (void) signal( SIGINT, handle_term );
@@ -625,9 +646,11 @@ main( int argc, char** argv )
     (void) signal( SIGUSR1, handle_usr1 );
     (void) signal( SIGUSR2, handle_usr2 );
     (void) signal( SIGALRM, handle_alrm );
+    (void) signal( SIGBUS, handle_bus );
 #endif /* HAVE_SIGSET */
     got_hup = 0;
     got_usr1 = 0;
+    got_bus = 0;
     watchdog_flag = 0;
     (void) alarm( OCCASIONAL_TIME * 3 );
 
@@ -644,7 +667,10 @@ main( int argc, char** argv )
 	no_symlink_check, do_vhost, do_global_passwd, url_pattern,
 	local_pattern, no_empty_referers );
     if ( hs == (httpd_server*) 0 )
+    {
+	syslog ( LOG_ERR, "Could not perform initialization. Exiting." );
 	exit( 1 );
+    }
 
     /* Set up the occasional timer. */
     if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
@@ -823,6 +849,13 @@ main( int argc, char** argv )
 		httpd_unlisten( hs );
 		}
 	    }
+
+        /* From handle_send()/writev; see handle_sigbus(). */
+        if (got_bus)
+        {
+            syslog( LOG_WARNING, "SIGBUS received - stale NFS-handle?" );
+            got_bus = 0;
+        }
 	}
 
     /* The main loop terminated. */

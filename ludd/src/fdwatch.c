@@ -38,6 +38,8 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
+#undef HAVE_POLL
+
 #ifdef HAVE_POLL_H
 #include <poll.h>
 #else /* HAVE_POLL_H */

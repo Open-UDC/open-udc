@@ -27,7 +27,7 @@
 prefix =	@prefix@
 exec_prefix =	@exec_prefix@
 BINDIR =	@sbindir@
-WEBDIR =	$(prefix)/www
+WEBDIR =	/var/www
 CGIBINDIR =	$(WEBDIR)/cgi-bin
 MANDIR =	@mandir@
 
@@ -59,7 +59,7 @@ makeweb.o:	makeweb.c ../config.h
 	$(CC) $(CFLAGS) -DWEBDIR=\"$(WEBDIR)\" -c makeweb.c
 
 htpasswd:	htpasswd.o
-	$(CC) $(LDFLAGS) $(STATICFLAG) htpasswd.o -o htpasswd $(LIBS)
+	$(CC) $(LDFLAGS) htpasswd.o -o htpasswd $(LIBS)
 
 htpasswd.o:	htpasswd.c ../config.h
 	$(CC) $(CFLAGS) -DWEBDIR=\"$(WEBDIR)\" -c htpasswd.c

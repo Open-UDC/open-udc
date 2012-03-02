@@ -64,10 +64,12 @@
 ** user's tree: */
 #define CGI_PATTERN "/cgi-bin/*|/jef/**"
 /* Allow any program ending with a .cgi: */
-#define CGI_PATTERN "**.cgi"
+#define CGI_PATTERN "*.cgi"
 /* When virtual hosting, enable the central directory on every host: */
 #define CGI_PATTERN "/*/cgi-bin/*"
 #endif
+
+#define CGI_PATTERN "*/cgi-bin/*"
 
 /* CONFIGURE: How many seconds to allow CGI programs to run before killing
 ** them.  This is in case someone writes a CGI program that goes into an
@@ -75,7 +77,7 @@
 ** or whatever.  If you don't want any limit, comment this out, but that's
 ** probably a really bad idea.
 */
-#define CGI_TIMELIMIT 30
+#define CGI_TIMELIMIT 90
 
 /* CONFIGURE: Maximum number of simultaneous CGI programs allowed.
 ** If this many are already running, then attempts to run more will
@@ -123,8 +125,10 @@
 ** You can also leave both options undefined, and thttpd will not do
 ** anything special about tildes.  Enabling both options is an error.
 */
-#ifdef notdef
+
 #define TILDE_MAP_1 "users"
+
+#ifdef notdef
 #define TILDE_MAP_2 "public_html"
 #endif
 
@@ -237,7 +241,7 @@
 ** initializing.  If this user (or the one specified by the -u flag) does
 ** not exist, the program will refuse to run.
 */
-#define DEFAULT_USER "nobody"
+#define DEFAULT_USER "www-data"
 
 /* CONFIGURE: When started as root, the program can automatically chdir()
 ** to the home directory of the user specified by -u or DEFAULT_USER.
@@ -276,7 +280,7 @@
 
 /* CONFIGURE: $PATH to use for CGI programs.
 */
-#define CGI_PATH "/usr/local/bin:/usr/ucb:/bin:/usr/bin"
+#define CGI_PATH "/usr/local/bin:/bin:/usr/bin:/usr/lib/cgi-bin"
 
 /* CONFIGURE: If defined, $LD_LIBRARY_PATH to use for CGI programs.
 */
@@ -312,7 +316,7 @@
 /* CONFIGURE: Minimum and maximum intervals between child-process reaping,
 ** in seconds.
 */
-#define MIN_REAP_TIME 30
+#define MIN_REAP_TIME 90
 #define MAX_REAP_TIME 900
 
 

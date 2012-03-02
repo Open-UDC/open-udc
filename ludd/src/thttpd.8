@@ -90,7 +90,7 @@ the -nos flag, however this is not recommended.
 Note, though, that if you are using the chroot option, the symlink
 checking is unnecessary and is turned off, so the safe way to save
 those CPU cycles is to use chroot.
-The config-file option names for this flag are "symlinkcheck" and "nosymlinkcheck".
+The config-file option names for this flag are "symlinks" and "nosymlinks".
 .TP
 .B -v
 Do el-cheapo virtual hosting.
@@ -270,7 +270,7 @@ called .htpasswd by default.
 This file is formatted as the familiar colon-separated
 username/encrypted-password pair, records delimited by newlines.
 The protection does not carry over to subdirectories.
-The utility program htpasswd(1) is included to help create and
+The utility program thtpasswd(1) is included to help create and
 modify .htpasswd files.
 .PP
 Relevant config.h option: AUTH_FILE
@@ -462,6 +462,35 @@ With this variable set, such requests are disallowed.
 A wildcard pattern that specifies the local host or hosts.
 This is used to determine if the host in the referer is local or not.
 If not specified it defaults to the actual local hostname.
+.SH "TILDE EXPANSION"
+.PP
+thttpd can be configured to expand base paths of the form
+.I /~user/
+into proper references to the user's web directory.
+.PP
+If thttpd is compiled with the option
+.B TILDE_MAP_1
+(this is the out-of-the-box default when you build from source),
+.B ~user
+is mapped to
+.IB prefix /user
+where the
+.I prefix
+might be something like
+.BR /users .
+.PP
+If thttpd is compiled with the option
+.BR TILDE_MAP_2 ,
+.B ~user
+is mapped to a subdirectory in the user's home directory;
+the subdirectory's name is also configurable, but the default is
+.BR public_html .
+This arrangement is incompatible with the
+.B chroot
+option, and generally considered a security risk.
+.PP
+See also the next section about symbolic links for
+additional discussion.
 .SH SYMLINKS
 .PP
 thttpd is very picky about symbolic links.
@@ -562,7 +591,7 @@ This is a little tricky to set up correctly, for instance if you are using
 chroot() then the log file must be within the chroot tree, but it's
 definitely doable.
 .SH "SEE ALSO"
-redirect(8), ssi(8), makeweb(1), htpasswd(1), syslogtocern(8), weblog_parse(1), http_get(1)
+thtpasswd(1), syslogtocern(8)
 .SH THANKS
 .PP
 Many thanks to contributors, reviewers, testers:
@@ -572,7 +601,7 @@ Catalin Ionescu.
 Special thanks to Craig Leres for substantial debugging and development,
 and for not complaining about my coding style very much.
 .SH AUTHOR
-Copyright © 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
+Copyright \[co] 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
 All rights reserved.
 .\" Redistribution and use in source and binary forms, with or without
 .\" modification, are permitted provided that the following conditions

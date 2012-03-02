@@ -76,6 +76,10 @@
 # endif
 #endif
 
+#ifndef MAXPATHLEN
+#define MAXPATHLEN 4096
+#endif
+
 extern char* crypt( const char* key, const char* setting );
 
 #include "libhttpd.h"
@@ -1009,7 +1013,7 @@ auth_check2( httpd_conn* hc, char* dirname  )
     static char* authpath;
     static size_t maxauthpath = 0;
     struct stat sb;
-    char authinfo[500];
+    char authinfo[550];
     char* authpass;
     char* colon;
     int l;
@@ -1488,8 +1492,6 @@ expand_symlinks( char* path, char** restP, int no_symlink_check, int tildemapped
     restlen = strlen( path );
     httpd_realloc_str( &rest, &maxrest, restlen );
     (void) strcpy( rest, path );
-    if ( rest[restlen - 1] == '/' )
-	rest[--restlen] = '\0';         /* trim trailing slash */
     if ( ! tildemapped )
 	/* Remove any leading slashes. */
 	while ( rest[0] == '/' )
@@ -2318,8 +2320,11 @@ httpd_parse_request( httpd_conn* hc )
 	{
 	int i;
 	i = strlen( hc->origfilename ) - strlen( hc->pathinfo );
-	if ( i > 0 && strcmp( &hc->origfilename[i], hc->pathinfo ) == 0 )
-	    hc->origfilename[i - 1] = '\0';
+	if ( strcmp( &hc->origfilename[i], hc->pathinfo ) == 0 )
+	    {
+	    if ( i == 0 ) hc->origfilename[0] = '\0';
+	    else hc->origfilename[i - 1] = '\0';
+	    }
 	}
 
     /* If the expanded filename is an absolute path, check that it's still
@@ -3274,7 +3279,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 	cp += strspn( cp, " \t" );
 	status = atoi( cp );
 	}
-    if ( ( cp = strstr( headers, "Location:" ) ) != (char*) 0 &&
+    else if ( ( cp = strstr( headers, "Location:" ) ) != (char*) 0 &&
 	 cp < br &&
 	 ( cp == headers || *(cp-1) == '\012' ) )
 	status = 302;

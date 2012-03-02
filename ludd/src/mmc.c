@@ -38,6 +38,10 @@
 #include <syslog.h>
 #include <errno.h>
 
+#ifdef TIME_WITH_SYS_TIME
+#include <time.h>
+#endif /* TIME_WITH_SYS_TIME */
+
 #ifdef HAVE_MMAP
 #include <sys/mman.h>
 #endif /* HAVE_MMAP */

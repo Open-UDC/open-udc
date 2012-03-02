@@ -35,7 +35,7 @@ CCOPT =		@V_CCOPT@
 DEFS =		@DEFS@
 INCLS =		-I..
 CFLAGS =	$(CCOPT) $(DEFS) $(INCLS)
-LDFLAGS =	@LDFLAGS@ @V_STATICFLAG@
+LDFLAGS =	@LDFLAGS@
 LIBS =		@LIBS@
 NETLIBS =	@V_NETLIBS@
 INSTALL =	@INSTALL@
@@ -51,15 +51,15 @@ CLEANFILES =	*.o redirect ssi phf
 all:		redirect ssi phf
 
 redirect:	redirect.o
-	$(CC) $(LDFLAGS) $(STATICFLAG) redirect.o $(LIBS) -o redirect
+	$(CC) $(LDFLAGS) redirect.o $(LIBS) -o redirect
 
 ssi:		ssi.o ../match.o
-	$(CC) $(LDFLAGS) $(STATICFLAG) ssi.o ../match.o $(LIBS) -o ssi
+	$(CC) $(LDFLAGS) ssi.o ../match.o $(LIBS) -o ssi
 
 ssi.o:		../match.h
 
 phf:		phf.o
-	$(CC) $(LDFLAGS) $(STATICFLAG) phf.o $(LIBS) -o phf
+	$(CC) $(LDFLAGS) phf.o $(LIBS) -o phf
 
 strerror.o:
 	@rm -f strerror.o
