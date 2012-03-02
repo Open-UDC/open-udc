@@ -1,0 +1,2 @@
+thttpd		/usr/sbin/
+debian/config/*	/etc/thttpd

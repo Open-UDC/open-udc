@@ -1,0 +1,19 @@
+thttpd-util for Debian
+----------------------
+
+For security reasons, the makeweb(1) program is not setgid, which basically
+makes it unusable for nonprivileged users. Change it at your own risk.
+
+The CGI programs thttpd-util places in /usr/lib/cgi-bin are not statically
+linked by default, which can cause problems when using them in a restricted
+environment (read: when using the "chroot" option in thttpd). You can create
+statically compiled versions with the following commands:
+
+	apt-get build-dep thttpd-util
+	apt-get source thttpd-util
+
+	# voodoo
+
+	apt-get --build source thttpd-util
+
+ -- Trent W. Buck <trentbuck@gmail.com>  Tue, 17 Jul 2007 03:02:00 +1000

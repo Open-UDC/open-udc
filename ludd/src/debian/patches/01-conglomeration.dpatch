@@ -1,0 +1,540 @@
+#!/bin/sh /usr/share/dpatch/dpatch-run
+## 01-conglomeration.dpatch
+##
+## DP: Needs to be broken out sometime (FIXME).
+
+@DPATCH@
+
+diff -Naur thttpd-2.25b.orig/Makefile.in thttpd-2.25b/Makefile.in
+--- thttpd-2.25b.orig/Makefile.in	2005-06-29 17:52:54.000000000 +0000
++++ thttpd-2.25b/Makefile.in	2007-09-02 16:55:11.000000000 +0000
+@@ -34,7 +34,7 @@
+ # Pathname of directory to install the man page.
+ MANDIR = @mandir@
+ # Pathname of directory to install the CGI programs.
+-WEBDIR = $(prefix)/www
++WEBDIR = /var/www
+ 
+ # CONFIGURE: The group that the web directory belongs to.  This is so that
+ # the makeweb program can be installed set-group-id to that group, and make
+diff -Naur thttpd-2.25b.orig/README thttpd-2.25b/README
+--- thttpd-2.25b.orig/README	2005-06-29 17:53:02.000000000 +0000
++++ thttpd-2.25b/README	2007-09-02 16:55:11.000000000 +0000
+@@ -5,10 +5,8 @@
+ 
+ Simple: It handles only the minimum necessary to implement HTTP/1.1.
+ 
+-Small: See the size comparison chart at
+-http://www.acme.com/software/thttpd/notes.html#sizes.  It also has a
+-very small run-time size, since it does not fork and is very careful about
+-memory allocation.
++Small: It has a very small run-time size, since it does not fork and 
++is very careful about memory allocation.
+ 
+ Portable: It compiles cleanly on FreeBSD 2.x/3.x, SunOS 4.1.x, Solaris 2.x,
+ BSD/OS 2.x, Linux 1.2.x, OSF/1 (on a 64-bit Alpha), and no doubt many others.
+diff -Naur thttpd-2.25b.orig/cgi-src/Makefile.in thttpd-2.25b/cgi-src/Makefile.in
+--- thttpd-2.25b.orig/cgi-src/Makefile.in	2005-06-29 17:53:04.000000000 +0000
++++ thttpd-2.25b/cgi-src/Makefile.in	2007-09-02 16:55:11.000000000 +0000
+@@ -35,7 +35,7 @@
+ DEFS =		@DEFS@
+ INCLS =		-I..
+ CFLAGS =	$(CCOPT) $(DEFS) $(INCLS)
+-LDFLAGS =	@LDFLAGS@ @V_STATICFLAG@
++LDFLAGS =	@LDFLAGS@
+ LIBS =		@LIBS@
+ NETLIBS =	@V_NETLIBS@
+ INSTALL =	@INSTALL@
+@@ -51,15 +51,15 @@
+ all:		redirect ssi phf
+ 
+ redirect:	redirect.o
+-	$(CC) $(LDFLAGS) $(STATICFLAG) redirect.o $(LIBS) -o redirect
++	$(CC) $(LDFLAGS) redirect.o $(LIBS) -o redirect
+ 
+ ssi:		ssi.o ../match.o
+-	$(CC) $(LDFLAGS) $(STATICFLAG) ssi.o ../match.o $(LIBS) -o ssi
++	$(CC) $(LDFLAGS) ssi.o ../match.o $(LIBS) -o ssi
+ 
+ ssi.o:		../match.h
+ 
+ phf:		phf.o
+-	$(CC) $(LDFLAGS) $(STATICFLAG) phf.o $(LIBS) -o phf
++	$(CC) $(LDFLAGS) phf.o $(LIBS) -o phf
+ 
+ strerror.o:
+ 	@rm -f strerror.o
+diff -Naur thttpd-2.25b.orig/config.h thttpd-2.25b/config.h
+--- thttpd-2.25b.orig/config.h	2005-06-29 17:53:18.000000000 +0000
++++ thttpd-2.25b/config.h	2007-09-02 16:55:11.000000000 +0000
+@@ -64,18 +64,20 @@
+ ** user's tree: */
+ #define CGI_PATTERN "/cgi-bin/*|/jef/**"
+ /* Allow any program ending with a .cgi: */
+-#define CGI_PATTERN "**.cgi"
++#define CGI_PATTERN "*.cgi"
+ /* When virtual hosting, enable the central directory on every host: */
+ #define CGI_PATTERN "/*/cgi-bin/*"
+ #endif
+ 
++#define CGI_PATTERN "*/cgi-bin/*"
++
+ /* CONFIGURE: How many seconds to allow CGI programs to run before killing
+ ** them.  This is in case someone writes a CGI program that goes into an
+ ** infinite loop, or does a massive database lookup that would take hours,
+ ** or whatever.  If you don't want any limit, comment this out, but that's
+ ** probably a really bad idea.
+ */
+-#define CGI_TIMELIMIT 30
++#define CGI_TIMELIMIT 90
+ 
+ /* CONFIGURE: Maximum number of simultaneous CGI programs allowed.
+ ** If this many are already running, then attempts to run more will
+@@ -123,8 +125,10 @@
+ ** You can also leave both options undefined, and thttpd will not do
+ ** anything special about tildes.  Enabling both options is an error.
+ */
+-#ifdef notdef
++
+ #define TILDE_MAP_1 "users"
++
++#ifdef notdef
+ #define TILDE_MAP_2 "public_html"
+ #endif
+ 
+@@ -237,7 +241,7 @@
+ ** initializing.  If this user (or the one specified by the -u flag) does
+ ** not exist, the program will refuse to run.
+ */
+-#define DEFAULT_USER "nobody"
++#define DEFAULT_USER "www-data"
+ 
+ /* CONFIGURE: When started as root, the program can automatically chdir()
+ ** to the home directory of the user specified by -u or DEFAULT_USER.
+@@ -276,7 +280,7 @@
+ 
+ /* CONFIGURE: $PATH to use for CGI programs.
+ */
+-#define CGI_PATH "/usr/local/bin:/usr/ucb:/bin:/usr/bin"
++#define CGI_PATH "/usr/local/bin:/bin:/usr/bin:/usr/lib/cgi-bin"
+ 
+ /* CONFIGURE: If defined, $LD_LIBRARY_PATH to use for CGI programs.
+ */
+@@ -312,7 +316,7 @@
+ /* CONFIGURE: Minimum and maximum intervals between child-process reaping,
+ ** in seconds.
+ */
+-#define MIN_REAP_TIME 30
++#define MIN_REAP_TIME 90
+ #define MAX_REAP_TIME 900
+ 
+ 
+diff -Naur thttpd-2.25b.orig/extras/Makefile.in thttpd-2.25b/extras/Makefile.in
+--- thttpd-2.25b.orig/extras/Makefile.in	2005-06-29 17:53:20.000000000 +0000
++++ thttpd-2.25b/extras/Makefile.in	2007-09-02 16:55:11.000000000 +0000
+@@ -27,7 +27,7 @@
+ prefix =	@prefix@
+ exec_prefix =	@exec_prefix@
+ BINDIR =	@sbindir@
+-WEBDIR =	$(prefix)/www
++WEBDIR =	/var/www
+ CGIBINDIR =	$(WEBDIR)/cgi-bin
+ MANDIR =	@mandir@
+ 
+@@ -59,7 +59,7 @@
+ 	$(CC) $(CFLAGS) -DWEBDIR=\"$(WEBDIR)\" -c makeweb.c
+ 
+ htpasswd:	htpasswd.o
+-	$(CC) $(LDFLAGS) $(STATICFLAG) htpasswd.o -o htpasswd $(LIBS)
++	$(CC) $(LDFLAGS) htpasswd.o -o htpasswd $(LIBS)
+ 
+ htpasswd.o:	htpasswd.c ../config.h
+ 	$(CC) $(CFLAGS) -DWEBDIR=\"$(WEBDIR)\" -c htpasswd.c
+diff -Naur thttpd-2.25b.orig/extras/htpasswd.1 thttpd-2.25b/extras/htpasswd.1
+--- thttpd-2.25b.orig/extras/htpasswd.1	1998-05-07 17:01:04.000000000 +0000
++++ thttpd-2.25b/extras/htpasswd.1	2007-09-02 16:55:11.000000000 +0000
+@@ -1,8 +1,8 @@
+-.TH htpasswd 1 "05 May 1998"
++.TH thtpasswd 1 "05 May 1998"
+ .SH NAME
+-htpasswd - manipulate HTTP-server password files
++thtpasswd - manipulate HTTP-server password files
+ .SH SYNOPSIS
+-.B htpasswd
++.B thtpasswd
+ .RB [ -c ]
+ .I passwordfile
+ .I username
+diff -Naur thttpd-2.25b.orig/extras/htpasswd.c thttpd-2.25b/extras/htpasswd.c
+--- thttpd-2.25b.orig/extras/htpasswd.c	2001-12-19 00:08:08.000000000 +0000
++++ thttpd-2.25b/extras/htpasswd.c	2007-09-02 16:55:11.000000000 +0000
+@@ -21,7 +21,12 @@
+ #define LF 10
+ #define CR 13
+ 
++#define CPW_LEN 13
++
++/* ie 'string' + '\0' */
+ #define MAX_STRING_LEN 256
++/* ie 'maxstring' + ':' + cpassword */
++#define MAX_LINE_LEN MAX_STRING_LEN+1+CPW_LEN
+ 
+ int tfd;
+ char temp_template[] = "/tmp/htp.XXXXXX";
+@@ -137,8 +142,9 @@
+     }
+ 
+ static void usage(void) {
+-    fprintf(stderr,"Usage: htpasswd [-c] passwordfile username\n");
+-    fprintf(stderr,"The -c flag creates a new file.\n");
++    fprintf(stderr,"Usage: htpasswd [-c] passwordfile username\n"
++                   "The -c flag creates a new file.\n"
++                   "Will prompt for password, unless given on stdin.\n");
+     exit(1);
+ }
+ 
+@@ -151,17 +157,37 @@
+ int main(int argc, char *argv[]) {
+     FILE *tfp,*f;
+     char user[MAX_STRING_LEN];
+-    char line[MAX_STRING_LEN];
+-    char l[MAX_STRING_LEN];
++    char line[MAX_LINE_LEN];
++    char l[MAX_LINE_LEN];
+     char w[MAX_STRING_LEN];
+     char command[MAX_STRING_LEN];
+-    int found;
++    int found,u;
+ 
+     tfd = -1;
++    u = 2; /* argv[u] is username, unless...  */
+     signal(SIGINT,(void (*)(int))interrupted);
+     if(argc == 4) {
++        u = 3;
+         if(strcmp(argv[1],"-c"))
+             usage();
++        if((f=fopen(argv[2],"r")) != NULL) {
++          fclose(f);
++	  fprintf(stderr,
++                "Password file %s already exists.\n"
++		"Delete it first, if you really want to overwrite it.\n",
++		argv[2]);
++	  exit(1);
++	}
++    } else if(argc != 3) usage();
++    /* check uname length; underlying system will take care of pwdfile
++       name too long */
++    if (strlen(argv[u]) >= MAX_STRING_LEN) {
++      fprintf(stderr,"Username too long (max %i): %s\n",
++              MAX_STRING_LEN-1, argv[u]);
++      exit(1);
++    }
++    
++    if(argc == 4) {
+         if(!(tfp = fopen(argv[2],"w"))) {
+             fprintf(stderr,"Could not open passwd file %s for writing.\n",
+                     argv[2]);
+@@ -172,12 +198,6 @@
+         add_password(argv[3],tfp);
+         fclose(tfp);
+         exit(0);
+-    } else if(argc != 3) usage();
+-
+-    tfd = mkstemp(temp_template);
+-    if(!(tfp = fdopen(tfd,"w"))) {
+-        fprintf(stderr,"Could not open temp file.\n");
+-        exit(1);
+     }
+ 
+     if(!(f = fopen(argv[1],"r"))) {
+@@ -186,16 +206,43 @@
+         fprintf(stderr,"Use -c option to create new one.\n");
+         exit(1);
+     }
++    if(freopen(argv[1],"a",f) == NULL) {
++        fprintf(stderr,
++                "Could not open passwd file %s for writing!.\n"
++		"Changes would be lost.\n",argv[1]);
++        exit(1);
++    }
++    f = freopen(argv[1],"r",f);
++    
++    /* pwdfile is there, go on with tempfile now ... */
++    tfd = mkstemp(temp_template);
++    if(!(tfp = fdopen(tfd,"w"))) {
++        fprintf(stderr,"Could not open temp file.\n");
++        exit(1);
++    }
++    /* already checked for boflw ... */
+     strcpy(user,argv[2]);
+ 
+     found = 0;
+-    while(!(getline(line,MAX_STRING_LEN,f))) {
++    /* line we get is username:pwd, or possibly any other cruft */
++    while(!(getline(line,MAX_LINE_LEN,f))) {
++        char *i;
++	
+         if(found || (line[0] == '#') || (!line[0])) {
+             putline(tfp,line);
+             continue;
+         }
+-        strcpy(l,line);
+-        getword(w,l,':');
++	i = index(line,':');
++	w[0] = '\0';
++	/* actually, cpw is CPW_LEN chars and never null, hence ':' should 
++	   always be at line[strlen(line)-CPW_LEN-1] in a valid user:cpw line
++	   Here though we may allow for pre-hancrafted pwdfile (!)...
++	   But still need to check for length limits.
++	 */
++	if (i != 0 && i-line <= MAX_STRING_LEN-1) {
++          strcpy(l,line);
++          getword(w,l,':');
++	}
+         if(strcmp(user,w)) {
+             putline(tfp,line);
+             continue;
+@@ -210,10 +257,28 @@
+         printf("Adding user %s\n",user);
+         add_password(user,tfp);
+     }
++    /* close, rewind & copy */
++    fclose(f);
++    fclose(tfp);
++    f = fopen(argv[1],"w");    
++    if(f==NULL) {
++      fprintf(stderr,"Failed re-opening %s!?\n",argv[1]);
++      exit(1);
++    }
++    tfp = fopen(temp_template,"r");
++    if(tfp==NULL) {
++      fprintf(stderr,"Failed re-opening tempfile!?\n");
++      exit(1);
++    }
++    {
++      int c;
++      while((c=fgetc(tfp))!=EOF && !feof(tfp))  {
++        fputc(c,f);
++        /* fputc(c,stderr); */
++      }
++    }
+     fclose(f);
+     fclose(tfp);
+-    sprintf(command,"cp %s %s",temp_template,argv[1]);
+-    system(command);
+     unlink(temp_template);
+     exit(0);
+ }
+diff -Naur thttpd-2.25b.orig/extras/makeweb.1 thttpd-2.25b/extras/makeweb.1
+--- thttpd-2.25b.orig/extras/makeweb.1	2005-06-29 17:53:22.000000000 +0000
++++ thttpd-2.25b/extras/makeweb.1	2007-09-02 16:55:11.000000000 +0000
+@@ -2,11 +2,17 @@
+ .SH NAME
+ makeweb - create user web directory
+ .SH SYNOPSIS
+-.B makeweb
++.B makeweb 
++[\fI -d webdir \fR]
+ .SH DESCRIPTION
+ .PP
+ This program allows users to create their own web subdirectories off
+ of the main web directory.
++.PP
++.TP
++\fB\-d\fR
++Specify the root directory for new user directories. The default directory
++is /var/www
+ .SH "SEE ALSO
+ thttpd(8)
+ .SH AUTHOR
+diff -Naur thttpd-2.25b.orig/extras/makeweb.c thttpd-2.25b/extras/makeweb.c
+--- thttpd-2.25b.orig/extras/makeweb.c	2005-06-29 17:53:25.000000000 +0000
++++ thttpd-2.25b/extras/makeweb.c	2007-09-02 16:55:11.000000000 +0000
+@@ -48,6 +48,10 @@
+ 
+ static char* argv0;
+ 
++void usage(void)
++{
++    printf("usage: %s [-d webdir] \n",argv0);
++}
+ 
+ static void
+ check_room( int size, int len )
+@@ -121,28 +125,44 @@
+ int
+ main( int argc, char** argv )
+     {
++    extern char *optarg;
+     char* webdir;
+     char* prefix;
+     struct passwd* pwd;
+     char* username;
+     char* homedir;
++    int opts;
++    
+     char dirname[5000];
+     char linkname[5000];
+     char linkbuf[5000];
+     struct stat sb;
+-
++    
+     argv0 = argv[0];
+-    if ( argc != 1 )
++        
++#ifndef TILDE_MAP_2
++    webdir = WEBDIR;
++#endif /* TILDE_MAP_2 */
++    
++    if ( (opts = getopt(argc, argv, "d:h")) != EOF )
++    {
++	switch (opts)
+ 	{
+-	(void) fprintf( stderr, "usage:  %s\n", argv0 );
+-	exit( 1 );
+-	}
++	    case 'd': webdir = strdup(optarg); break;
++	    case 'h': usage(); return 1; break;
++	    default:
++		usage();
++		return 1;
++		break;
++        }
++	
++    }
+ 
+     pwd = getpwuid( getuid() );
+     if ( pwd == (struct passwd*) 0 )
+ 	{
+ 	(void) fprintf( stderr, "%s: can't find your username\n", argv0 );
+-	exit( 1 );
++	exit ( 1 );
+ 	}
+     username = pwd->pw_name;
+     homedir = pwd->pw_dir;
+@@ -159,11 +179,9 @@
+     (void) strcat( dirname, TILDE_MAP_2 );
+ 
+     check_dir( dirname, pwd->pw_uid, pwd->pw_gid );
+-
++    
+ #else /* TILDE_MAP_2 */
+ 
+-    /* Gather the pieces. */
+-    webdir = WEBDIR;
+ #ifdef TILDE_MAP_1
+     prefix = TILDE_MAP_1;
+ #else /* TILDE_MAP_1 */
+diff -Naur thttpd-2.25b.orig/extras/syslogtocern thttpd-2.25b/extras/syslogtocern
+--- thttpd-2.25b.orig/extras/syslogtocern	2005-06-29 17:50:23.000000000 +0000
++++ thttpd-2.25b/extras/syslogtocern	2007-09-02 16:55:11.000000000 +0000
+@@ -31,8 +31,8 @@
+     exit 1
+ fi
+ 
+-tmp1=/tmp/stc1.$$
+-rm -f $tmp1
++tmp1=`mktemp -t stc1.XXXXXX` || { echo "$0: Cannot create temporary file" >&2; exit 1;  }
++trap " [ -f \"$tmp1\" ] && /bin/rm -f -- \"$tmp1\"" 0 1 2 3 13 15
+ 
+ # Gather up all the thttpd entries.
+ egrep -h ' thttpd\[' "$@" > $tmp1
+@@ -65,4 +65,3 @@
+   sed -e "s,\([A-Z][a-z][a-z] [0-9 ][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]\) [^ ]* thttpd\[[0-9]*\]: \(.*\),[\1 ${year}] \2," > error_log
+ 
+ # Done.
+-rm -f $tmp1
+diff -Naur thttpd-2.25b.orig/fdwatch.c thttpd-2.25b/fdwatch.c
+--- thttpd-2.25b.orig/fdwatch.c	2005-06-29 17:51:01.000000000 +0000
++++ thttpd-2.25b/fdwatch.c	2007-09-02 16:55:11.000000000 +0000
+@@ -38,6 +38,8 @@
+ #define MIN(a,b) ((a) < (b) ? (a) : (b))
+ #endif
+ 
++#undef HAVE_POLL
++
+ #ifdef HAVE_POLL_H
+ #include <poll.h>
+ #else /* HAVE_POLL_H */
+diff -Naur thttpd-2.25b.orig/libhttpd.c thttpd-2.25b/libhttpd.c
+--- thttpd-2.25b.orig/libhttpd.c	2005-06-29 17:50:39.000000000 +0000
++++ thttpd-2.25b/libhttpd.c	2007-09-02 16:55:11.000000000 +0000
+@@ -76,6 +76,10 @@
+ # endif
+ #endif
+ 
++#ifndef MAXPATHLEN
++#define MAXPATHLEN 4096
++#endif
++
+ extern char* crypt( const char* key, const char* setting );
+ 
+ #include "libhttpd.h"
+@@ -1009,7 +1013,7 @@
+     static char* authpath;
+     static size_t maxauthpath = 0;
+     struct stat sb;
+-    char authinfo[500];
++    char authinfo[550];
+     char* authpass;
+     char* colon;
+     int l;
+diff -Naur thttpd-2.25b.orig/mmc.c thttpd-2.25b/mmc.c
+--- thttpd-2.25b.orig/mmc.c	2005-06-29 17:50:47.000000000 +0000
++++ thttpd-2.25b/mmc.c	2007-09-02 16:55:11.000000000 +0000
+@@ -38,6 +38,10 @@
+ #include <syslog.h>
+ #include <errno.h>
+ 
++#ifdef TIME_WITH_SYS_TIME
++#include <time.h>
++#endif /* TIME_WITH_SYS_TIME */
++
+ #ifdef HAVE_MMAP
+ #include <sys/mman.h>
+ #endif /* HAVE_MMAP */
+diff -Naur thttpd-2.25b.orig/thttpd.8 thttpd-2.25b/thttpd.8
+--- thttpd-2.25b.orig/thttpd.8	2005-06-29 17:50:56.000000000 +0000
++++ thttpd-2.25b/thttpd.8	2007-09-02 16:55:11.000000000 +0000
+@@ -270,7 +270,7 @@
+ This file is formatted as the familiar colon-separated
+ username/encrypted-password pair, records delimited by newlines.
+ The protection does not carry over to subdirectories.
+-The utility program htpasswd(1) is included to help create and
++The utility program thtpasswd(1) is included to help create and
+ modify .htpasswd files.
+ .PP
+ Relevant config.h option: AUTH_FILE
+@@ -562,7 +562,7 @@
+ chroot() then the log file must be within the chroot tree, but it's
+ definitely doable.
+ .SH "SEE ALSO"
+-redirect(8), ssi(8), makeweb(1), htpasswd(1), syslogtocern(8), weblog_parse(1), http_get(1)
++thtpasswd(1), syslogtocern(8)
+ .SH THANKS
+ .PP
+ Many thanks to contributors, reviewers, testers:
+diff -Naur thttpd-2.25b.orig/thttpd.c thttpd-2.25b/thttpd.c
+--- thttpd-2.25b.orig/thttpd.c	2005-06-29 17:50:59.000000000 +0000
++++ thttpd-2.25b/thttpd.c	2007-09-02 16:55:11.000000000 +0000
+@@ -68,6 +68,9 @@
+ typedef long long int64_t;
+ #endif
+ 
++#ifndef MAXPATHLEN
++#define MAXPATHLEN 4096
++#endif
+ 
+ static char* argv0;
+ static int debug;
+@@ -644,7 +647,10 @@
+ 	no_symlink_check, do_vhost, do_global_passwd, url_pattern,
+ 	local_pattern, no_empty_referers );
+     if ( hs == (httpd_server*) 0 )
++    {
++	syslog ( LOG_ERR, "Could not perform initialization. Exiting." );
+ 	exit( 1 );
++    }
+ 
+     /* Set up the occasional timer. */
+     if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )

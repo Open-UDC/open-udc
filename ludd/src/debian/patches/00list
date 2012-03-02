@@ -1,0 +1,7 @@
+01-conglomeration.dpatch
+02-path-info.dpatch
+03-sigbus.dpatch
+04-manpage-entities.dpatch
+05-301-redirect.dpatch
+06-manpage-tilde.dpatch
+07-manpage-symlink.dpatch

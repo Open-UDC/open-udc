@@ -1,0 +1,29 @@
+thttpd for Debian
+-----------------
+
+By default the stop, restart and force-reload actions for /etc/init.d/thttpd
+terminate a running thttpd "gracefully", using SIGUSR1. From the thttpd(8)
+manual:
+
+	This signal tells thttpd to shut down as soon as it's done servicing all
+	current requests. In addition, the network socket it uses to accept new
+	connections gets closed immediately, which means a fresh thttpd can be
+	started up immediately.
+
+The non-standard action "force-stop" uses SIGTERM, which terminates thttpd
+immediately and aborts any in-progress downloads.
+
+By default logrotate will restart thttpd every time it rotates the logfile,
+because it's the only way to get a chrooted thttpd to write to the correct file.
+If you do not use the chroot option, you may wish to change the postrotate
+script to:
+
+	## Tell thttpd to open new logfile iff already running.
+	test -f /var/run/thttpd.pid &&
+	kill -1 "`cat /var/run/thttpd.pid`"
+
+Which "tells thttpd to close and re-open its (non-syslog) log file". If you use
+syslog (i.e. no logfile option), then you can remove the postrotate script
+entirely.
+
+ -- Trent W. Buck <trentbuck@gmail.com>  Tue, 17 Jul 2007 02:56:00 +1000

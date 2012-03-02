@@ -1,0 +1,67 @@
+#!/bin/sh /usr/share/dpatch/dpatch-run
+## 04-manpage-entities.dpatch by Trent W. Buck <trentbuck@gmail.com>
+##
+## DP: Replaces copyright symbol with proper entity (Closes: #421739, #433347).
+
+@DPATCH@
+
+diff -Naur thttpd-2.25b.orig/cgi-src/redirect.8 thttpd-2.25b/cgi-src/redirect.8
+--- thttpd-2.25b.orig/cgi-src/redirect.8	2005-06-29 17:53:06.000000000 +0000
++++ thttpd-2.25b/cgi-src/redirect.8	2007-10-14 10:17:48.000000000 +0000
+@@ -55,7 +55,7 @@
+ In particular, any characters that follow the asterisk are blithely
+ ignored.
+ .SH AUTHOR
+-Copyright © 1995 by Jef Poskanzer <jef@mail.acme.com>.
++Copyright \[co] 1995 by Jef Poskanzer <jef@mail.acme.com>.
+ All rights reserved.
+ .\" Redistribution and use in source and binary forms, with or without
+ .\" modification, are permitted provided that the following conditions
+diff -Naur thttpd-2.25b.orig/cgi-src/ssi.8 thttpd-2.25b/cgi-src/ssi.8
+--- thttpd-2.25b.orig/cgi-src/ssi.8	2005-06-29 17:53:13.000000000 +0000
++++ thttpd-2.25b/cgi-src/ssi.8	2007-10-14 10:17:48.000000000 +0000
+@@ -118,7 +118,7 @@
+ .SH "SEE ALSO"
+ thttpd(8), strftime(3)
+ .SH AUTHOR
+-Copyright © 1995 by Jef Poskanzer <jef@mail.acme.com>.
++Copyright \[co] 1995 by Jef Poskanzer <jef@mail.acme.com>.
+ All rights reserved.
+ .\" Redistribution and use in source and binary forms, with or without
+ .\" modification, are permitted provided that the following conditions
+diff -Naur thttpd-2.25b.orig/extras/makeweb.1 thttpd-2.25b/extras/makeweb.1
+--- thttpd-2.25b.orig/extras/makeweb.1	2007-10-14 10:08:37.000000000 +0000
++++ thttpd-2.25b/extras/makeweb.1	2007-10-14 10:17:48.000000000 +0000
+@@ -16,7 +16,7 @@
+ .SH "SEE ALSO
+ thttpd(8)
+ .SH AUTHOR
+-Copyright © 1995 by Jef Poskanzer <jef@mail.acme.com>.
++Copyright \[co] 1995 by Jef Poskanzer <jef@mail.acme.com>.
+ All rights reserved.
+ .\" Redistribution and use in source and binary forms, with or without
+ .\" modification, are permitted provided that the following conditions
+diff -Naur thttpd-2.25b.orig/extras/syslogtocern.8 thttpd-2.25b/extras/syslogtocern.8
+--- thttpd-2.25b.orig/extras/syslogtocern.8	2005-06-29 17:50:27.000000000 +0000
++++ thttpd-2.25b/extras/syslogtocern.8	2007-10-14 10:17:48.000000000 +0000
+@@ -21,7 +21,7 @@
+ port number.
+ However, that change represents a huge increase in complexity, so next version.
+ .SH AUTHOR
+-Copyright © 1995 by Jef Poskanzer <jef@mail.acme.com>.
++Copyright \[co] 1995 by Jef Poskanzer <jef@mail.acme.com>.
+ All rights reserved.
+ .\" Redistribution and use in source and binary forms, with or without
+ .\" modification, are permitted provided that the following conditions
+diff -Naur thttpd-2.25b.orig/thttpd.8 thttpd-2.25b/thttpd.8
+--- thttpd-2.25b.orig/thttpd.8	2007-10-14 10:08:37.000000000 +0000
++++ thttpd-2.25b/thttpd.8	2007-10-14 10:17:48.000000000 +0000
+@@ -572,7 +572,7 @@
+ Special thanks to Craig Leres for substantial debugging and development,
+ and for not complaining about my coding style very much.
+ .SH AUTHOR
+-Copyright © 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
++Copyright \[co] 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
+ All rights reserved.
+ .\" Redistribution and use in source and binary forms, with or without
+ .\" modification, are permitted provided that the following conditions

@@ -1,0 +1,2 @@
+# thttpd is listing a directory that has no index.html file.
+^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]: spawned indexing process [[:digit:]]+ for directory '.*'$

@@ -1,0 +1,47 @@
+#!/bin/sh /usr/share/dpatch/dpatch-run
+## 06-manpage-tilde.dpatch by Era Eriksson <era@iki.fi>.
+##
+## DP: Adds a section to the manual page which explains the various options for
+## DP: tilde expansion (Closes: #421752).
+
+@DPATCH@
+
+diff -Naur thttpd-2.25b.orig/thttpd.8 thttpd-2.25b/thttpd.8
+--- thttpd-2.25b.orig/thttpd.8	2007-10-14 10:17:48.000000000 +0000
++++ thttpd-2.25b/thttpd.8	2007-10-14 10:26:18.000000000 +0000
+@@ -462,6 +462,35 @@
+ A wildcard pattern that specifies the local host or hosts.
+ This is used to determine if the host in the referer is local or not.
+ If not specified it defaults to the actual local hostname.
++.SH "TILDE EXPANSION"
++.PP
++thttpd can be configured to expand base paths of the form
++.I /~user/
++into proper references to the user's web directory.
++.PP
++If thttpd is compiled with the option
++.B TILDE_MAP_1
++(this is the out-of-the-box default when you build from source),
++.B ~user
++is mapped to
++.IB prefix /user
++where the
++.I prefix
++might be something like
++.BR /users .
++.PP
++If thttpd is compiled with the option
++.BR TILDE_MAP_2 ,
++.B ~user
++is mapped to a subdirectory in the user's home directory;
++the subdirectory's name is also configurable, but the default is
++.BR public_html .
++This arrangement is incompatible with the
++.B chroot
++option, and generally considered a security risk.
++.PP
++See also the next section about symbolic links for
++additional discussion.
+ .SH SYMLINKS
+ .PP
+ thttpd is very picky about symbolic links.
