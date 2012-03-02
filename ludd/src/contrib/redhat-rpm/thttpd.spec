@@ -11,7 +11,7 @@ BuildRoot: /tmp/thttpd-root
 %description
 Thttpd is a very compact no-frills httpd serving daemon that can handle
 very high loads.  While lacking many of the advanced features of
-Apachee, thttpd operates without forking and is extremely efficient in
+Apache, thttpd operates without forking and is extremely efficient in
 memory use.  Basic support for cgi scripts, authentication, and ssi is
 provided for.  Advanced features include the ability to throttle traffic.
 

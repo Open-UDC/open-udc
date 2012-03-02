@@ -1,7 +1,0 @@
-# thttpd prints statistics every hour.
-^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]: up [[:digit:]]+ seconds, stats for 3600 seconds:$
-^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]:   thttpd - [[:digit:]]+ connections \([[:digit:].]+/sec\), [[:digit:]]+ max simultaneous, [[:digit:]]+ bytes \([[:digit:].]+/sec\), [[:digit:]]+ httpd_conns allocated$
-^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]:   libhttpd - [[:digit:]]+ strings allocated, [[:digit:]]+ bytes \([[:digit:].]+ bytes/str\)$
-^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]:   map cache - [[:digit:]]+ allocated, [[:digit:]]+ active \([[:digit:]]+ bytes\), [[:digit:]]+ free; hash size: [[:digit:]]+; expire age: [[:digit:]]+$
-^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]:   fdwatch - [[:digit:]]+ selects \([[:digit:].]+/sec\)$
-^\w{3} [ :0-9]{11} [._[:alnum:]-]+ thttpd\[[[:digit:]]+\]:   timers - [[:digit:]]+ allocated, [[:digit:]]+ active, [[:digit:]]+ free$

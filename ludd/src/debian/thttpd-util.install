@@ -1,5 +1,0 @@
-extras/thtpasswd	/usr/bin
-extras/syslogtocern	/usr/bin
-extras/makeweb		/usr/bin
-cgi-src/redirect	/usr/lib/cgi-bin
-cgi-src/ssi		/usr/lib/cgi-bin

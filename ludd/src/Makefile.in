@@ -34,7 +34,7 @@ BINDIR = @sbindir@
 # Pathname of directory to install the man page.
 MANDIR = @mandir@
 # Pathname of directory to install the CGI programs.
-WEBDIR = /var/www
+WEBDIR = /var/.ludd
 
 # CONFIGURE: The group that the web directory belongs to.  This is so that
 # the makeweb program can be installed set-group-id to that group, and make
@@ -72,7 +72,7 @@ GENHDR =	mime_encodings.h mime_types.h
 
 CLEANFILES =	$(ALL) $(OBJ) $(GENSRC) $(GENHDR)
 
-SUBDIRS =	cgi-src extras
+SUBDIRS =	cgi-src
 
 all:		this subdirs
 this:		$(ALL)
@@ -151,6 +151,9 @@ distcleansubdirs:
 
 tags:
 	ctags -wtd *.c *.h
+
+scope:
+	cscope -bR
 
 tar:
 	@name=`sed -n -e '/SERVER_SOFTWARE/!d' -e 's,.*thttpd/,thttpd-,' -e 's, .*,,p' version.h` ; \
