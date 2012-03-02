@@ -32,7 +32,7 @@
 #ifdef SHOW_SERVER_VERSION
 #define EXPOSED_SERVER_SOFTWARE SERVER_SOFTWARE
 #else /* SHOW_SERVER_VERSION */
-#define EXPOSED_SERVER_SOFTWARE "thttpd"
+#define EXPOSED_SERVER_SOFTWARE "ludd"
 #endif /* SHOW_SERVER_VERSION */
 
 #include <sys/types.h>

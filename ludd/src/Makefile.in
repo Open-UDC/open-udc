@@ -1,4 +1,4 @@
-# Makefile.in for thttpd
+# Makefile.in for ludd
 #
 # Copyright © 1995,1998 by Jef Poskanzer <jef@mail.acme.com>.
 # All rights reserved.
@@ -66,7 +66,7 @@ SRC =		thttpd.c libhttpd.c fdwatch.c mmc.c timers.c match.c tdate_parse.c
 
 OBJ =		$(SRC:.c=.o) @LIBOBJS@
 
-ALL =		thttpd
+ALL =		ludd
 
 GENHDR =	mime_encodings.h mime_types.h
 
@@ -77,7 +77,7 @@ SUBDIRS =	cgi-src
 all:		this subdirs
 this:		$(ALL)
 
-thttpd: $(OBJ)
+ludd: $(OBJ)
 	@rm -f $@
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS) $(NETLIBS)
 
@@ -110,7 +110,7 @@ install:	installthis install-man installsubdirs
 
 installthis:
 	-mkdir -p $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 555 -o bin -g bin thttpd $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 555 -o bin -g bin ludd $(DESTDIR)$(BINDIR)
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8

@@ -1,8 +1,8 @@
-.TH thttpd 8 "29 February 2000"
+.TH ludd 8 "29 February 2000"
 .SH NAME
-thttpd - tiny/turbo/throttling HTTP server
+ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC validation node
 .SH SYNOPSIS
-.B thttpd
+.B ludd
 .RB [ -C
 .IR configfile ]
 .RB [ -p
@@ -37,7 +37,8 @@ thttpd - tiny/turbo/throttling HTTP server
 .RB [ -D ]
 .SH DESCRIPTION
 .PP
-.I thttpd
+.I ludd
+is based on thttpd which
 is a simple, small, fast, and secure HTTP server.
 It doesn't have a lot of special features, but it suffices for most uses of
 the web, it's about as fast as the best full-featured servers (Apache, NCSA,
@@ -53,7 +54,7 @@ See below for details.
 .TP
 .B -p
 Specifies an alternate port number to listen on.
-The default is 80.
+The default is 12580.
 The config-file option name for this flag is "port",
 and the config.h option is DEFAULT_PORT.
 .TP
@@ -115,7 +116,7 @@ and the config.h option is ALWAYS_GLOBAL_PASSWD.
 .TP
 .B -u
 Specifies what user to switch to after initialization when started as root.
-The default is "nobody".
+The default is ".ludd".
 The config-file option name for this flag is "user",
 and the config.h option is DEFAULT_USER.
 .TP
@@ -140,20 +141,20 @@ and the config.h option is SERVER_NAME.
 .TP
 .B -l
 Specifies a file for logging.
-If no -l argument is specified, thttpd logs via syslog().
-If "-l /dev/null" is specified, thttpd doesn't log at all.
+If no -l argument is specified, ludd logs via syslog().
+If "-l /dev/null" is specified, ludd doesn't log at all.
 The config-file option name for this flag is "logfile".
 .TP
 .B -i
 Specifies a file to write the process-id to.
 If no file is specified, no process-id is written.
-You can use this file to send signals to thttpd.
+You can use this file to send signals to ludd.
 See below for details.
 The config-file option name for this flag is "pidfile".
 .TP
 .B -T
 Specifies the character set to use with text MIME types.
-The default is iso-8859-1.
+The default is utf-8.
 The config-file option name for this flag is "charset",
 and the config.h option is DEFAULT_CHARSET.
 .TP
@@ -177,16 +178,16 @@ Shows the current version info.
 .TP
 .B -D
 This was originally just a debugging flag, however it's worth mentioning
-because one of the things it does is prevent thttpd from making itself
+because one of the things it does is prevent ludd from making itself
 a background daemon.
 Instead it runs in the foreground like a regular program.
-This is necessary when you want to run thttpd wrapped in a little shell
+This is necessary when you want to run ludd wrapped in a little shell
 script that restarts it if it exits.
 .SH "CONFIG-FILE"
 .PP
 All the command-line options can also be set in a config file.
 One advantage of using a config file is that the file can be changed,
-and thttpd will pick up the changes with a restart.
+and ludd will pick up the changes with a restart.
 .PP
 The syntax of the config file is simple, a series of "option" or
 "option=value" separated by whitespace.
@@ -543,7 +544,7 @@ directories should be 755 (rwxr-xr-x) if you want to allow indexing and
 755 (rwxr-xr-x) or 711 (rwx--x--x).
 .SH LOGS
 .PP
-thttpd does all of its logging via syslog(3).
+ludd does all of its logging via syslog(3).
 The facility it uses is configurable.
 Aside from error messages, there are only a few log entry types of interest,
 all fairly similar to CERN Common Log Format:
@@ -555,7 +556,7 @@ all fairly similar to CERN Common Log Format:
 .fi
 The package includes a script for translating these log entries info
 CERN-compatible files.
-Note that thttpd does not translate numeric IP addresses into domain names.
+Note that ludd does not translate numeric IP addresses into domain names.
 This is both to save time and as a minor security measure (the numeric
 address is harder to spoof).
 .PP
@@ -565,33 +566,33 @@ If you'd rather log directly to a file, you can use the -l command-line
 flag.  But note that error messages still go to syslog.
 .SH SIGNALS
 .PP
-thttpd handles a couple of signals, which you can send via the
+ludd handles a couple of signals, which you can send via the
 standard Unix kill(1) command:
 .TP
 .B INT,TERM
-These signals tell thttpd to shut down immediately.
+These signals tell ludd to shut down immediately.
 Any requests in progress get aborted.
 .TP
 .B USR1
-This signal tells thttpd to shut down as soon as it's done servicing
+This signal tells ludd to shut down as soon as it's done servicing
 all current requests.
 In addition, the network socket it uses to accept new connections gets
-closed immediately, which means a fresh thttpd can be started up
+closed immediately, which means a fresh ludd can be started up
 immediately.
 .TP
 .B USR2
-This signal tells thttpd to generate the statistics syslog messages
+This signal tells ludd to generate the statistics syslog messages
 immediately, instead of waiting for the regular hourly update.
 .TP
 .B HUP
-This signal tells thttpd to close and re-open its (non-syslog) log file,
+This signal tells ludd to close and re-open its (non-syslog) log file,
 for instance if you rotated the logs and want it to start using the
 new one.
 This is a little tricky to set up correctly, for instance if you are using
 chroot() then the log file must be within the chroot tree, but it's
 definitely doable.
 .SH "SEE ALSO"
-thtpasswd(1), syslogtocern(8)
+lud(1), OpenUDC(8)
 .SH THANKS
 .PP
 Many thanks to contributors, reviewers, testers:
@@ -601,6 +602,8 @@ Catalin Ionescu.
 Special thanks to Craig Leres for substantial debugging and development,
 and for not complaining about my coding style very much.
 .SH AUTHOR
+Copyright \[co] 2012 by OpenUDC team <open-udc@googlegroups.com>.
+.nf
 Copyright \[co] 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
 All rights reserved.
 .\" Redistribution and use in source and binary forms, with or without

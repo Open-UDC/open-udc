@@ -1,4 +1,4 @@
-/* config.h - configuration defines for thttpd and libhttpd
+/* config.h - configuration defines for ludd and libhttpd
 **
 ** Copyright © 1995,1998,1999,2000,2001 by Jef Poskanzer <jef@mail.acme.com>.
 ** All rights reserved.
@@ -99,7 +99,7 @@
 #define IDLE_SEND_TIMELIMIT 300
 
 /* CONFIGURE: The syslog facility to use.  Using this you can set up your
-** syslog.conf so that all thttpd messages go into a separate file.  Note
+** syslog.conf so that all ludd messages go into a separate file.  Note
 ** that even if you use the -l command line flag to send logging to a
 ** file, errors still get sent via syslog.
 */
@@ -140,7 +140,7 @@
 ** If you undefine this then thttpd will not implement authentication
 ** at all and will not check for auth files, which saves a bit of CPU time.
 */
-#define AUTH_FILE ".htpasswd"
+//#define AUTH_FILE ".htpasswd"
 
 /* CONFIGURE: The default character set name to use with text MIME types.
 ** This gets substituted into the MIME types where they have a "%s".
@@ -148,7 +148,7 @@
 ** You can override this in the config file with the "charset" setting,
 ** or on the command like with the -T flag.
 */
-#define DEFAULT_CHARSET "iso-8859-1"
+#define DEFAULT_CHARSET "utf-8"
 
 
 /* Most people won't want to change anything below here. */
@@ -178,8 +178,8 @@
     "canonical.name.two/alternate.name.two"
 #endif
 
-/* CONFIGURE: Undefine this if you want thttpd to hide its specific version
-** when returning into to browsers.  Instead it'll just say "thttpd" with
+/* CONFIGURE: Undefine this if you want ludd to hide its specific version
+** when returning into to browsers.  Instead it'll just say "ludd" with
 ** no version.
 */
 #define SHOW_SERVER_VERSION
@@ -241,7 +241,7 @@
 ** initializing.  If this user (or the one specified by the -u flag) does
 ** not exist, the program will refuse to run.
 */
-#define DEFAULT_USER "www-data"
+#define DEFAULT_USER ".ludd"
 
 /* CONFIGURE: When started as root, the program can automatically chdir()
 ** to the home directory of the user specified by -u or DEFAULT_USER.
@@ -300,15 +300,15 @@
 /* CONFIGURE: The mmap cache tries to keep the total number of mapped
 ** files below this number, so you don't run out of kernel file descriptors.
 ** If you have reconfigured your kernel to have more descriptors, you can
-** raise this and thttpd will keep more maps cached.  However it's not
-** a hard limit, thttpd will go over it if you really are accessing
+** raise this and ludd will keep more maps cached.  However it's not
+** a hard limit, ludd will go over it if you really are accessing
 ** a whole lot of files.
 */
 #define DESIRED_MAX_MAPPED_FILES 1000
 
 /* CONFIGURE: The mmap cache also tries to keep the total mapped bytes
 ** below this number, so you don't run out of address space.  Again
-** it's not a hard limit, thttpd will go over it if you really are
+** it's not a hard limit, ludd will go over it if you really are
 ** accessing a bunch of large files.
 */
 #define DESIRED_MAX_MAPPED_BYTES 1000000000
@@ -332,14 +332,14 @@
 
 /* CONFIGURE: The default port to listen on.  80 is the standard HTTP port.
 */
-#define DEFAULT_PORT 80
+#define DEFAULT_PORT 12580
 
 /* CONFIGURE: A list of index filenames to check.  The files are searched
 ** for in this order.
 */
 #define INDEX_NAMES "index.html", "index.htm", "index.xhtml", "index.xht", "Default.htm", "index.cgi"
 
-/* CONFIGURE: If this is defined then thttpd will automatically generate
+/* CONFIGURE: If this is defined then ludd will automatically generate
 ** index pages for directories that don't have an explicit index file.
 ** If you want to disable this behavior site-wide, perhaps for security
 ** reasons, just undefine this.  Note that you can disable indexing of

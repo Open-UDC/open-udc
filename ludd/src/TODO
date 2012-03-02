@@ -1,8 +1,11 @@
-- - - - - - - - - - high priority - - - - - - - - - -
+
+- - - - - - - -  high priority - - - - - - - - -
+
+almost all (still ... ) 
+
+- - - - - - - - HTTP engine - high priority - - - - - - - - -
 
 IPv6 not working right.
-
-Problem with ACME News downloads.  PATH_INFO interferes with the authorization.
 
 Why is the client's IP address showing up in paths?
 
@@ -25,7 +28,7 @@ original URL as an active link.
 Make open in mmc.c use O_NONBLOCK flag, to prevent DOS attack via
 a named pipe?
 
-- - - - - - - - - - later - - - - - - - - - -
+- - - - - - - - - HTTP engine - later - - - - - - - - -
 
 Document how symlinks interact with .htpasswd - authorization is checked
 on the result of the symlink, and not the origin.
@@ -43,7 +46,7 @@ Ifdef the un-close-on-exec CGI thing for Linux only.
 
 Add keep-alives, via a new state in thttpd.c.
 
-- - - - - - - - - - someday - - - - - - - - - -
+- - - - - - - - - HTTP engine - someday - - - - - - - -
 
 The special world-permissions checking is probably bogus.  For one
 thing, it doesn't handle restrictive permissions on parent directories
@@ -62,19 +65,4 @@ Config web page.
 	Not realizing that -c overrides CGI_PATTERN instead of augmenting it.
 	Using a directory name for the -c pattern.
 
-- - - - - - - - - - 3.x - - - - - - - - - -
 
-Tasklets re-write.
-
-- - - - - - - - - - general - - - - - - - - - -
-
-Release process:
-  - update version number in version.h README INSTALL and
-    contrib/redhat-rpm/thttpd.spec
-  - do a tdiff and update the local installation
-  - do an rcstreeinfo, and check in all files
-  - make tar
-  - mv it to ..
-  - update version number in ../thttpd.html
-  - update ~acmeweb/updates.html
-  - mail announcement to thttpd-announce
