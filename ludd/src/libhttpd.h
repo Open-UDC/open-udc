@@ -80,7 +80,6 @@ typedef struct {
 	int no_log;
 	FILE* logfp;
 	int no_symlink_check;
-	int global_passwd;
 	char* url_pattern;
 	char* local_pattern;
 	int no_empty_referers;
@@ -172,7 +171,7 @@ extern httpd_server* httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
 	char* p3p, int max_age, char* cwd, int no_log, FILE* logfp,
-	int no_symlink_check, int global_passwd, char* url_pattern,
+	int no_symlink_check, char* url_pattern,
 	char* local_pattern, int no_empty_referers );
 
 /* Change the log file. */

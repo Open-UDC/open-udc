@@ -138,7 +138,6 @@ static int send_err_file( httpd_conn* hc, int status, char* title, char* extrahe
 static void send_authenticate( httpd_conn* hc, char* realm );
 static int b64_decode( const char* str, unsigned char* space, int size );
 static int auth_check( httpd_conn* hc, char* dirname  );
-static int auth_check2( httpd_conn* hc, char* dirname  );
 #endif /* AUTH_FILE */
 static void send_dirredirect( httpd_conn* hc );
 static int hexit( char c );
@@ -224,7 +223,7 @@ httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
 	char* p3p, int max_age, char* cwd, int no_log, FILE* logfp,
-	int no_symlink_check, int global_passwd, char* url_pattern,
+	int no_symlink_check, char* url_pattern,
 	char* local_pattern, int no_empty_referers )
 	{
 	httpd_server* hs;
@@ -326,7 +325,6 @@ httpd_initialize(
 	hs->logfp = (FILE*) 0;
 	httpd_set_logfp( hs, logfp );
 	hs->no_symlink_check = no_symlink_check;
-	hs->global_passwd = global_passwd;
 	hs->no_empty_referers = no_empty_referers;
 
 	/* Initialize listen sockets.  Try v6 first because of a Linux peculiarity;
@@ -961,30 +959,9 @@ b64_decode( const char* str, unsigned char* space, int size )
 	return space_idx;
 	}
 
-
 /* Returns -1 == unauthorized, 0 == no auth file, 1 = authorized. */
 static int
 auth_check( httpd_conn* hc, char* dirname  )
-	{
-	if ( hc->hs->global_passwd )
-		{
-		char* topdir;
-		topdir = ".";
-		switch ( auth_check2( hc, topdir ) )
-			{
-			case -1:
-			return -1;
-			case 1:
-			return 1;
-			}
-		}
-	return auth_check2( hc, dirname );
-	}
-
-
-/* Returns -1 == unauthorized, 0 == no auth file, 1 = authorized. */
-static int
-auth_check2( httpd_conn* hc, char* dirname  )
 	{
 	static char* authpath;
 	static size_t maxauthpath = 0;

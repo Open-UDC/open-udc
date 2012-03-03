@@ -13,7 +13,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR data_dir ]
 .RB [ -r | -nor ]
 .RB [ -s | -nos ]
-.RB [ -g | -nog ]
 .RB [ -u
 .IR user ]
 .RB [ -c
@@ -91,20 +90,6 @@ Note, though, that if you are using the chroot option, the symlink
 checking is unnecessary and is turned off, so the safe way to save
 those CPU cycles is to use chroot.
 The config-file option names for this flag are "symlinks" and "nosymlinks".
-.TP
-.B -g
-Use a global passwd file.
-This means that every file in the entire document tree is protected by
-the single .htpasswd file at the top of the tree.
-Otherwise the semantics of the .htpasswd file are the same.
-If this option is set but there is no .htpasswd file in
-the top-level directory, then thttpd proceeds as if the option was
-not set - first looking for a local .htpasswd file, and if that doesn't
-exist either then serving the file without any password.
-If -g is the compiled-in default, then -nog disables it.
-The config-file option names for this flag are "globalpasswd" and
-"noglobalpasswd",
-and the config.h option is ALWAYS_GLOBAL_PASSWD.
 .TP
 .B -u
 Specifies what user to switch to after initialization when started as root.

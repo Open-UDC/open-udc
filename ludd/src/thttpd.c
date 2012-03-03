@@ -77,7 +77,7 @@ static int debug;
 static unsigned short port;
 static char* dir;
 static char* data_dir;
-static int do_chroot, no_log, no_symlink_check, do_global_passwd;
+static int do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
 static int cgi_limit;
 static char* url_pattern;
@@ -664,7 +664,7 @@ main( int argc, char** argv )
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
 		port, cgi_pattern, cgi_limit, charset, p3p, max_age, cwd, no_log, logfp,
-		no_symlink_check, do_global_passwd, url_pattern,
+		no_symlink_check, url_pattern,
 		local_pattern, no_empty_referers );
 	if ( hs == (httpd_server*) 0 )
 	{
@@ -882,11 +882,6 @@ parse_args( int argc, char** argv )
 #endif /* ALWAYS_CHROOT */
 	no_log = 0;
 	no_symlink_check = do_chroot;
-#ifdef ALWAYS_GLOBAL_PASSWD
-	do_global_passwd = 1;
-#else /* ALWAYS_GLOBAL_PASSWD */
-	do_global_passwd = 0;
-#endif /* ALWAYS_GLOBAL_PASSWD */
 #ifdef CGI_PATTERN
 	cgi_pattern = CGI_PATTERN;
 #else /* CGI_PATTERN */
@@ -975,10 +970,6 @@ parse_args( int argc, char** argv )
 			++argn;
 			logfile = argv[argn];
 			}
-		else if ( strcmp( argv[argn], "-g" ) == 0 )
-			do_global_passwd = 1;
-		else if ( strcmp( argv[argn], "-nog" ) == 0 )
-			do_global_passwd = 0;
 		else if ( strcmp( argv[argn], "-i" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
@@ -1157,16 +1148,6 @@ read_config( char* filename )
 				{
 				value_required( name, value );
 				logfile = e_strdup( value );
-				}
-			else if ( strcasecmp( name, "globalpasswd" ) == 0 )
-				{
-				no_value_required( name, value );
-				do_global_passwd = 1;
-				}
-			else if ( strcasecmp( name, "noglobalpasswd" ) == 0 )
-				{
-				no_value_required( name, value );
-				do_global_passwd = 0;
 				}
 			else if ( strcasecmp( name, "pidfile" ) == 0 )
 				{
