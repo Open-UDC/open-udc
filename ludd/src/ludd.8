@@ -27,8 +27,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR pidfile ]
 .RB [ -T
 .IR charset ]
-.RB [ -P
-.IR P3P ]
 .RB [ -M
 .IR maxage ]
 .RB [ -V ]
@@ -135,13 +133,6 @@ The default is utf-8.
 The config-file option name for this flag is "charset",
 and the config.h option is DEFAULT_CHARSET.
 .TP
-.B -P
-Specifies a P3P server privacy header to be returned with all responses.
-See http://www.w3.org/P3P/ for details.
-Thttpd doesn't do anything at all with the string except put it in the
-P3P: response header.
-The config-file option name for this flag is "p3p".
-.TP
 .B -M
 Specifies the number of seconds to be used in a "Cache-Control: max-age"
 header to be returned with all responses.
@@ -240,18 +231,6 @@ the directory that the CGI program lives in.
 This isn't in the CGI 1.1 spec, but it's what most other HTTP servers do.
 .PP
 Relevant config.h options: CGI_PATTERN, CGI_TIMELIMIT, CGI_NICE, CGI_PATH, CGI_LD_LIBRARY_PATH, CGIBINDIR.
-.SH "BASIC AUTHENTICATION"
-.PP
-Basic Authentication is available as an option at compile time.
-If enabled, it uses a password file in the directory to be protected,
-called .htpasswd by default.
-This file is formatted as the familiar colon-separated
-username/encrypted-password pair, records delimited by newlines.
-The protection does not carry over to subdirectories.
-The utility program thtpasswd(1) is included to help create and
-modify .htpasswd files.
-.PP
-Relevant config.h option: AUTH_FILE
 .SH "THROTTLING"
 .PP
 The throttle file lets you set maximum byte rates on URLs or URL groups.

@@ -208,8 +208,6 @@ free_httpd_server( httpd_server* hs )
 		free( (void*) hs->cgi_pattern );
 	if ( hs->charset != (char*) 0 )
 		free( (void*) hs->charset );
-	if ( hs->p3p != (char*) 0 )
-		free( (void*) hs->p3p );
 	if ( hs->url_pattern != (char*) 0 )
 		free( (void*) hs->url_pattern );
 	if ( hs->local_pattern != (char*) 0 )
@@ -222,7 +220,7 @@ httpd_server*
 httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
-	char* p3p, int max_age, char* cwd, int no_log, FILE* logfp,
+	int max_age, char* cwd, int no_log, FILE* logfp,
 	int no_symlink_check, char* url_pattern,
 	char* local_pattern, int no_empty_referers )
 	{
@@ -291,7 +289,6 @@ httpd_initialize(
 	hs->cgi_limit = cgi_limit;
 	hs->cgi_count = 0;
 	hs->charset = strdup( charset );
-	hs->p3p = strdup( p3p );
 	hs->max_age = max_age;
 	hs->cwd = strdup( cwd );
 	if ( hs->cwd == (char*) 0 )
@@ -667,11 +664,6 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 			{
 			(void) my_snprintf( buf, sizeof(buf),
 				"Content-Length: %lld\015\012", (int64_t) length );
-			add_response( hc, buf );
-			}
-		if ( hc->hs->p3p[0] != '\0' )
-			{
-			(void) my_snprintf( buf, sizeof(buf), "P3P: %s\015\012", hc->hs->p3p );
 			add_response( hc, buf );
 			}
 		if ( hc->hs->max_age >= 0 )
