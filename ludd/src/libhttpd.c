@@ -206,8 +206,6 @@ free_httpd_server( httpd_server* hs )
 		free( (void*) hs->cwd );
 	if ( hs->cgi_pattern != (char*) 0 )
 		free( (void*) hs->cgi_pattern );
-	if ( hs->charset != (char*) 0 )
-		free( (void*) hs->charset );
 	if ( hs->url_pattern != (char*) 0 )
 		free( (void*) hs->url_pattern );
 	if ( hs->local_pattern != (char*) 0 )
@@ -219,7 +217,7 @@ free_httpd_server( httpd_server* hs )
 httpd_server*
 httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
-	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
+	unsigned short port, char* cgi_pattern, int cgi_limit,
 	char* cwd, int no_log, FILE* logfp,
 	int no_symlink_check, char* url_pattern,
 	char* local_pattern, int no_empty_referers )
@@ -288,7 +286,6 @@ httpd_initialize(
 		}
 	hs->cgi_limit = cgi_limit;
 	hs->cgi_count = 0;
-	hs->charset = strdup( charset );
 	hs->cwd = strdup( cwd );
 	if ( hs->cwd == (char*) 0 )
 		{
@@ -631,7 +628,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 		(void) strftime( nowbuf, sizeof(nowbuf), rfc1123fmt, gmtime( &now ) );
 		(void) strftime( modbuf, sizeof(modbuf), rfc1123fmt, gmtime( &mod ) );
 		(void) my_snprintf(
-			fixed_type, sizeof(fixed_type), type, hc->hs->charset );
+			fixed_type, sizeof(fixed_type), type, DEFAULT_CHARSET );
 		(void) my_snprintf( buf, sizeof(buf),
 			"%.20s %d %s\015\012Server: %s\015\012Content-Type: %s\015\012Date: %s\015\012Last-Modified: %s\015\012Accept-Ranges: bytes\015\012Connection: close\015\012",
 			hc->protocol, status, title, EXPOSED_SERVER_SOFTWARE, fixed_type,

@@ -88,7 +88,6 @@ static char* throttlefile;
 static char* hostname;
 static char* pidfile;
 static char* user;
-static char* charset;
 
 
 typedef struct {
@@ -661,7 +660,7 @@ main( int argc, char** argv )
 	hs = httpd_initialize(
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		port, cgi_pattern, cgi_limit, charset, cwd, no_log, logfp,
+		port, cgi_pattern, cgi_limit, cwd, no_log, logfp,
 		no_symlink_check, url_pattern,
 		local_pattern, no_empty_referers );
 	if ( hs == (httpd_server*) 0 )
@@ -898,7 +897,6 @@ parse_args( int argc, char** argv )
 	logfile = (char*) 0;
 	pidfile = (char*) 0;
 	user = DEFAULT_USER;
-	charset = DEFAULT_CHARSET;
 	argn = 1;
 	while ( argn < argc && argv[argn][0] == '-' )
 		{
@@ -971,11 +969,6 @@ parse_args( int argc, char** argv )
 			++argn;
 			pidfile = argv[argn];
 			}
-		else if ( strcmp( argv[argn], "-T" ) == 0 && argn + 1 < argc )
-			{
-			++argn;
-			charset = argv[argn];
-			}
 		else if ( strcmp( argv[argn], "-D" ) == 0 )
 			debug = 1;
 		else
@@ -991,7 +984,7 @@ static void
 usage( void )
 	{
 	(void) fprintf( stderr,
-"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-s|-nos] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-T charset] [-V] [-D]\n",
+"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-s|-nos] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n",
 		argv0 );
 	exit( 1 );
 	}
@@ -1139,11 +1132,6 @@ read_config( char* filename )
 				{
 				value_required( name, value );
 				pidfile = e_strdup( value );
-				}
-			else if ( strcasecmp( name, "charset" ) == 0 )
-				{
-				value_required( name, value );
-				charset = e_strdup( value );
 				}
 			else
 				{

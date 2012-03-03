@@ -25,8 +25,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR logfile ]
 .RB [ -i
 .IR pidfile ]
-.RB [ -T
-.IR charset ]
 .RB [ -V ]
 .RB [ -D ]
 .SH DESCRIPTION
@@ -124,12 +122,6 @@ If no file is specified, no process-id is written.
 You can use this file to send signals to ludd.
 See below for details.
 The config-file option name for this flag is "pidfile".
-.TP
-.B -T
-Specifies the character set to use with text MIME types.
-The default is utf-8.
-The config-file option name for this flag is "charset",
-and the config.h option is DEFAULT_CHARSET.
 .TP
 .B -V
 Shows the current version info.
