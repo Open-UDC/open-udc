@@ -146,7 +146,6 @@ static void strdecode( char* to, char* from );
 #ifdef GENERATE_INDEXES
 static void strencode( char* to, int tosize, char* from );
 #endif /* GENERATE_INDEXES */
-static int vhost_map( httpd_conn* hc );
 static char* expand_symlinks( char* path, char** restP, int no_symlink_check, int tildemapped );
 static char* bufgets( httpd_conn* hc );
 static void de_dotdot( char* file );
@@ -225,7 +224,7 @@ httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
 	char* p3p, int max_age, char* cwd, int no_log, FILE* logfp,
-	int no_symlink_check, int vhost, int global_passwd, char* url_pattern,
+	int no_symlink_check, int global_passwd, char* url_pattern,
 	char* local_pattern, int no_empty_referers )
 	{
 	httpd_server* hs;
@@ -327,7 +326,6 @@ httpd_initialize(
 	hs->logfp = (FILE*) 0;
 	httpd_set_logfp( hs, logfp );
 	hs->no_symlink_check = no_symlink_check;
-	hs->vhost = vhost;
 	hs->global_passwd = global_passwd;
 	hs->no_empty_referers = no_empty_referers;
 
@@ -812,15 +810,6 @@ httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, char*
 
 	char filename[1000];
 
-	/* Try virtual host error page. */
-	if ( hc->hs->vhost && hc->hostdir[0] != '\0' )
-		{
-		(void) my_snprintf( filename, sizeof(filename),
-			"%s/%s/err%d.html", hc->hostdir, ERR_DIR, status );
-		if ( send_err_file( hc, status, title, extraheads, filename ) )
-			return;
-		}
-
 	/* Try server-wide error page. */
 	(void) my_snprintf( filename, sizeof(filename),
 		"%s/err%d.html", ERR_DIR, status );
@@ -980,10 +969,7 @@ auth_check( httpd_conn* hc, char* dirname  )
 	if ( hc->hs->global_passwd )
 		{
 		char* topdir;
-		if ( hc->hs->vhost && hc->hostdir[0] != '\0' )
-			topdir = hc->hostdir;
-		else
-			topdir = ".";
+		topdir = ".";
 		switch ( auth_check2( hc, topdir ) )
 			{
 			case -1:
@@ -1253,91 +1239,6 @@ strencode( char* to, int tosize, char* from )
 	*to = '\0';
 	}
 #endif /* GENERATE_INDEXES */
-
-/* Virtual host mapping. */
-static int
-vhost_map( httpd_conn* hc )
-	{
-	httpd_sockaddr sa;
-	socklen_t sz;
-	static char* tempfilename;
-	static size_t maxtempfilename = 0;
-	char* cp1;
-	int len;
-#ifdef VHOST_DIRLEVELS
-	int i;
-	char* cp2;
-#endif /* VHOST_DIRLEVELS */
-
-	/* Figure out the virtual hostname. */
-	if ( hc->reqhost[0] != '\0' )
-		hc->hostname = hc->reqhost;
-	else if ( hc->hdrhost[0] != '\0' )
-		hc->hostname = hc->hdrhost;
-	else
-		{
-		sz = sizeof(sa);
-		if ( getsockname( hc->conn_fd, &sa.sa, &sz ) < 0 )
-			{
-			syslog( LOG_ERR, "getsockname - %m" );
-			return 0;
-			}
-		hc->hostname = httpd_ntoa( &sa );
-		}
-	/* Pound it to lower case. */
-	for ( cp1 = hc->hostname; *cp1 != '\0'; ++cp1 )
-		if ( isupper( *cp1 ) )
-			*cp1 = tolower( *cp1 );
-
-	if ( hc->tildemapped )
-		return 1;
-
-	/* Figure out the host directory. */
-#ifdef VHOST_DIRLEVELS
-	httpd_realloc_str(
-		&hc->hostdir, &hc->maxhostdir,
-		strlen( hc->hostname ) + 2 * VHOST_DIRLEVELS );
-	if ( strncmp( hc->hostname, "www.", 4 ) == 0 )
-		cp1 = &hc->hostname[4];
-	else
-		cp1 = hc->hostname;
-	for ( cp2 = hc->hostdir, i = 0; i < VHOST_DIRLEVELS; ++i )
-		{
-		/* Skip dots in the hostname.  If we don't, then we get vhost
-		** directories in higher level of filestructure if dot gets
-		** involved into path construction.  It's `while' used here instead
-		** of `if' for it's possible to have a hostname formed with two
-		** dots at the end of it.
-		*/
-		while ( *cp1 == '.' )
-			++cp1;
-		/* Copy a character from the hostname, or '_' if we ran out. */
-		if ( *cp1 != '\0' )
-			*cp2++ = *cp1++;
-		else
-			*cp2++ = '_';
-		/* Copy a slash. */
-		*cp2++ = '/';
-		}
-	(void) strcpy( cp2, hc->hostname );
-#else /* VHOST_DIRLEVELS */
-	httpd_realloc_str( &hc->hostdir, &hc->maxhostdir, strlen( hc->hostname ) );
-	(void) strcpy( hc->hostdir, hc->hostname );
-#endif /* VHOST_DIRLEVELS */
-
-	/* Prepend hostdir to the filename. */
-	len = strlen( hc->expnfilename );
-	httpd_realloc_str( &tempfilename, &maxtempfilename, len );
-	(void) strcpy( tempfilename, hc->expnfilename );
-	httpd_realloc_str(
-		&hc->expnfilename, &hc->maxexpnfilename,
-		strlen( hc->hostdir ) + 1 + len );
-	(void) strcpy( hc->expnfilename, hc->hostdir );
-	(void) strcat( hc->expnfilename, "/" );
-	(void) strcat( hc->expnfilename, tempfilename );
-	return 1;
-	}
-
 
 /* Expands all symlinks in the given filename, eliding ..'s and leading /'s.
 ** Returns the expanded path (pointer to static string), or (char*) 0 on
@@ -2187,12 +2088,12 @@ httpd_parse_request( httpd_conn* hc )
 		{}*/
 
 	/* Virtual host mapping. */
-	if ( hc->hs->vhost )
+	/*if ( hc->hs->vhost )
 		if ( ! vhost_map( hc ) )
 			{
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			return -1;
-			}
+			}*/
 
 	/* Expand all symbolic links in the filename.  This also gives us
 	** any trailing non-existing components, for pathinfo.
@@ -2914,11 +2815,8 @@ make_envp( httpd_conn* hc )
 	envp[envn++] = build_env( "LD_LIBRARY_PATH=%s", CGI_LD_LIBRARY_PATH );
 #endif /* CGI_LD_LIBRARY_PATH */
 	envp[envn++] = build_env( "SERVER_SOFTWARE=%s", SERVER_SOFTWARE );
-	/* If vhosting, use that server-name here. */
-	if ( hc->hs->vhost && hc->hostname != (char*) 0 )
-		cp = hc->hostname;
-	else
-		cp = hc->hs->server_hostname;
+	/* server-name */
+	cp = hc->hs->server_hostname;
 	if ( cp != (char*) 0 )
 		envp[envn++] = build_env( "SERVER_NAME=%s", cp );
 	envp[envn++] = "GATEWAY_INTERFACE=CGI/1.1";
@@ -3783,18 +3681,8 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 		ru = hc->remoteuser;
 	else
 		ru = "-";
-	/* If we're vhosting, prepend the hostname to the url.  This is
-	** a little weird, perhaps writing separate log files for
-	** each vhost would make more sense.
-	*/
-	if ( hc->hs->vhost && ! hc->tildemapped )
-		(void) my_snprintf( url, sizeof(url),
-			"/%.100s%.200s",
-			hc->hostname == (char*) 0 ? hc->hs->server_hostname : hc->hostname,
-			hc->encodedurl );
-	else
-		(void) my_snprintf( url, sizeof(url),
-			"%.200s", hc->encodedurl );
+	/* Format the url. */
+	(void) my_snprintf( url, sizeof(url),"%.200s", hc->encodedurl );
 	/* Format the bytes. */
 	if ( hc->bytes_sent >= 0 )
 		(void) my_snprintf(
@@ -3873,10 +3761,7 @@ check_referer( httpd_conn* hc )
 
 	if ( ! r )
 		{
-		if ( hc->hs->vhost && hc->hostname != (char*) 0 )
-			cp = hc->hostname;
-		else
-			cp = hc->hs->server_hostname;
+		cp = hc->hs->server_hostname;
 		if ( cp == (char*) 0 )
 			cp = "";
 		syslog(
@@ -3933,27 +3818,11 @@ really_check_referer( httpd_conn* hc )
 		lp = hs->local_pattern;
 	else
 		{
-		/* No local pattern.  What's our hostname? */
-		if ( ! hs->vhost )
-			{
-			/* Not vhosting, use the server name. */
-			lp = hs->server_hostname;
-			if ( lp == (char*) 0 )
-				/* Couldn't figure out local hostname - give up. */
-				return 1;
-			}
-		else
-			{
-			/* We are vhosting, use the hostname on this connection. */
-			lp = hc->hostname;
-			if ( lp == (char*) 0 )
-				/* Oops, no hostname.  Maybe it's an old browser that
-				** doesn't send a Host: header.  We could figure out
-				** the default hostname for this IP address, but it's
-				** not worth it for the few requests like this.
-				*/
-				return 1;
-			}
+		/* Not vhosting, use the server name. */
+		lp = hs->server_hostname;
+		if ( lp == (char*) 0 )
+			/* Couldn't figure out local hostname - give up. */
+			return 1;
 		}
 
 	/* If the referer host doesn't match the local host pattern, and

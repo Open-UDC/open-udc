@@ -13,7 +13,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR data_dir ]
 .RB [ -r | -nor ]
 .RB [ -s | -nos ]
-.RB [ -v | -nov ]
 .RB [ -g | -nog ]
 .RB [ -u
 .IR user ]
@@ -92,13 +91,6 @@ Note, though, that if you are using the chroot option, the symlink
 checking is unnecessary and is turned off, so the safe way to save
 those CPU cycles is to use chroot.
 The config-file option names for this flag are "symlinks" and "nosymlinks".
-.TP
-.B -v
-Do el-cheapo virtual hosting.
-If -v is the compiled-in default, then -nov disables it.
-See below for details.
-The config-file option names for this flag are "vhost" and "novhost",
-and the config.h option is ALWAYS_VHOST.
 .TP
 .B -g
 Use a global passwd file.
@@ -379,27 +371,7 @@ Example:
 If your OS's version of ifconfig doesn't have an alias command, you're
 probably out of luck (but see http://www.acme.com/software/thttpd/notes.html).
 .PP
-Third and last, you must set up thttpd to handle the multiple hosts.
-The easiest way is with the -v flag, or the ALWAYS_VHOST config.h option.
-This works with either CNAME multihosting or multiple-IP multihosting.
-What it does is send each incoming request to a subdirectory based on the
-hostname it's intended for.
-All you have to do in order to set things up is to create those subdirectories
-in the directory where thttpd will run.
-With the example above, you'd do like so:
-.nf
-  mkdir www.acme.com www.joe.acme.com www.jane.acme.com
-.fi
-If you're using old-style multiple-IP multihosting, you should also create
-symbolic links from the numeric addresses to the names, like so:
-.nf
-  ln -s www.acme.com 192.100.66.1
-  ln -s www.joe.acme.com 192.100.66.200
-  ln -s www.jane.acme.com 192.100.66.201
-.fi
-This lets the older HTTP/1.0 browsers find the right subdirectory.
-.PP
-There's an optional alternate step three if you're using multiple-IP
+There's an optional alternate step if you're using multiple-IP
 multihosting: run a separate thttpd process for each hostname, using
 the -h flag to specify which one is which.
 This gives you more flexibility, since you can run each of these processes
@@ -411,8 +383,7 @@ Example:
   thttpd -r -d /usr/www/jane -u jane -h www.jane.acme.com
 .fi
 But remember, this multiple-process method does not work with CNAME
-multihosting - for that, you must use a single thttpd process with
-the -v flag.
+multihosting.
 .SH "CUSTOM ERRORS"
 .PP
 thttpd lets you define your own custom error pages for the various
@@ -426,14 +397,6 @@ error, which is number 401, you would put your HTML into the file
 "errors/err401.html".
 If no custom error file is found for a given error number, then the
 usual built-in error page is generated.
-.PP
-If you're using the virtual hosts option, you can also have different
-custom error pages for each different virtual host.
-In this case you put another "errors" directory in the top of that
-virtual host's web tree.
-thttpd will look first in the virtual host errors directory, and
-then in the server-wide errors directory, and if neither of those
-has an appropriate error file then it will generate the built-in error.
 .SH "NON-LOCAL REFERERS"
 .PP
 Sometimes another site on the net will embed your image files in their
@@ -520,10 +483,10 @@ The facility it uses is configurable.
 Aside from error messages, there are only a few log entry types of interest,
 all fairly similar to CERN Common Log Format:
 .nf
-  Aug  6 15:40:34 acme thttpd[583]: 165.113.207.103 - - "GET /file" 200 357
-  Aug  6 15:40:43 acme thttpd[583]: 165.113.207.103 - - "HEAD /file" 200 0
-  Aug  6 15:41:16 acme thttpd[583]: referer http://www.acme.com/ -> /dir
-  Aug  6 15:41:16 acme thttpd[583]: user-agent Mozilla/1.1N
+  Aug  6 15:40:34 acme ludd[583]: 165.113.207.103 - - "GET /file" 200 357
+  Aug  6 15:40:43 acme ludd[583]: 165.113.207.103 - - "HEAD /file" 200 0
+  Aug  6 15:41:16 acme ludd[583]: referer http://www.acme.com/ -> /dir
+  Aug  6 15:41:16 acme ludd[583]: user-agent Mozilla/1.1N
 .fi
 The package includes a script for translating these log entries info
 CERN-compatible files.

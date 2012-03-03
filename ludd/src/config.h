@@ -166,42 +166,6 @@
 #define ALWAYS_CHROOT
 #endif
 
-/* CONFIGURE: Define this if you want to always do virtual hosting, without
-** having to give the -v command line flag.  You can still disable it at
-** runtime with the -nov flag.
-*/
-#ifdef notdef
-#define ALWAYS_VHOST
-#endif
-
-/* CONFIGURE: If you're using the vhost feature and you have a LOT of
-** virtual hostnames (like, hundreds or thousands), you will want to
-** enable this feature.  It avoids a problem with most Unix filesystems,
-** where if there are a whole lot of items in a directory then name lookup
-** becomes very slow.  This feature makes thttpd use subdirectories
-** based on the first characters of each hostname.  You can set it to use
-** from one to three characters.  If the hostname starts with "www.", that
-** part is skipped over.  Dots are also skipped over, and if the name isn't
-** long enough then "_"s are used.  Here are some examples of how hostnames
-** would get turned into directory paths, for each different setting:
-** 1: www.acme.com ->	a/www.acme.com
-** 1: foobar.acme.com -> f/foobar.acme.com
-** 2: www.acme.com ->	a/c/www.acme.com
-** 2: foobar.acme.com -> f/o/foobar.acme.com
-** 3: www.acme.com ->	a/c/m/www.acme.com
-** 3: foobar.acme.com -> f/o/o/foobar.acme.com
-** 3: m.tv ->			m/t/v/m.tv
-** 4: m.tv ->			m/t/v/_/m.tv
-** Note that if you compile this setting in but then forget to set up
-** the corresponding subdirectories, the only error indication you'll
-** get is a "404 Not Found" when you try to visit a site.  So be careful.
-*/
-#ifdef notdef
-#define VHOST_DIRLEVELS 1
-#define VHOST_DIRLEVELS 2
-#define VHOST_DIRLEVELS 3
-#endif
-
 /* CONFIGURE: Define this if you want to always use a global passwd file,
 ** without having to give the -P command line flag.  You can still disable
 ** it at runtime with the -noP flag.

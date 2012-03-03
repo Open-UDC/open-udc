@@ -77,7 +77,7 @@ static int debug;
 static unsigned short port;
 static char* dir;
 static char* data_dir;
-static int do_chroot, no_log, no_symlink_check, do_vhost, do_global_passwd;
+static int do_chroot, no_log, no_symlink_check, do_global_passwd;
 static char* cgi_pattern;
 static int cgi_limit;
 static char* url_pattern;
@@ -664,7 +664,7 @@ main( int argc, char** argv )
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
 		port, cgi_pattern, cgi_limit, charset, p3p, max_age, cwd, no_log, logfp,
-		no_symlink_check, do_vhost, do_global_passwd, url_pattern,
+		no_symlink_check, do_global_passwd, url_pattern,
 		local_pattern, no_empty_referers );
 	if ( hs == (httpd_server*) 0 )
 	{
@@ -882,11 +882,6 @@ parse_args( int argc, char** argv )
 #endif /* ALWAYS_CHROOT */
 	no_log = 0;
 	no_symlink_check = do_chroot;
-#ifdef ALWAYS_VHOST
-	do_vhost = 1;
-#else /* ALWAYS_VHOST */
-	do_vhost = 0;
-#endif /* ALWAYS_VHOST */
 #ifdef ALWAYS_GLOBAL_PASSWD
 	do_global_passwd = 1;
 #else /* ALWAYS_GLOBAL_PASSWD */
@@ -980,10 +975,6 @@ parse_args( int argc, char** argv )
 			++argn;
 			logfile = argv[argn];
 			}
-		else if ( strcmp( argv[argn], "-v" ) == 0 )
-			do_vhost = 1;
-		else if ( strcmp( argv[argn], "-nov" ) == 0 )
-			do_vhost = 0;
 		else if ( strcmp( argv[argn], "-g" ) == 0 )
 			do_global_passwd = 1;
 		else if ( strcmp( argv[argn], "-nog" ) == 0 )
@@ -1023,7 +1014,7 @@ static void
 usage( void )
 	{
 	(void) fprintf( stderr,
-"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-s|-nos] [-v|-nov] [-g|-nog] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-T charset] [-P P3P] [-M maxage] [-V] [-D]\n",
+"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-s|-nos] [-g|-nog] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-T charset] [-P P3P] [-M maxage] [-V] [-D]\n",
 		argv0 );
 	exit( 1 );
 	}
@@ -1166,16 +1157,6 @@ read_config( char* filename )
 				{
 				value_required( name, value );
 				logfile = e_strdup( value );
-				}
-			else if ( strcasecmp( name, "vhost" ) == 0 )
-				{
-				no_value_required( name, value );
-				do_vhost = 1;
-				}
-			else if ( strcasecmp( name, "novhost" ) == 0 )
-				{
-				no_value_required( name, value );
-				do_vhost = 0;
 				}
 			else if ( strcasecmp( name, "globalpasswd" ) == 0 )
 				{
