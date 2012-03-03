@@ -7,10 +7,10 @@
 ** modification, are permitted provided that the following conditions
 ** are met:
 ** 1. Redistributions of source code must retain the above copyright
-**    notice, this list of conditions and the following disclaimer.
+**	notice, this list of conditions and the following disclaimer.
 ** 2. Redistributions in binary form must reproduce the above copyright
-**    notice, this list of conditions and the following disclaimer in the
-**    documentation and/or other materials provided with the distribution.
+**	notice, this list of conditions and the following disclaimer in the
+**	documentation and/or other materials provided with the distribution.
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
 ** ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -147,8 +147,8 @@
 #ifdef notdef
 #define SERVER_NAME "your.hostname.here"
 #define SERVER_NAME_LIST \
-    "canonical.name.here/alternate.name.here", \
-    "canonical.name.two/alternate.name.two"
+	"canonical.name.here/alternate.name.here", \
+	"canonical.name.two/alternate.name.two"
 #endif
 
 /* CONFIGURE: Undefine this if you want ludd to hide its specific version
@@ -184,14 +184,14 @@
 ** part is skipped over.  Dots are also skipped over, and if the name isn't
 ** long enough then "_"s are used.  Here are some examples of how hostnames
 ** would get turned into directory paths, for each different setting:
-** 1: www.acme.com ->    a/www.acme.com
+** 1: www.acme.com ->	a/www.acme.com
 ** 1: foobar.acme.com -> f/foobar.acme.com
-** 2: www.acme.com ->    a/c/www.acme.com
+** 2: www.acme.com ->	a/c/www.acme.com
 ** 2: foobar.acme.com -> f/o/foobar.acme.com
-** 3: www.acme.com ->    a/c/m/www.acme.com
+** 3: www.acme.com ->	a/c/m/www.acme.com
 ** 3: foobar.acme.com -> f/o/o/foobar.acme.com
-** 3: m.tv ->            m/t/v/m.tv
-** 4: m.tv ->            m/t/v/_/m.tv
+** 3: m.tv ->			m/t/v/m.tv
+** 4: m.tv ->			m/t/v/_/m.tv
 ** Note that if you compile this setting in but then forget to set up
 ** the corresponding subdirectories, the only error indication you'll
 ** get is a "404 Not Found" when you try to visit a site.  So be careful.

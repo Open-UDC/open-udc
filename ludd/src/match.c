@@ -9,10 +9,10 @@
 ** modification, are permitted provided that the following conditions
 ** are met:
 ** 1. Redistributions of source code must retain the above copyright
-**    notice, this list of conditions and the following disclaimer.
+**	notice, this list of conditions and the following disclaimer.
 ** 2. Redistributions in binary form must reproduce the above copyright
-**    notice, this list of conditions and the following disclaimer in the
-**    documentation and/or other materials provided with the distribution.
+**	notice, this list of conditions and the following disclaimer in the
+**	documentation and/or other materials provided with the distribution.
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
 ** ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,53 +36,53 @@ static int match_one( const char* pattern, int patternlen, const char* string );
 
 int
 match( const char* pattern, const char* string )
-    {
-    const char* or;
-
-    for (;;)
 	{
-	or = strchr( pattern, '|' );
-	if ( or == (char*) 0 )
-	    return match_one( pattern, strlen( pattern ), string );
-	if ( match_one( pattern, or - pattern, string ) )
-	    return 1;
-	pattern = or + 1;
+	const char* or;
+
+	for (;;)
+		{
+		or = strchr( pattern, '|' );
+		if ( or == (char*) 0 )
+			return match_one( pattern, strlen( pattern ), string );
+		if ( match_one( pattern, or - pattern, string ) )
+			return 1;
+		pattern = or + 1;
+		}
 	}
-    }
 
 
 static int
 match_one( const char* pattern, int patternlen, const char* string )
-    {
-    const char* p;
-
-    for ( p = pattern; p - pattern < patternlen; ++p, ++string )
 	{
-	if ( *p == '?' && *string != '\0' )
-	    continue;
-	if ( *p == '*' )
-	    {
-	    int i, pl;
-	    ++p;
-	    if ( *p == '*' )
+	const char* p;
+
+	for ( p = pattern; p - pattern < patternlen; ++p, ++string )
 		{
-		/* Double-wildcard matches anything. */
-		++p;
-		i = strlen( string );
+		if ( *p == '?' && *string != '\0' )
+			continue;
+		if ( *p == '*' )
+			{
+			int i, pl;
+			++p;
+			if ( *p == '*' )
+				{
+				/* Double-wildcard matches anything. */
+				++p;
+				i = strlen( string );
+				}
+			else
+				/* Single-wildcard matches anything but slash. */
+				i = strcspn( string, "/" );
+			pl = patternlen - ( p - pattern );
+			for ( ; i >= 0; --i )
+				if ( match_one( p, pl, &(string[i]) ) )
+					return 1;
+			return 0;
+			}
+		if ( *p != *string )
+			return 0;
 		}
-	    else
-		/* Single-wildcard matches anything but slash. */
-		i = strcspn( string, "/" );
-	    pl = patternlen - ( p - pattern );
-	    for ( ; i >= 0; --i )
-		if ( match_one( p, pl, &(string[i]) ) )
-		    return 1;
-	    return 0;
-	    }
-	if ( *p != *string )
-	    return 0;
+	if ( *string == '\0' )
+		return 1;
+	return 0;
 	}
-    if ( *string == '\0' )
-	return 1;
-    return 0;
-    }

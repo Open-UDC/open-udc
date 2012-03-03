@@ -25,14 +25,14 @@ static char sccsid[] = "@(#)strerror.c  5.1 (Berkeley) 4/9/89";
 
 char *
 strerror(errnum)
-	int errnum;
+		int errnum;
 {
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-	static char ebuf[20];
+		extern int sys_nerr;
+		extern char *sys_errlist[];
+		static char ebuf[20];
 
-	if ((unsigned int)errnum < sys_nerr)
-		return(sys_errlist[errnum]);
-	(void)sprintf(ebuf, "Unknown error: %d", errnum);
-	return(ebuf);
+		if ((unsigned int)errnum < sys_nerr)
+				return(sys_errlist[errnum]);
+		(void)sprintf(ebuf, "Unknown error: %d", errnum);
+		return(ebuf);
 }

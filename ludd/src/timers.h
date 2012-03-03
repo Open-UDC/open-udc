@@ -7,10 +7,10 @@
 ** modification, are permitted provided that the following conditions
 ** are met:
 ** 1. Redistributions of source code must retain the above copyright
-**    notice, this list of conditions and the following disclaimer.
+**	notice, this list of conditions and the following disclaimer.
 ** 2. Redistributions in binary form must reproduce the above copyright
-**    notice, this list of conditions and the following disclaimer in the
-**    documentation and/or other materials provided with the distribution.
+**	notice, this list of conditions and the following disclaimer in the
+**	documentation and/or other materials provided with the distribution.
 **
 ** THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
 ** ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -39,12 +39,12 @@
 ** timer triggers.
 */
 typedef union {
-    void* p;
-    int i;
-    long l;
-    } ClientData;
+	void* p;
+	int i;
+	long l;
+	} ClientData;
 
-extern ClientData JunkClientData;	/* for use when you don't care */
+extern ClientData JunkClientData;		/* for use when you don't care */
 
 /* The TimerProc gets called when the timer expires.  It gets passed
 ** the ClientData associated with the timer, and a timeval in case
@@ -54,23 +54,23 @@ typedef void TimerProc( ClientData client_data, struct timeval* nowP );
 
 /* The Timer struct. */
 typedef struct TimerStruct {
-    TimerProc* timer_proc;
-    ClientData client_data;
-    long msecs;
-    int periodic;
-    struct timeval time;
-    struct TimerStruct* prev;
-    struct TimerStruct* next;
-    int hash;
-    } Timer;
+	TimerProc* timer_proc;
+	ClientData client_data;
+	long msecs;
+	int periodic;
+	struct timeval time;
+	struct TimerStruct* prev;
+	struct TimerStruct* next;
+	int hash;
+	} Timer;
 
 /* Initialize the timer package. */
 extern void tmr_init( void );
 
 /* Set up a timer, either periodic or one-shot. Returns (Timer*) 0 on errors. */
 extern Timer* tmr_create(
-    struct timeval* nowP, TimerProc* timer_proc, ClientData client_data,
-    long msecs, int periodic );
+	struct timeval* nowP, TimerProc* timer_proc, ClientData client_data,
+	long msecs, int periodic );
 
 /* Returns a timeout indicating how long until the next timer triggers.  You
 ** can just put the call to this routine right in your select().  Returns
