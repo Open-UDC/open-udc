@@ -73,7 +73,6 @@ typedef struct {
 	char* cgi_pattern;
 	int cgi_limit, cgi_count;
 	char* charset;
-	int max_age;
 	char* cwd;
 	int listen4_fd, listen6_fd;
 	int no_log;
@@ -169,7 +168,7 @@ typedef struct {
 extern httpd_server* httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
-	int max_age, char* cwd, int no_log, FILE* logfp,
+	char* cwd, int no_log, FILE* logfp,
 	int no_symlink_check, char* url_pattern,
 	char* local_pattern, int no_empty_referers );
 

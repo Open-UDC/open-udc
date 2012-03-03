@@ -27,8 +27,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR pidfile ]
 .RB [ -T
 .IR charset ]
-.RB [ -M
-.IR maxage ]
 .RB [ -V ]
 .RB [ -D ]
 .SH DESCRIPTION
@@ -132,14 +130,6 @@ Specifies the character set to use with text MIME types.
 The default is utf-8.
 The config-file option name for this flag is "charset",
 and the config.h option is DEFAULT_CHARSET.
-.TP
-.B -M
-Specifies the number of seconds to be used in a "Cache-Control: max-age"
-header to be returned with all responses.
-An equivalent "Expires" header is also generated.
-The default is no Cache-Control or Expires headers,
-which is just fine for most sites.
-The config-file option name for this flag is "max_age".
 .TP
 .B -V
 Shows the current version info.

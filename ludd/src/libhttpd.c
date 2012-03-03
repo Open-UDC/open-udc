@@ -220,7 +220,7 @@ httpd_server*
 httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit, char* charset,
-	int max_age, char* cwd, int no_log, FILE* logfp,
+	char* cwd, int no_log, FILE* logfp,
 	int no_symlink_check, char* url_pattern,
 	char* local_pattern, int no_empty_referers )
 	{
@@ -289,7 +289,6 @@ httpd_initialize(
 	hs->cgi_limit = cgi_limit;
 	hs->cgi_count = 0;
 	hs->charset = strdup( charset );
-	hs->max_age = max_age;
 	hs->cwd = strdup( cwd );
 	if ( hs->cwd == (char*) 0 )
 		{
@@ -664,16 +663,6 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 			{
 			(void) my_snprintf( buf, sizeof(buf),
 				"Content-Length: %lld\015\012", (int64_t) length );
-			add_response( hc, buf );
-			}
-		if ( hc->hs->max_age >= 0 )
-			{
-			expires = now + hc->hs->max_age;
-			(void) strftime(
-				expbuf, sizeof(expbuf), rfc1123fmt, gmtime( &expires ) );
-			(void) my_snprintf( buf, sizeof(buf),
-				"Cache-Control: max-age=%d\015\012Expires: %s\015\012",
-				hc->hs->max_age, expbuf );
 			add_response( hc, buf );
 			}
 		if ( extraheads[0] != '\0' )
