@@ -105,33 +105,6 @@
 */
 #define LOG_FACILITY LOG_DAEMON
 
-/* CONFIGURE: Tilde mapping.  Many URLs use ~username to indicate a
-** user's home directory.  thttpd provides two options for mapping
-** this construct to an actual filename.
-**
-** 1) Map ~username to <prefix>/username.  This is the recommended choice.
-** Each user gets a subdirectory in the main chrootable web tree, and
-** the tilde construct points there.  The prefix could be something
-** like "users", or it could be empty.  See also the makeweb program
-** for letting users create their own web subdirectories.
-**
-** 2) Map ~username to <user's homedir>/<postfix>.  The postfix would be
-** the name of a subdirectory off of the user's actual home dir, something
-** like "public_html".  This is what Apache and other servers do.  The problem
-** is, you can't do this and chroot() at the same time, so it's inherently
-** a security hole.  This is strongly dis-recommended, but it's here because
-** some people really want it.  Use at your own risk.
-**
-** You can also leave both options undefined, and thttpd will not do
-** anything special about tildes.  Enabling both options is an error.
-*/
-
-#define TILDE_MAP_1 "users"
-
-#ifdef notdef
-#define TILDE_MAP_2 "public_html"
-#endif
-
 /* CONFIGURE: The file to use for authentication.  If this is defined then
 ** thttpd checks for this file in the local directory before every fetch.
 ** If the file exists then authentication is done, otherwise the fetch

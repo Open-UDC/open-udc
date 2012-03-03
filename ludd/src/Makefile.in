@@ -36,11 +36,6 @@ MANDIR = @mandir@
 # Pathname of directory to install the CGI programs.
 WEBDIR = /var/.ludd
 
-# CONFIGURE: The group that the web directory belongs to.  This is so that
-# the makeweb program can be installed set-group-id to that group, and make
-# subdirectories.  If you're not going to use makeweb, ignore this.
-WEBGROUP =	www
-
 # CONFIGURE: Directory for CGI executables.
 CGIBINDIR =	$(WEBDIR)/cgi-bin
 
@@ -102,7 +97,6 @@ subdirs:
 		WEBDIR=$(WEBDIR) \
 		CGIBINDIR=$(CGIBINDIR) \
 		MANDIR=$(MANDIR) \
-		WEBGROUP=$(WEBGROUP) \
 	) ; done
 
 
@@ -124,7 +118,6 @@ installsubdirs:
 		WEBDIR=$(WEBDIR) \
 		CGIBINDIR=$(CGIBINDIR) \
 		MANDIR=$(MANDIR) \
-		WEBGROUP=$(WEBGROUP) \
 		install \
 	) ; done
 

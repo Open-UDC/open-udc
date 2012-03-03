@@ -146,12 +146,6 @@ static void strdecode( char* to, char* from );
 #ifdef GENERATE_INDEXES
 static void strencode( char* to, int tosize, char* from );
 #endif /* GENERATE_INDEXES */
-#ifdef TILDE_MAP_1
-static int tilde_map_1( httpd_conn* hc );
-#endif /* TILDE_MAP_1 */
-#ifdef TILDE_MAP_2
-static int tilde_map_2( httpd_conn* hc );
-#endif /* TILDE_MAP_2 */
 static int vhost_map( httpd_conn* hc );
 static char* expand_symlinks( char* path, char** restP, int no_symlink_check, int tildemapped );
 static char* bufgets( httpd_conn* hc );
@@ -202,10 +196,6 @@ static int sub_process = 0;
 static void
 check_options( void )
     {
-#if defined(TILDE_MAP_1) && defined(TILDE_MAP_2)
-    syslog( LOG_CRIT, "both TILDE_MAP_1 and TILDE_MAP_2 are defined" );
-    exit( 1 );
-#endif /* both */
     }
 
 
@@ -1264,88 +1254,6 @@ strencode( char* to, int tosize, char* from )
     }
 #endif /* GENERATE_INDEXES */
 
-
-#ifdef TILDE_MAP_1
-/* Map a ~username/whatever URL into <prefix>/username. */
-static int
-tilde_map_1( httpd_conn* hc )
-    {
-    static char* temp;
-    static size_t maxtemp = 0;
-    int len;
-    static char* prefix = TILDE_MAP_1;
-
-    len = strlen( hc->expnfilename ) - 1;
-    httpd_realloc_str( &temp, &maxtemp, len );
-    (void) strcpy( temp, &hc->expnfilename[1] );
-    httpd_realloc_str(
-	&hc->expnfilename, &hc->maxexpnfilename, strlen( prefix ) + 1 + len );
-    (void) strcpy( hc->expnfilename, prefix );
-    if ( prefix[0] != '\0' )
-	(void) strcat( hc->expnfilename, "/" );
-    (void) strcat( hc->expnfilename, temp );
-    return 1;
-    }
-#endif /* TILDE_MAP_1 */
-
-#ifdef TILDE_MAP_2
-/* Map a ~username/whatever URL into <user's homedir>/<postfix>. */
-static int
-tilde_map_2( httpd_conn* hc )
-    {
-    static char* temp;
-    static size_t maxtemp = 0;
-    static char* postfix = TILDE_MAP_2;
-    char* cp;
-    struct passwd* pw;
-    char* alt;
-    char* rest;
-
-    /* Get the username. */
-    httpd_realloc_str( &temp, &maxtemp, strlen( hc->expnfilename ) - 1 );
-    (void) strcpy( temp, &hc->expnfilename[1] );
-    cp = strchr( temp, '/' );
-    if ( cp != (char*) 0 )
-	*cp++ = '\0';
-    else
-	cp = "";
-
-    /* Get the passwd entry. */
-    pw = getpwnam( temp );
-    if ( pw == (struct passwd*) 0 )
-	return 0;
-
-    /* Set up altdir. */
-    httpd_realloc_str(
-	&hc->altdir, &hc->maxaltdir,
-	strlen( pw->pw_dir ) + 1 + strlen( postfix ) );
-    (void) strcpy( hc->altdir, pw->pw_dir );
-    if ( postfix[0] != '\0' )
-	{
-	(void) strcat( hc->altdir, "/" );
-	(void) strcat( hc->altdir, postfix );
-	}
-    alt = expand_symlinks( hc->altdir, &rest, 0, 1 );
-    if ( rest[0] != '\0' )
-	return 0;
-    httpd_realloc_str( &hc->altdir, &hc->maxaltdir, strlen( alt ) );
-    (void) strcpy( hc->altdir, alt );
-
-    /* And the filename becomes altdir plus the post-~ part of the original. */
-    httpd_realloc_str(
-	&hc->expnfilename, &hc->maxexpnfilename,
-	strlen( hc->altdir ) + 1 + strlen( cp ) );
-    (void) my_snprintf( hc->expnfilename, hc->maxexpnfilename,
-	"%s/%s", hc->altdir, cp );
-
-    /* For this type of tilde mapping, we want to defeat vhost mapping. */
-    hc->tildemapped = 1;
-
-    return 1;
-    }
-#endif /* TILDE_MAP_2 */
-
-
 /* Virtual host mapping. */
 static int
 vhost_map( httpd_conn* hc )
@@ -2275,23 +2183,8 @@ httpd_parse_request( httpd_conn* hc )
     (void) strcpy( hc->expnfilename, hc->origfilename );
 
     /* Tilde mapping. */
-    if ( hc->expnfilename[0] == '~' )
-	{
-#ifdef TILDE_MAP_1
-	if ( ! tilde_map_1( hc ) )
-	    {
-	    httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
-	    return -1;
-	    }
-#endif /* TILDE_MAP_1 */
-#ifdef TILDE_MAP_2
-	if ( ! tilde_map_2( hc ) )
-	    {
-	    httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
-	    return -1;
-	    }
-#endif /* TILDE_MAP_2 */
-	}
+    /*if ( hc->expnfilename[0] == '~' )
+	{}*/
 
     /* Virtual host mapping. */
     if ( hc->hs->vhost )
