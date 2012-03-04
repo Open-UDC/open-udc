@@ -12,7 +12,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .RB [ -dd
 .IR data_dir ]
 .RB [ -r | -nor ]
-.RB [ -s | -nos ]
 .RB [ -u
 .IR user ]
 .RB [ -c
@@ -74,17 +73,6 @@ of the chroot tree, instead of in the top level mixed in with the
 chroot files.
 The config-file option name for this flag is "data_dir".
 .TP
-.B -nos
-Don't do explicit symbolic link checking.
-Normally, thttpd explicitly expands any symbolic links in filenames,
-to check that the resulting path stays within the original document tree.
-If you want to turn off this check and save some CPU time, you can use
-the -nos flag, however this is not recommended.
-Note, though, that if you are using the chroot option, the symlink
-checking is unnecessary and is turned off, so the safe way to save
-those CPU cycles is to use chroot.
-The config-file option names for this flag are "symlinks" and "nosymlinks".
-.TP
 .B -u
 Specifies what user to switch to after initialization when started as root.
 The default is ".ludd".
@@ -106,9 +94,7 @@ The config-file option name for this flag is "throttles".
 .B -h
 Specifies a hostname to bind to, for multihoming.
 The default is to bind to all hostnames supported on the local machine.
-See below for details.
-The config-file option name for this flag is "host",
-and the config.h option is SERVER_NAME.
+The config-file option name for this flag is "host".
 .TP
 .B -l
 Specifies a file for logging.
@@ -271,65 +257,6 @@ However you can control the overall number of connections for the whole
 server very simply, by setting the operating system's per-process file
 descriptor limit before starting thttpd.
 Be sure to set the hard limit, not the soft limit.
-.SH "MULTIHOMING"
-.PP
-Multihoming means using one machine to serve multiple hostnames.
-For instance, if you're an internet provider and you want to let
-all of your customers have customized web addresses, you might
-have www.joe.acme.com, www.jane.acme.com, and your own www.acme.com,
-all running on the same physical hardware.
-This feature is also known as "virtual hosts".
-There are three steps to setting this up.
-.PP
-One, make DNS entries for all of the hostnames.
-The current way to do this, allowed by HTTP/1.1, is to use CNAME aliases,
-like so:
-.nf
-  www.acme.com IN A 192.100.66.1
-  www.joe.acme.com IN CNAME www.acme.com
-  www.jane.acme.com IN CNAME www.acme.com
-.fi
-However, this is incompatible with older HTTP/1.0 browsers.
-If you want to stay compatible, there's a different way - use A records
-instead, each with a different IP address, like so:
-.nf
-  www.acme.com IN A 192.100.66.1
-  www.joe.acme.com IN A 192.100.66.200
-  www.jane.acme.com IN A 192.100.66.201
-.fi
-This is bad because it uses extra IP addresses, a somewhat scarce resource.
-But if you want people with older browsers to be able to visit your
-sites, you still have to do it this way.
-.PP
-Step two.
-If you're using the modern CNAME method of multihoming, then you can
-skip this step.
-Otherwise, using the older multiple-IP-address method you
-must set up IP aliases or multiple interfaces for the extra addresses.
-You can use ifconfig(8)'s alias command to tell the machine to answer to
-all of the different IP addresses.
-Example:
-.nf
-  ifconfig le0 www.acme.com
-  ifconfig le0 www.joe.acme.com alias
-  ifconfig le0 www.jane.acme.com alias
-.fi
-If your OS's version of ifconfig doesn't have an alias command, you're
-probably out of luck (but see http://www.acme.com/software/thttpd/notes.html).
-.PP
-There's an optional alternate step if you're using multiple-IP
-multihosting: run a separate thttpd process for each hostname, using
-the -h flag to specify which one is which.
-This gives you more flexibility, since you can run each of these processes
-in separate directories, with different throttle files, etc.
-Example:
-.nf
-  thttpd -r -d /usr/www -h www.acme.com
-  thttpd -r -d /usr/www/joe -u joe -h www.joe.acme.com
-  thttpd -r -d /usr/www/jane -u jane -h www.jane.acme.com
-.fi
-But remember, this multiple-process method does not work with CNAME
-multihosting.
 .SH "CUSTOM ERRORS"
 .PP
 thttpd lets you define your own custom error pages for the various

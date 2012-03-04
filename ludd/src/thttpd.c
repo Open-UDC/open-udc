@@ -935,10 +935,6 @@ parse_args( int argc, char** argv )
 			++argn;
 			data_dir = argv[argn];
 			}
-		else if ( strcmp( argv[argn], "-s" ) == 0 )
-			no_symlink_check = 0;
-		else if ( strcmp( argv[argn], "-nos" ) == 0 )
-			no_symlink_check = 1;
 		else if ( strcmp( argv[argn], "-u" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
@@ -984,7 +980,7 @@ static void
 usage( void )
 	{
 	(void) fprintf( stderr,
-"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-s|-nos] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n",
+"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n",
 		argv0 );
 	exit( 1 );
 	}
@@ -1062,26 +1058,6 @@ read_config( char* filename )
 				{
 				value_required( name, value );
 				data_dir = e_strdup( value );
-				}
-			else if ( strcasecmp( name, "symlink" ) == 0 )
-				{
-				no_value_required( name, value );
-				no_symlink_check = 0;
-				}
-			else if ( strcasecmp( name, "nosymlink" ) == 0 )
-				{
-				no_value_required( name, value );
-				no_symlink_check = 1;
-				}
-			else if ( strcasecmp( name, "symlinks" ) == 0 )
-				{
-				no_value_required( name, value );
-				no_symlink_check = 0;
-				}
-			else if ( strcasecmp( name, "nosymlinks" ) == 0 )
-				{
-				no_value_required( name, value );
-				no_symlink_check = 1;
 				}
 			else if ( strcasecmp( name, "user" ) == 0 )
 				{

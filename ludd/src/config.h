@@ -126,31 +126,6 @@
 
 /* Most people won't want to change anything below here. */
 
-/* CONFIGURE: This controls the SERVER_NAME environment variable that gets
-** passed to CGI programs.  By default thttpd does a gethostname(), which
-** gives the host's canonical name.  If you want to always use some other name
-** you can define it here.
-**
-** Alternately, if you want to run the same thttpd binary on multiple
-** machines, and want to build in alternate names for some or all of
-** them, you can define a list of canonical name to altername name
-** mappings.  thttpd seatches the list and when it finds a match on
-** the canonical name, that alternate name gets used.  If no match
-** is found, the canonical name gets used.
-**
-** If both SERVER_NAME and SERVER_NAME_LIST are defined here, thttpd searches
-** the list as above, and if no match is found then SERVER_NAME gets used.
-**
-** In any case, if thttpd is started with the -h flag, that name always
-** gets used.
-*/
-#ifdef notdef
-#define SERVER_NAME "your.hostname.here"
-#define SERVER_NAME_LIST \
-	"canonical.name.here/alternate.name.here", \
-	"canonical.name.two/alternate.name.two"
-#endif
-
 /* CONFIGURE: Undefine this if you want ludd to hide its specific version
 ** when returning into to browsers.  Instead it'll just say "ludd" with
 ** no version.

@@ -158,9 +158,6 @@ static void cgi_kill( ClientData client_data, struct timeval* nowP );
 static int ls( httpd_conn* hc );
 #endif /* GENERATE_INDEXES */
 static char* build_env( char* fmt, char* arg );
-#ifdef SERVER_NAME_LIST
-static char* hostname_map( char* hostname );
-#endif /* SERVER_NAME_LIST */
 static char** make_envp( httpd_conn* hc );
 static char** make_argp( httpd_conn* hc );
 static void cgi_interpose_input( httpd_conn* hc, int wfd );
@@ -249,21 +246,8 @@ httpd_initialize(
 		{
 		hs->binding_hostname = (char*) 0;
 		hs->server_hostname = (char*) 0;
-		if ( gethostname( ghnbuf, sizeof(ghnbuf) ) < 0 )
-			ghnbuf[0] = '\0';
-#ifdef SERVER_NAME_LIST
-		if ( ghnbuf[0] != '\0' )
-			hs->server_hostname = hostname_map( ghnbuf );
-#endif /* SERVER_NAME_LIST */
-		if ( hs->server_hostname == (char*) 0 )
-			{
-#ifdef SERVER_NAME
-			hs->server_hostname = SERVER_NAME;
-#else /* SERVER_NAME */
-			if ( ghnbuf[0] != '\0' )
-				hs->server_hostname = ghnbuf;
-#endif /* SERVER_NAME */
-			}
+		if ( gethostname( ghnbuf, sizeof(ghnbuf) ) == 0 )
+			hs->server_hostname = ghnbuf;
 		}
 
 	hs->port = port;
@@ -2733,24 +2717,6 @@ build_env( char* fmt, char* arg )
 		}
 	return cp;
 	}
-
-
-#ifdef SERVER_NAME_LIST
-static char*
-hostname_map( char* hostname )
-	{
-	int len, n;
-	static char* list[] = { SERVER_NAME_LIST };
-
-	len = strlen( hostname );
-	for ( n = sizeof(list) / sizeof(*list) - 1; n >= 0; --n )
-		if ( strncasecmp( hostname, list[n], len ) == 0 )
-			if ( list[n][len] == '/' )  /* check in case of a substring match */
-				return &list[n][len + 1];
-	return (char*) 0;
-	}
-#endif /* SERVER_NAME_LIST */
-
 
 /* Set up environment variables. Be real careful here to avoid
 ** letting malicious clients overrun a buffer.  We don't have
