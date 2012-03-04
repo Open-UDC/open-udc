@@ -297,7 +297,7 @@
 /* CONFIGURE: Maximum number of symbolic links to follow before
 ** assuming there's a loop.
 */
-#define MAX_LINKS 32
+#define MAX_LINKS 16
 
 /* CONFIGURE: You don't even want to know.
 */

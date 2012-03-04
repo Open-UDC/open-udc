@@ -1419,9 +1419,6 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 			hc->maxpathinfo = hc->maxquery = hc->maxaccept =
 			hc->maxaccepte = hc->maxreqhost = hc->maxhostdir =
 			hc->maxremoteuser = hc->maxresponse = 0;
-#ifdef TILDE_MAP_2
-		hc->maxaltdir = 0;
-#endif /* TILDE_MAP_2 */
 		httpd_realloc_str( &hc->decodedurl, &hc->maxdecodedurl, 1 );
 		httpd_realloc_str( &hc->origfilename, &hc->maxorigfilename, 1 );
 		httpd_realloc_str( &hc->expnfilename, &hc->maxexpnfilename, 0 );
@@ -1434,9 +1431,6 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 		httpd_realloc_str( &hc->hostdir, &hc->maxhostdir, 0 );
 		httpd_realloc_str( &hc->remoteuser, &hc->maxremoteuser, 0 );
 		httpd_realloc_str( &hc->response, &hc->maxresponse, 0 );
-#ifdef TILDE_MAP_2
-		httpd_realloc_str( &hc->altdir, &hc->maxaltdir, 0 );
-#endif /* TILDE_MAP_2 */
 		hc->initialized = 1;
 		}
 
@@ -1489,9 +1483,6 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->authorization = "";
 	hc->remoteuser[0] = '\0';
 	hc->response[0] = '\0';
-#ifdef TILDE_MAP_2
-	hc->altdir[0] = '\0';
-#endif /* TILDE_MAP_2 */
 	hc->responselen = 0;
 	hc->if_modified_since = (time_t) -1;
 	hc->range_if = (time_t) -1;
@@ -2072,15 +2063,6 @@ httpd_parse_request( httpd_conn* hc )
 			(void) strcpy(
 				hc->expnfilename, &hc->expnfilename[strlen( hc->hs->cwd )] );
 			}
-#ifdef TILDE_MAP_2
-		else if ( hc->altdir[0] != '\0' &&
-				  ( strncmp(
-					   hc->expnfilename, hc->altdir,
-					   strlen( hc->altdir ) ) == 0 &&
-					( hc->expnfilename[strlen( hc->altdir )] == '\0' ||
-					  hc->expnfilename[strlen( hc->altdir )] == '/' ) ) )
-			{}
-#endif /* TILDE_MAP_2 */
 		else
 			{
 			syslog(
@@ -2206,9 +2188,6 @@ httpd_destroy_conn( httpd_conn* hc )
 		free( (void*) hc->hostdir );
 		free( (void*) hc->remoteuser );
 		free( (void*) hc->response );
-#ifdef TILDE_MAP_2
-		free( (void*) hc->altdir );
-#endif /* TILDE_MAP_2 */
 		hc->initialized = 0;
 		}
 	}
@@ -3448,6 +3427,37 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 				hc->encodedurl );
 			return -1;
 			}
+		}
+	/* If it is a regular file (or a symlink), forbid acces to those beginning with a '.'  */
+	else if ( S_ISREG(hc->sb.st_mode) || S_ISLNK(hc->sb.st_mode) ) 
+		/* Note: S_ISLNK() should alway been false since we have stat expnfilename wich is the link destination */
+		{
+		cp = strrchr(hc->expnfilename, '/');
+		if ( cp == (char*) 0 )
+			cp=hc->expnfilename;
+		else
+			cp++;
+		if ( *cp == '.' ) 
+			{
+			httpd_send_err(
+				hc, 403, err403title, "",
+				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to an hidden file (beginning with a '.').\n" ),
+				hc->encodedurl );
+			return -1;
+			}
+		}
+	/* If it is not a regular file (or a symlink) or a dir, forbid acces.  */
+	else
+		{
+		syslog(
+			LOG_INFO,
+			"%.80s URL \"%.80s\" doesn't resolves to a regular file or a directory.",
+			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+		httpd_send_err(
+			hc, 403, err403title, "",
+			ERROR_FORM( err403form, "The requested URL '%.80s' doesn't resolves to a regular file or a directory.\n" ),
+			hc->encodedurl );
+		return -1;
 		}
 
 #ifdef AUTH_FILE

@@ -118,10 +118,6 @@ typedef struct {
 	size_t maxdecodedurl, maxorigfilename, maxexpnfilename, maxencodings,
 		maxpathinfo, maxquery, maxaccept, maxaccepte, maxreqhost, maxhostdir,
 		maxremoteuser, maxresponse;
-#ifdef TILDE_MAP_2
-	char* altdir;
-	size_t maxaltdir;
-#endif /* TILDE_MAP_2 */
 	size_t responselen;
 	time_t if_modified_since, range_if;
 	size_t contentlength;
