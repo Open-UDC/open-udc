@@ -80,9 +80,6 @@ static char* data_dir;
 static int do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
 static int cgi_limit;
-static char* url_pattern;
-static int no_empty_referers;
-static char* local_pattern;
 static char* logfile;
 static char* throttlefile;
 static char* hostname;
@@ -660,9 +657,7 @@ main( int argc, char** argv )
 	hs = httpd_initialize(
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		port, cgi_pattern, cgi_limit, cwd, no_log, logfp,
-		no_symlink_check, url_pattern,
-		local_pattern, no_empty_referers );
+		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
 	if ( hs == (httpd_server*) 0 )
 	{
 		syslog ( LOG_ERR, "Could not perform initialization. Exiting." );
@@ -889,9 +884,6 @@ parse_args( int argc, char** argv )
 #else /* CGI_LIMIT */
 	cgi_limit = 0;
 #endif /* CGI_LIMIT */
-	url_pattern = (char*) 0;
-	no_empty_referers = 0;
-	local_pattern = (char*) 0;
 	throttlefile = (char*) 0;
 	hostname = (char*) 0;
 	logfile = (char*) 0;
@@ -1073,21 +1065,6 @@ read_config( char* filename )
 				{
 				value_required( name, value );
 				cgi_limit = atoi( value );
-				}
-			else if ( strcasecmp( name, "urlpat" ) == 0 )
-				{
-				value_required( name, value );
-				url_pattern = e_strdup( value );
-				}
-			else if ( strcasecmp( name, "noemptyreferers" ) == 0 )
-				{
-				no_value_required( name, value );
-				no_empty_referers = 1;
-				}
-			else if ( strcasecmp( name, "localpat" ) == 0 )
-				{
-				value_required( name, value );
-				local_pattern = e_strdup( value );
 				}
 			else if ( strcasecmp( name, "throttles" ) == 0 )
 				{

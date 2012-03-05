@@ -270,35 +270,6 @@ error, which is number 401, you would put your HTML into the file
 "errors/err401.html".
 If no custom error file is found for a given error number, then the
 usual built-in error page is generated.
-.SH "NON-LOCAL REFERERS"
-.PP
-Sometimes another site on the net will embed your image files in their
-HTML files, which basically means they're stealing your bandwidth.
-You can prevent them from doing this by using non-local referer filtering.
-With this option, certain files can only be fetched via a local referer.
-The files have to be referenced by a local web page.
-If a web page on some other site references the files, that fetch will
-be blocked.
-There are three config-file variables for this feature:
-.TP
-.B urlpat
-A wildcard pattern for the URLs that should require a local referer.
-This is typically just image files, sound files, and so on.
-For example:
-.nf
-  urlpat=**.jpg|**.gif|**.au|**.wav
-.fi
-For most sites, that one setting is all you need to enable referer filtering.
-.TP
-.B noemptyreferers
-By default, requests with no referer at all, or a null referer, or a
-referer with no apparent hostname, are allowed.
-With this variable set, such requests are disallowed.
-.TP
-.B localpat
-A wildcard pattern that specifies the local host or hosts.
-This is used to determine if the host in the referer is local or not.
-If not specified it defaults to the actual local hostname.
 .SH SYMLINKS
 .PP
 thttpd is very picky about symbolic links.

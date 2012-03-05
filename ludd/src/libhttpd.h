@@ -77,9 +77,6 @@ typedef struct {
 	int no_log;
 	FILE* logfp;
 	int no_symlink_check;
-	char* url_pattern;
-	char* local_pattern;
-	int no_empty_referers;
 	} httpd_server;
 
 /* A connection. */
@@ -163,9 +160,7 @@ typedef struct {
 extern httpd_server* httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit,
-	char* cwd, int no_log, FILE* logfp,
-	int no_symlink_check, char* url_pattern,
-	char* local_pattern, int no_empty_referers );
+	char* cwd, int no_log, FILE* logfp, int no_symlink_check);
 
 /* Change the log file. */
 extern void httpd_set_logfp( httpd_server* hs, FILE* logfp );

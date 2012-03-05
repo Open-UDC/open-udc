@@ -167,8 +167,6 @@ static void cgi_child( httpd_conn* hc );
 static int cgi( httpd_conn* hc );
 static int really_start_request( httpd_conn* hc, struct timeval* nowP );
 static void make_log_entry( httpd_conn* hc, struct timeval* nowP );
-static int check_referer( httpd_conn* hc );
-static int really_check_referer( httpd_conn* hc );
 static int sockaddr_check( httpd_sockaddr* saP );
 static size_t sockaddr_len( httpd_sockaddr* saP );
 static int my_snprintf( char* str, size_t size, const char* format, ... );
@@ -203,10 +201,6 @@ free_httpd_server( httpd_server* hs )
 		free( (void*) hs->cwd );
 	if ( hs->cgi_pattern != (char*) 0 )
 		free( (void*) hs->cgi_pattern );
-	if ( hs->url_pattern != (char*) 0 )
-		free( (void*) hs->url_pattern );
-	if ( hs->local_pattern != (char*) 0 )
-		free( (void*) hs->local_pattern );
 	free( (void*) hs );
 	}
 
@@ -215,9 +209,7 @@ httpd_server*
 httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit,
-	char* cwd, int no_log, FILE* logfp,
-	int no_symlink_check, char* url_pattern,
-	char* local_pattern, int no_empty_referers )
+	char* cwd, int no_log, FILE* logfp, int no_symlink_check )
 	{
 	httpd_server* hs;
 	static char ghnbuf[256];
@@ -276,33 +268,10 @@ httpd_initialize(
 		syslog( LOG_CRIT, "out of memory copying cwd" );
 		return (httpd_server*) 0;
 		}
-	if ( url_pattern == (char*) 0 )
-		hs->url_pattern = (char*) 0;
-	else
-		{
-		hs->url_pattern = strdup( url_pattern );
-		if ( hs->url_pattern == (char*) 0 )
-			{
-			syslog( LOG_CRIT, "out of memory copying url_pattern" );
-			return (httpd_server*) 0;
-			}
-		}
-	if ( local_pattern == (char*) 0 )
-		hs->local_pattern = (char*) 0;
-	else
-		{
-		hs->local_pattern = strdup( local_pattern );
-		if ( hs->local_pattern == (char*) 0 )
-			{
-			syslog( LOG_CRIT, "out of memory copying local_pattern" );
-			return (httpd_server*) 0;
-			}
-		}
 	hs->no_log = no_log;
 	hs->logfp = (FILE*) 0;
 	httpd_set_logfp( hs, logfp );
 	hs->no_symlink_check = no_symlink_check;
-	hs->no_empty_referers = no_empty_referers;
 
 	/* Initialize listen sockets.  Try v6 first because of a Linux peculiarity;
 	** like some other systems, it has magical v6 sockets that also listen for
@@ -3384,9 +3353,7 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 		if ( auth_check( hc, hc->expnfilename ) == -1 )
 			return -1;
 #endif /* AUTH_FILE */
-		/* Referer check. */
-		if ( ! check_referer( hc ) )
-			return -1;
+
 		/* Ok, generate an index. */
 		return ls( hc );
 #else /* GENERATE_INDEXES */
@@ -3503,10 +3470,6 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 		return -1;
 		}
 #endif /* AUTH_FILE */
-
-	/* Referer check. */
-	if ( ! check_referer( hc ) )
-		return -1;
 
 	/* Is it world-executable and in the CGI area? */
 	if ( hc->hs->cgi_pattern != (char*) 0 &&
@@ -3675,96 +3638,6 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 			httpd_method_str( hc->method ), url, hc->protocol,
 			hc->status, bytes, hc->referer, hc->useragent );
 	}
-
-
-/* Returns 1 if ok to serve the url, 0 if not. */
-static int
-check_referer( httpd_conn* hc )
-	{
-	int r;
-	char* cp;
-
-	/* Are we doing referer checking at all? */
-	if ( hc->hs->url_pattern == (char*) 0 )
-		return 1;
-
-	r = really_check_referer( hc );
-
-	if ( ! r )
-		{
-		cp = hc->hs->server_hostname;
-		if ( cp == (char*) 0 )
-			cp = "";
-		syslog(
-			LOG_INFO, "%.80s non-local referer \"%.80s%.80s\" \"%.80s\"",
-			httpd_ntoa( &hc->client_addr ), cp, hc->encodedurl, hc->referer );
-		httpd_send_err(
-			hc, 403, err403title, "",
-			ERROR_FORM( err403form, "You must supply a local referer to get URL '%.80s' from this server.\n" ),
-			hc->encodedurl );
-		}
-	return r;
-	}
-
-
-/* Returns 1 if ok to serve the url, 0 if not. */
-static int
-really_check_referer( httpd_conn* hc )
-	{
-	httpd_server* hs;
-	char* cp1;
-	char* cp2;
-	char* cp3;
-	static char* refhost = (char*) 0;
-	static size_t refhost_size = 0;
-	char *lp;
-
-	hs = hc->hs;
-
-	/* Check for an empty referer. */
-	if ( hc->referer == (char*) 0 || hc->referer[0] == '\0' ||
-		 ( cp1 = strstr( hc->referer, "//" ) ) == (char*) 0 )
-		{
-		/* Disallow if we require a referer and the url matches. */
-		if ( hs->no_empty_referers && match( hs->url_pattern, hc->origfilename ) )
-			return 0;
-		/* Otherwise ok. */
-		return 1;
-		}
-
-	/* Extract referer host. */
-	cp1 += 2;
-	for ( cp2 = cp1; *cp2 != '/' && *cp2 != ':' && *cp2 != '\0'; ++cp2 )
-		continue;
-	httpd_realloc_str( &refhost, &refhost_size, cp2 - cp1 );
-	for ( cp3 = refhost; cp1 < cp2; ++cp1, ++cp3 )
-		if ( isupper(*cp1) )
-			*cp3 = tolower(*cp1);
-		else
-			*cp3 = *cp1;
-	*cp3 = '\0';
-
-	/* Local pattern? */
-	if ( hs->local_pattern != (char*) 0 )
-		lp = hs->local_pattern;
-	else
-		{
-		/* Not vhosting, use the server name. */
-		lp = hs->server_hostname;
-		if ( lp == (char*) 0 )
-			/* Couldn't figure out local hostname - give up. */
-			return 1;
-		}
-
-	/* If the referer host doesn't match the local host pattern, and
-	** the filename does match the url pattern, it's an illegal reference.
-	*/
-	if ( ! match( lp, refhost ) && match( hs->url_pattern, hc->origfilename ) )
-		return 0;
-	/* Otherwise ok. */
-	return 1;
-	}
-
 
 char*
 httpd_ntoa( httpd_sockaddr* saP )
