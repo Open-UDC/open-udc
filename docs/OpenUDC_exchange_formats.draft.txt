@@ -50,7 +50,7 @@ Request for Comments:                                      Open-UDC Team
   Validation Nodes, act as HTTP Servers.
 
   There in no restriction on the port number to reach a Validation
-  Deamon, although port 12580 or 80 are recommanded.
+  Deamon, although port 12580 or 11371 or 80 are recommanded.
 
   Validation Nodes MUST manage "GET" and "POST" word as specified by
   the protocol HTTP/1.0.
@@ -79,48 +79,47 @@ Request for Comments:                                      Open-UDC Team
   Here is an OverView of such tree structure :
 
 http[s]://Node[:port]/[Root/]...
+|-- authent.in
+|-- creation.in
+|-- transaction.in
+|-- sign.in
 |-- udid2/
 |   `-- geolist_FRA.txt.asc
-`-- [CURRENCY NAME]/
-    |-- authent.in
-    |-- creation.in
-    |-- transaction.in
-    |-- sign.in
-    |-- self/
-    |   |-- cert.gpg
-    |   `-- peers.list
-    |-- c/
-    |   `-- [CREATION_SHEET_NUM]/
-    |       |-- [CREATION_SHEET_NUM].env
-    |       |-- [CREATION_SHEET_NUM].list
-    |       `-- [CREATION_SHEET_NUM].list.diff
-    |-- d/
-    |   `-- [CREATION_SHEET_NUM]/
-    |       |-- 1.bdb
-    |       |-- ...
-    |       |-- 1024.bdb
-    |       `-- ...
-    `-- k/
-        |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
-        |   |-- c/
-        |   |-- cert.gpg
-        |   `-- t/
-        |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
-        |   |-- c/
-        |   |   `-- 1.sig
-        |   |-- cert.gpg
-        |   `-- t/
-        |       |-- 1.gpg
-        |       |-- ...
-        |       `-- 3.gpg
-        `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
-            |-- c/
-            |   |-- 1.sig
-            |   |-- ...
-            |   `-- 3.sig
-            |-- cert.gpg
-            `-- t/
-                `-- 1.gpg
+|-- pks/
+|   |-- add
+|   `-- lookup
+|-- self/
+|   |-- cert.gpg
+|   `-- peers.list
+|-- c/
+|   `-- [CREATION_SHEET_NUM]/
+|       |-- [CREATION_SHEET_NUM].env
+|       |-- [CREATION_SHEET_NUM].list
+|       `-- [CREATION_SHEET_NUM].list.diff
+|-- d/
+|   `-- [CREATION_SHEET_NUM]/
+|       |-- 1.bdb
+|       |-- ...
+|       |-- 1024.bdb
+|       `-- ...
+`-- k/
+	|-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
+	|   |-- c/
+	|   `-- t/
+	|-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
+	|   |-- c/
+	|   |   `-- 1.sig
+	|   `-- t/
+	|       |-- 1.gpg
+	|       |-- ...
+	|       `-- 3.gpg
+	`-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
+		|-- c/
+		|   |-- 1.sig
+		|   |-- ...
+		|   `-- 3.sig
+		`-- t/
+			`-- 1.gpg
 
 
 5.== Data expected in the tree structure ==
