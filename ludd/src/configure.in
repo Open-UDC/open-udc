@@ -5,6 +5,9 @@ AC_INIT(thttpd.c)
 AC_CANONICAL_SYSTEM
 
 AC_PROG_CC
+AC_LANG([C])
+
+AC_SYS_LARGEFILE
 
 V_CCOPT="-O"
 if test "$GCC" = yes ; then
@@ -64,7 +67,7 @@ else
 	AC_MSG_RESULT(no)   
 fi
 
-AC_CHECK_HEADERS(fcntl.h grp.h memory.h paths.h poll.h sys/poll.h sys/devpoll.h sys/event.h osreldate.h)
+AC_CHECK_HEADERS(fcntl.h grp.h memory.h paths.h poll.h sys/poll.h sys/devpoll.h sys/event.h osreldate.h gpgme.h)
 AC_HEADER_TIME
 AC_HEADER_DIRENT
 
@@ -82,28 +85,11 @@ dnl Most operating systems have gethostbyname() in the default searched
 dnl libraries (i.e. libc):
 dnl
 V_NETLIBS=""
-AC_CHECK_FUNC(gethostbyname, ,
-    # Some OSes (eg. Solaris) place it in libnsl:
-    AC_LBL_CHECK_LIB(nsl, gethostbyname,
-	V_NETLIBS="-lnsl $V_NETLIBS", 
-	# Some strange OSes (SINIX) have it in libsocket:
-	AC_LBL_CHECK_LIB(socket, gethostbyname,
-	    V_NETLIBS="-lsocket $V_NETLIBS", 
-	    # Unfortunately libsocket sometimes depends on libnsl.
-	    # AC_CHECK_LIB's API is essentially broken so the
-	    # following ugliness is necessary:
-	    AC_LBL_CHECK_LIB(socket, gethostbyname,
-		V_NETLIBS="-lsocket -lnsl $V_NETLIBS",
-		AC_CHECK_LIB(resolv, gethostbyname,
-		    V_NETLIBS="-lresolv $V_NETLIBS"),
-		-lnsl))))
-AC_CHECK_FUNC(socket, ,
-    AC_CHECK_LIB(socket, socket,
-	V_NETLIBS="-lsocket $V_NETLIBS",
-	AC_LBL_CHECK_LIB(socket, socket,
-	    V_NETLIBS="-lsocket -lnsl $V_NETLIBS", , -lnsl)))
+AC_CHECK_FUNC(gethostbyname)
+AC_CHECK_FUNC(socket)
 
 AC_CHECK_LIB(inet6, main)
+AC_CHECK_LIB(gpgme, gpgme_check_version)
 
 AC_CHECK_FUNC(crypt, , AC_CHECK_LIB(crypt, crypt))
 AC_CHECK_FUNC(hstrerror, ,

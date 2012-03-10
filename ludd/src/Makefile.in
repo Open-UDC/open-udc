@@ -57,7 +57,7 @@ INSTALL =	@INSTALL@
 	@rm -f $@
 	$(CC) $(CFLAGS) -c $*.c
 
-SRC =		thttpd.c libhttpd.c fdwatch.c mmc.c timers.c match.c tdate_parse.c
+SRC =		thttpd.c libhttpd.c fdwatch.c mmc.c timers.c match.c tdate_parse.c hkp.c
 
 OBJ =		$(SRC:.c=.o) @LIBOBJS@
 
@@ -161,9 +161,10 @@ tar:
 
 thttpd.o:	config.h version.h libhttpd.h fdwatch.h mmc.h timers.h match.h
 libhttpd.o:	config.h version.h libhttpd.h mime_encodings.h mime_types.h \
-		mmc.h timers.h match.h tdate_parse.h
+		mmc.h timers.h match.h tdate_parse.h hkp.h
 fdwatch.o:	fdwatch.h
 mmc.o:		mmc.h libhttpd.h
 timers.o:	timers.h
 match.o:	match.h
 tdate_parse.o:	tdate_parse.h
+hkp.o:		hkp.h libhttpd.h

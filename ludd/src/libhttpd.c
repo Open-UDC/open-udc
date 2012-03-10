@@ -35,10 +35,6 @@
 #define EXPOSED_SERVER_SOFTWARE "ludd"
 #endif /* SHOW_SERVER_VERSION */
 
-#include <sys/types.h>
-#include <sys/param.h>
-#include <sys/stat.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -87,6 +83,7 @@ extern char* crypt( const char* key, const char* setting );
 #include "timers.h"
 #include "match.h"
 #include "tdate_parse.h"
+#include "hkp.h"
 
 #ifndef STDIN_FILENO
 #define STDIN_FILENO 0
@@ -3300,8 +3297,20 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 		/* If there's pathinfo, it's just a non-existent file. */
 		if ( hc->pathinfo[0] != '\0' )
 			{
-			httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
-			return -1;
+			syslog(
+				LOG_INFO,
+				"%.80s is non-existent, check if it as to be managed dynamicaly (%.80s) ",
+				hc->pathinfo , hc->decodedurl );
+			if ( ! strcasecmp(hc->decodedurl,"/pks/add") ) {
+				return hkp_add(hc);
+			}
+			else if ( ! strncasecmp(hc->decodedurl,"/pks/lookup?",12) ) {
+				return hkp_lookup(hc);
+			}
+			else {
+				httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
+				return -1;
+				}
 			}
 
 		/* Special handling for directory URLs that don't end in a slash.
