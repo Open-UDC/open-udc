@@ -50,7 +50,7 @@ Request for Comments:                                      Open-UDC Team
   Validation Nodes, act as HTTP Servers.
 
   There in no restriction on the port number to reach a Validation
-  Deamon, although port 12580 or 80 are recommanded.
+  Deamon, although port 12580 or 11371 or 80 are recommanded.
 
   Validation Nodes MUST manage "GET" and "POST" word as specified by
   the protocol HTTP/1.0.
@@ -69,7 +69,8 @@ Request for Comments:                                      Open-UDC Team
     * http://NodeHostame[:port]/[Root/]...
   or
     * https://NodeIP[:port]/[Root/]...
-  ...
+  or
+	* httpgp://NodeIP[:port]/[Root/]...
 
   After a eventual Root depending on the node's configuration, in its
   URL ; a node MUST provide determined ressources at determined
@@ -77,49 +78,48 @@ Request for Comments:                                      Open-UDC Team
 
   Here is an OverView of such tree structure :
 
-http://hostname[:port]/[Root/]...
+http[s]://Node[:port]/[Root/]...
+|-- authent.in
+|-- creation.in
+|-- transaction.in
+|-- sign.in
 |-- udid2/
 |   `-- geolist_FRA.txt.asc
-`-- [CURRENCY NAME]/
-    |-- authent.cgi
-    |-- creation.cgi
-    |-- transaction.cgi
-    |-- sign.cgi
-    |-- self/
-    |   |-- cert.pgp
-    |   `-- peers.list
-    |-- c/
-    |   `-- [CREATION_SHEET_NUM]/
-    |       |-- [CREATION_SHEET_NUM].env
-    |       |-- [CREATION_SHEET_NUM].list
-    |       `-- [CREATION_SHEET_NUM].list.diff
-    |-- d/
-    |   `-- [CREATION_SHEET_NUM]/
-    |       |-- 1.bdb
-    |       |-- ...
-    |       |-- 1024.bdb
-    |       `-- ...
-    `-- k/
-        |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
-        |   |-- c/
-        |   |-- cert.gpg
-        |   `-- t/
-        |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
-        |   |-- c/
-        |   |   `-- 1.sig
-        |   |-- cert.gpg
-        |   `-- t/
-        |       |-- 1.gpg
-        |       |-- ...
-        |       `-- 3.gpg
-        `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
-            |-- c/
-            |   |-- 1.sig
-            |   |-- ...
-            |   `-- 3.sig
-            |-- cert.gpg
-            `-- t/
-                `-- 1.gpg
+|-- pks/
+|   |-- add
+|   `-- lookup
+|-- self/
+|   |-- cert.gpg
+|   `-- peers.list
+|-- c/
+|   `-- [CREATION_SHEET_NUM]/
+|       |-- [CREATION_SHEET_NUM].env
+|       |-- [CREATION_SHEET_NUM].list
+|       `-- [CREATION_SHEET_NUM].list.diff
+|-- d/
+|   `-- [CREATION_SHEET_NUM]/
+|       |-- 1.bdb
+|       |-- ...
+|       |-- 1024.bdb
+|       `-- ...
+`-- k/
+	|-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
+	|   |-- c/
+	|   `-- t/
+	|-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
+	|   |-- c/
+	|   |   `-- 1.sig
+	|   `-- t/
+	|       |-- 1.gpg
+	|       |-- ...
+	|       `-- 3.gpg
+	`-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
+		|-- c/
+		|   |-- 1.sig
+		|   |-- ...
+		|   `-- 3.sig
+		`-- t/
+			`-- 1.gpg
 
 
 5.== Data expected in the tree structure ==
@@ -142,22 +142,20 @@ contain status code of the transaction, and a status string.
 
     application/udc-t-cheque ("cheque")
 
-[VERSION_FORMAT]
-si VERSION_FORMAT == "d=tt2"
-[CURRENCY_NAME]
-[FINGERPRINT_SOURCE]
-[ID_SOURCE (INCREMENTAL)]
-[FINGERPRINT_DESTINATION]
-[BINARY_VALUE (POWER ?)]-[CREATION_SHEET_ID]-[JOB_ID] [EXCHANGE_COUNTER]
-[...]
+_VERSION_FORMAT_
+si _VERSION_FORMAT_ == "d=tt2"
+_CURRENCY_NAME_
+_FINGERPRINT_SOURCE_
+_FINGERPRINT_DESTINATION_
+_BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_+_EXCHANGE_COUNTER_ _FINGERPRINT_PREVIOUS_OWNER_ _BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_ _EXCHANGE_COUNTER_ 
+...
 Example:
 d=tt2
 test2
 20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD
-1
 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D
 4-3-1 1
-32-2-0 1
+32-2-8 2 D8ED280B1DF4F7FE669520D11AC53DAE0E19DFE  4-1-2 3
 64-2-0 1
 
     application/pgp-signature ("receipt of the cheque")

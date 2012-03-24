@@ -1,0 +1,406 @@
+.TH ludd 8 "29 February 2000"
+.SH NAME
+ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC validation node
+.SH SYNOPSIS
+.B ludd
+.RB [ -C
+.IR configfile ]
+.RB [ -p
+.IR port ]
+.RB [ -d
+.IR dir ]
+.RB [ -dd
+.IR data_dir ]
+.RB [ -r | -nor ]
+.RB [ -u
+.IR user ]
+.RB [ -c
+.IR cgipat ]
+.RB [ -t
+.IR throttles ]
+.RB [ -h
+.IR host ]
+.RB [ -l
+.IR logfile ]
+.RB [ -i
+.IR pidfile ]
+.RB [ -V ]
+.RB [ -D ]
+.SH DESCRIPTION
+.PP
+.I ludd
+is based on thttpd which
+is a simple, small, fast, and secure HTTP server.
+It doesn't have a lot of special features, but it suffices for most uses of
+the web, it's about as fast as the best full-featured servers (Apache, NCSA,
+Netscape),
+and it has one extremely useful feature (URL-traffic-based throttling)
+that no other server currently has.
+.SH OPTIONS
+.TP
+.B -C
+Specifies a config-file to read.
+All options can be set either by command-line flags or in the config file.
+See below for details.
+.TP
+.B -p
+Specifies an alternate port number to listen on.
+The default is 12580.
+The config-file option name for this flag is "port",
+and the config.h option is DEFAULT_PORT.
+.TP
+.B -d
+Specifies a directory to chdir() to at startup.
+This is merely a convenience - you could just as easily
+do a cd in the shell script that invokes the program.
+The config-file option name for this flag is "dir",
+and the config.h options are WEBDIR, USE_USER_DIR.
+.TP
+.B -r
+Do a chroot() at initialization time, restricting file access
+to the program's current directory.
+If -r is the compiled-in default, then -nor disables it.
+See below for details.
+The config-file option names for this flag are "chroot" and "nochroot",
+and the config.h option is ALWAYS_CHROOT.
+.TP
+.B -dd
+Specifies a directory to chdir() to after chrooting.
+If you're not chrooting, you might as well do a single chdir() with
+the -d flag.
+If you are chrooting, this lets you put the web files in a subdirectory
+of the chroot tree, instead of in the top level mixed in with the
+chroot files.
+The config-file option name for this flag is "data_dir".
+.TP
+.B -u
+Specifies what user to switch to after initialization when started as root.
+The default is ".ludd".
+The config-file option name for this flag is "user",
+and the config.h option is DEFAULT_USER.
+.TP
+.B -c
+Specifies a wildcard pattern for CGI programs, for instance "**.cgi"
+or "/cgi-bin/*".
+See below for details.
+The config-file option name for this flag is "cgipat",
+and the config.h option is CGI_PATTERN.
+.TP
+.B -t
+Specifies a file of throttle settings.
+See below for details.
+The config-file option name for this flag is "throttles".
+.TP
+.B -h
+Specifies a hostname to bind to, for multihoming.
+The default is to bind to all hostnames supported on the local machine.
+The config-file option name for this flag is "host".
+.TP
+.B -l
+Specifies a file for logging.
+If no -l argument is specified, ludd logs via syslog().
+If "-l /dev/null" is specified, ludd doesn't log at all.
+The config-file option name for this flag is "logfile".
+.TP
+.B -i
+Specifies a file to write the process-id to.
+If no file is specified, no process-id is written.
+You can use this file to send signals to ludd.
+See below for details.
+The config-file option name for this flag is "pidfile".
+.TP
+.B -V
+Shows the current version info.
+.TP
+.B -D
+This was originally just a debugging flag, however it's worth mentioning
+because one of the things it does is prevent ludd from making itself
+a background daemon.
+Instead it runs in the foreground like a regular program.
+This is necessary when you want to run ludd wrapped in a little shell
+script that restarts it if it exits.
+.SH "CONFIG-FILE"
+.PP
+All the command-line options can also be set in a config file.
+One advantage of using a config file is that the file can be changed,
+and ludd will pick up the changes with a restart.
+.PP
+The syntax of the config file is simple, a series of "option" or
+"option=value" separated by whitespace.
+The option names are listed above with their corresponding command-line flags.
+.SH "CHROOT"
+.PP
+chroot() is a system call that restricts the program's view
+of the filesystem to the current directory and directories
+below it.
+It becomes impossible for remote users to access any file
+outside of the initial directory.
+The restriction is inherited by child processes, so CGI programs get it too.
+This is a very strong security measure, and is recommended.
+The only downside is that only root can call chroot(), so this means
+the program must be started as root.
+However, the last thing it does during initialization is to
+give up root access by becoming another user, so this is safe.
+.PP
+The program can also be compile-time configured to always
+do a chroot(), without needing the -r flag.
+.PP
+Note that with some other web servers, such as NCSA httpd, setting
+up a directory tree for use with chroot() is complicated, involving
+creating a bunch of special directories and copying in various files.
+With thttpd it's a lot easier, all you have to do is make sure
+any shells, utilities, and config files used by your CGI programs and
+scripts are available.
+If you have CGI disabled, or if you make a policy that all CGI programs
+must be written in a compiled language such as C and statically linked,
+then you probably don't have to do any setup at all.
+.PP
+However, one thing you should do is tell syslogd about the chroot tree,
+so that thttpd can still generate syslog messages.
+Check your system's syslodg man page for how to do this.
+In FreeBSD you would put something like this in /etc/rc.conf:
+.nf
+    syslogd_flags="-l /usr/local/www/data/dev/log"
+.fi
+Substitute in your own chroot tree's pathname, of course.
+Don't worry about creating the log socket, syslogd wants to do that itself.
+(You may need to create the dev directory.)
+In Linux the flag is -a instead of -l, and there may be other differences.
+.PP
+Relevant config.h option: ALWAYS_CHROOT.
+.SH "CGI"
+.PP
+thttpd supports the CGI 1.1 spec.
+.PP
+In order for a CGI program to be run, its name must match the pattern
+specified either at compile time or on the command line with the -c flag.
+This is a simple shell-style filename pattern.
+You can use * to match any string not including a slash,
+or ** to match any string including slashes,
+or ? to match any single character.
+You can also use multiple such patterns separated by |.
+The patterns get checked against the filename
+part of the incoming URL.
+Don't forget to quote any wildcard characters so that the shell doesn't
+mess with them.
+.PP
+Restricting CGI programs to a single directory lets the site administrator
+review them for security holes, and is strongly recommended.
+If there are individual users that you trust, you can enable their
+directories too.
+.PP
+If no CGI pattern is specified, neither here nor at compile time,
+then CGI programs cannot be run at all.
+If you want to disable CGI as a security measure, that's how you do it, just
+comment out the patterns in the config file and don't run with the -c flag.
+.PP
+Note: the current working directory when a CGI program gets run is
+the directory that the CGI program lives in.
+This isn't in the CGI 1.1 spec, but it's what most other HTTP servers do.
+.PP
+Relevant config.h options: CGI_PATTERN, CGI_TIMELIMIT, CGI_NICE, CGI_PATH, CGI_LD_LIBRARY_PATH, CGIBINDIR.
+.SH "THROTTLING"
+.PP
+The throttle file lets you set maximum byte rates on URLs or URL groups.
+You can optionally set a minimum rate too.
+The format of the throttle file is very simple.
+A # starts a comment, and the rest of the line is ignored.
+Blank lines are ignored.
+The rest of the lines should consist of a pattern, whitespace, and a number.
+The pattern is a simple shell-style filename pattern, using ?/**/*, or
+multiple such patterns separated by |.
+.PP
+The numbers in the file are byte rates, specified in units of bytes per second.
+For comparison, a v.90 modem gives about 5000 B/s depending on compression,
+a double-B-channel ISDN line about 12800 B/s, and a T1 line is about
+150000 B/s.
+If you want to set a minimum rate as well, use number-number.
+.PP
+Example:
+.nf
+  # throttle file for www.acme.com
+
+  **              2000-100000  # limit total web usage to 2/3 of our T1,
+                               # but never go below 2000 B/s
+  **.jpg|**.gif   50000   # limit images to 1/3 of our T1
+  **.mpg          20000   # and movies to even less
+  jef/**          20000   # jef's pages are too popular
+.fi
+.PP
+Throttling is implemented by checking each incoming URL filename against all
+of the patterns in the throttle file.
+The server accumulates statistics on how much bandwidth each pattern
+has accounted for recently (via a rolling average).
+If a URL matches a pattern that has been exceeding its specified limit,
+then the data returned is actually slowed down, with
+pauses between each block.
+If that's not possible (e.g. for CGI programs) or if the bandwidth has gotten
+way larger than the limit, then the server returns a special code
+saying 'try again later'.
+.PP
+The minimum rates are implemented similarly.
+If too many people are trying to fetch something at the same time,
+throttling may slow down each connection so much that it's not really
+useable.
+Furthermore, all those slow connections clog up the server, using
+up file handles and connection slots.
+Setting a minimum rate says that past a certain point you should not
+even bother - the server returns the 'try again later" code and the
+connection isn't even started.
+.PP
+There is no provision for setting a maximum connections/second throttle,
+because throttling a request uses as much cpu as handling it, so
+there would be no point.
+There is also no provision for throttling the number of simultaneous
+connections on a per-URL basis.
+However you can control the overall number of connections for the whole
+server very simply, by setting the operating system's per-process file
+descriptor limit before starting thttpd.
+Be sure to set the hard limit, not the soft limit.
+.SH "CUSTOM ERRORS"
+.PP
+thttpd lets you define your own custom error pages for the various
+HTTP errors.
+There's a separate file for each error number, all stored in one
+special directory.
+The directory name is "errors", at the top of the web directory tree.
+The error files should be named "errNNN.html", where NNN is the error number.
+So for example, to make a custom error page for the authentication failure
+error, which is number 401, you would put your HTML into the file
+"errors/err401.html".
+If no custom error file is found for a given error number, then the
+usual built-in error page is generated.
+.SH SYMLINKS
+.PP
+thttpd is very picky about symbolic links.
+Before delivering any file, it first checks each element in the path
+to see if it's a symbolic link, and expands them all out to get the final
+actual filename.
+Along the way it checks for things like links with ".." that go above
+the server's directory, and absolute symlinks (ones that start with a /).
+These are prohibited as security holes, so the server returns an
+error page for them.
+This means you can't set up your web directory with a bunch of symlinks
+pointing to individual users' home web directories.
+Instead you do it the other way around - the user web directories are
+real subdirs of the main web directory, and in each user's home
+dir there's a symlink pointing to their actual web dir.
+.PP
+The CGI pattern is also affected - it gets matched against the fully-expanded
+filename.  So, if you have a single CGI directory but then put a symbolic
+link in it pointing somewhere else, that won't work.  The CGI program will be
+treated as a regular file and returned to the client, instead of getting run.
+This could be confusing.
+.SH PERMISSIONS
+.PP
+thttpd is also picky about file permissions.
+It wants data files (HTML, images) to be world readable.
+Readable by the group that the thttpd process runs as is not enough - thttpd
+checks explicitly for the world-readable bit.
+This is so that no one ever gets surprised by a file that's not set
+world-readable and yet somehow is readable by the HTTP server and
+therefore the *whole* world.
+.PP
+The same logic applies to directories.
+As with the standard Unix "ls" program, thttpd will only let you
+look at the contents of a directory if its read bit is on; but
+as with data files, this must be the world-read bit, not just the
+group-read bit.
+.PP
+thttpd also wants the execute bit to be *off* for data files.
+A file that is marked executable but doesn't match the CGI pattern
+might be a script or program that got accidentally left in the
+wrong directory.
+Allowing people to fetch the contents of the file might be a security breach,
+so this is prohibited.
+Of course if an executable file *does* match the CGI pattern, then it
+just gets run as a CGI.
+.PP
+In summary, data files should be mode 644 (rw-r--r--),
+directories should be 755 (rwxr-xr-x) if you want to allow indexing and
+711 (rwx--x--x) to disallow it, and CGI programs should be mode
+755 (rwxr-xr-x) or 711 (rwx--x--x).
+.SH LOGS
+.PP
+ludd does all of its logging via syslog(3).
+The facility it uses is configurable.
+Aside from error messages, there are only a few log entry types of interest,
+all fairly similar to CERN Common Log Format:
+.nf
+  Aug  6 15:40:34 acme ludd[583]: 165.113.207.103 - - "GET /file" 200 357
+  Aug  6 15:40:43 acme ludd[583]: 165.113.207.103 - - "HEAD /file" 200 0
+  Aug  6 15:41:16 acme ludd[583]: referer http://www.acme.com/ -> /dir
+  Aug  6 15:41:16 acme ludd[583]: user-agent Mozilla/1.1N
+.fi
+The package includes a script for translating these log entries info
+CERN-compatible files.
+Note that ludd does not translate numeric IP addresses into domain names.
+This is both to save time and as a minor security measure (the numeric
+address is harder to spoof).
+.PP
+Relevant config.h option: LOG_FACILITY.
+.PP
+If you'd rather log directly to a file, you can use the -l command-line
+flag.  But note that error messages still go to syslog.
+.SH SIGNALS
+.PP
+ludd handles a couple of signals, which you can send via the
+standard Unix kill(1) command:
+.TP
+.B INT,TERM
+These signals tell ludd to shut down immediately.
+Any requests in progress get aborted.
+.TP
+.B USR1
+This signal tells ludd to shut down as soon as it's done servicing
+all current requests.
+In addition, the network socket it uses to accept new connections gets
+closed immediately, which means a fresh ludd can be started up
+immediately.
+.TP
+.B USR2
+This signal tells ludd to generate the statistics syslog messages
+immediately, instead of waiting for the regular hourly update.
+.TP
+.B HUP
+This signal tells ludd to close and re-open its (non-syslog) log file,
+for instance if you rotated the logs and want it to start using the
+new one.
+This is a little tricky to set up correctly, for instance if you are using
+chroot() then the log file must be within the chroot tree, but it's
+definitely doable.
+.SH "SEE ALSO"
+lud(1), OpenUDC(8)
+.SH THANKS
+.PP
+Many thanks to contributors, reviewers, testers:
+John LoVerso, Jordan Hayes, Chris Torek, Jim Thompson, Barton Schaffer,
+Geoff Adams, Dan Kegel, John Hascall, Bennett Todd, KIKUCHI Takahiro,
+Catalin Ionescu.
+Special thanks to Craig Leres for substantial debugging and development,
+and for not complaining about my coding style very much.
+.SH AUTHOR
+Copyright \[co] 2012 by OpenUDC team <open-udc@googlegroups.com>.
+.nf
+Copyright \[co] 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
+All rights reserved.
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
