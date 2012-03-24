@@ -154,7 +154,7 @@ tar:
 	  mkdir $$name ; \
 	  tar cf - `cat FILES` | ( cd $$name ; tar xfBp - ) ; \
 	  chmod 644 $$name/Makefile.in $$name/config.h $$name/mime_encodings.txt $$name/mime_types.txt ; \
-	  chmod 755 $$name/cgi-bin $$name/cgi-src $$name/contrib $$name/contrib/redhat-rpm $$name/extras $$name/scripts ; \
+	  chmod 755 $$name/cgi-bin $$name/cgi-src $$name/contrib $$name/contrib/redhat-rpm $$name/scripts ; \
 	  tar cf $$name.tar $$name ; \
 	  rm -rf $$name ; \
 	  gzip $$name.tar
