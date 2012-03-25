@@ -34,7 +34,7 @@ BINDIR = @sbindir@
 # Pathname of directory to install the man page.
 MANDIR = @mandir@
 # Pathname of directory to install the CGI programs.
-WEBDIR = /var/.ludd
+WEBDIR = $(prefix)/.ludd # /var/.ludd
 
 # CONFIGURE: Directory for CGI executables.
 CGIBINDIR =	$(WEBDIR)/cgi-bin
