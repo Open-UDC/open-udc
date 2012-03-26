@@ -50,7 +50,7 @@ Request for Comments:                                      Open-UDC Team
   Validation Nodes, act as HTTP Servers.
 
   There in no restriction on the port number to reach a Validation
-  Deamon, although port 12580 or 11371 or 80 are recommanded.
+  Deamon, although port 11371 or 80 are recommanded.
 
   Validation Nodes MUST manage "GET" and "POST" word as specified by
   the protocol HTTP/1.0.
@@ -79,16 +79,18 @@ Request for Comments:                                      Open-UDC Team
   Here is an OverView of such tree structure :
 
 http[s]://Node[:port]/[Root/]...
-|-- authent.in
-|-- creation.in
-|-- transaction.in
-|-- sign.in
+|-- in/
+|   |-- authent
+|   |-- creation
+|   |-- transaction
+|   `-- sign
 |-- udid2/
 |   `-- geolist_FRA.txt.asc
 |-- pks/
 |   |-- add
 |   `-- lookup
 |-- self/
+|   |-- status
 |   |-- cert.gpg
 |   `-- peers.list
 |-- c/

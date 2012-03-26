@@ -236,7 +236,7 @@
 
 /* CONFIGURE: The default port to listen on.  80 is the standard HTTP port.
 */
-#define DEFAULT_PORT 12580
+#define DEFAULT_PORT 11371
 
 /* CONFIGURE: A list of index filenames to check.  The files are searched
 ** for in this order.
