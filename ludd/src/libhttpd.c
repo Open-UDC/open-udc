@@ -29,6 +29,10 @@
 #include "config.h"
 #include "version.h"
 
+#ifdef HAVE_DEFINES_H
+#include "defines.h"
+#endif
+
 #ifdef SHOW_SERVER_VERSION
 #define EXPOSED_SERVER_SOFTWARE SERVER_SOFTWARE
 #else /* SHOW_SERVER_VERSION */

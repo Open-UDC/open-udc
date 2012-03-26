@@ -25,6 +25,10 @@
 ** SUCH DAMAGE.
 */
 
+#ifdef HAVE_DEFINES_H
+#include "defines.h"
+#endif
+
 #include "config.h"
 
 #include <sys/types.h>
