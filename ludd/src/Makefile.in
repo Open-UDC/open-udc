@@ -34,10 +34,10 @@ BINDIR = @sbindir@
 # Pathname of directory to install the man page.
 MANDIR = @mandir@
 # Pathname of directory to install the CGI programs.
-WEBDIR = $(prefix)/.ludd # /var/.ludd
+WEBDIR = $(prefix)/var/.ludd
 
 # CONFIGURE: Directory for CGI executables.
-CGIBINDIR =	$(WEBDIR)/cgi-bin
+CGIBINDIR =	$(WEBDIR)/in
 
 # You shouldn't need to edit anything below here.
 
@@ -108,7 +108,7 @@ installthis:
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
-	$(INSTALL) -m 444 -o bin -g bin thttpd.8 $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -m 444 -o bin -g bin ludd.8 $(DESTDIR)$(MANDIR)/man8
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -154,7 +154,7 @@ tar:
 	  mkdir $$name ; \
 	  tar cf - `cat FILES` | ( cd $$name ; tar xfBp - ) ; \
 	  chmod 644 $$name/Makefile.in $$name/config.h $$name/mime_encodings.txt $$name/mime_types.txt ; \
-	  chmod 755 $$name/cgi-bin $$name/cgi-src $$name/contrib $$name/contrib/redhat-rpm $$name/scripts ; \
+	  chmod 755 $$name/cgi-bin $$name/cgi-src $$name/contrib $$name/contrib/redhat-rpm ; \
 	  tar cf $$name.tar $$name ; \
 	  rm -rf $$name ; \
 	  gzip $$name.tar

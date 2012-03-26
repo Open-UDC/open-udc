@@ -26,8 +26,8 @@
 
 prefix =	@prefix@
 exec_prefix =	@exec_prefix@
-WEBDIR =	$(prefix)/.ludd
-CGIBINDIR =	$(WEBDIR)/cgi-bin
+WEBDIR =	$(prefix)/var/.ludd
+CGIBINDIR =	$(WEBDIR)/in
 MANDIR =	@mandir@
 
 CC =		@CC@
