@@ -34,6 +34,10 @@
 #include <syslog.h>
 #include <fcntl.h>
 
+#ifdef HAVE_DEFINES_H
+#include "defines.h"
+#endif
+
 #ifndef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif

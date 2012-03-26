@@ -25,6 +25,9 @@
 ** SUCH DAMAGE.
 */
 
+#ifdef HAVE_DEFINES_H
+#include "defines.h"
+#endif
 
 #include "config.h"
 #include "version.h"
@@ -53,6 +56,8 @@
 #include <time.h>
 #endif
 #include <unistd.h>
+
+#include <fcntl.h>
 
 #include "fdwatch.h"
 #include "libhttpd.h"
@@ -331,7 +336,7 @@ handle_bus( int sig )
 
 #ifndef HAVE_SIGSET
 	/* Set up handler again. */
-	(void) signal( SIGBUG, handle_bus );
+	(void) signal( SIGBUS, handle_bus );
 #endif /* ! HAVE_SIGSET */
 
 	/* Just set a flag that we got the signal. */
