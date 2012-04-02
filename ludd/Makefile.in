@@ -53,41 +53,10 @@ INSTALL =	@INSTALL@
 
 @SET_MAKE@
 
-.c.o:
-	@rm -f $@
-	$(CC) $(CFLAGS) -c $*.c
+SUBDIRS =	src
 
-SRC =		thttpd.c libhttpd.c fdwatch.c mmc.c timers.c match.c tdate_parse.c hkp.c
-
-OBJ =		$(SRC:.c=.o) @LIBOBJS@
-
-ALL =		ludd
-
-GENHDR =	mime_encodings.h mime_types.h
-
-CLEANFILES =	$(ALL) $(OBJ) $(GENSRC) $(GENHDR)
-
-SUBDIRS =	cgi-src
-
-all:		this subdirs
-this:		$(ALL)
-
-ludd: $(OBJ)
-	@rm -f $@
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS) $(NETLIBS)
-
-mime_encodings.h:	mime_encodings.txt
-	rm -f mime_encodings.h
-	sed < mime_encodings.txt > mime_encodings.h \
-	  -e 's/#.*//' -e 's/[ 	]*$$//' -e '/^$$/d' \
-	  -e 's/[ 	][ 	]*/", 0, "/' -e 's/^/{ "/' -e 's/$$/", 0 },/'
-
-mime_types.h:	mime_types.txt
-	rm -f mime_types.h
-	sed < mime_types.txt > mime_types.h \
-	  -e 's/#.*//' -e 's/[ 	]*$$//' -e '/^$$/d' \
-	  -e 's/[ 	][ 	]*/", 0, "/' -e 's/^/{ "/' -e 's/$$/", 0 },/'
-
+all:		subdirs
+this:		all
 
 subdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -100,15 +69,7 @@ subdirs:
 	) ; done
 
 
-install:	installthis install-man installsubdirs
-
-installthis:
-	-mkdir -p $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 555 ludd $(DESTDIR)$(BINDIR)
-
-install-man:
-	-mkdir -p $(DESTDIR)$(MANDIR)/man8
-	$(INSTALL) -m 444 -o bin -g bin ludd.8 $(DESTDIR)$(MANDIR)/man8
+install:	installsubdirs
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -123,10 +84,9 @@ installsubdirs:
 
 
 clean:		cleansubdirs
-	rm -f $(CLEANFILES)
 
 distclean:	distcleansubdirs
-	rm -f $(CLEANFILES) Makefile 
+	rm -f Makefile config.cache config.log config.status cscope.out
 
 cleansubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -142,12 +102,17 @@ distcleansubdirs:
 	    $(MAKE) $(MFLAGS) distclean \
 	) ; done
 
-thttpd.o:	config.h version.h libhttpd.h fdwatch.h mmc.h timers.h match.h
-libhttpd.o:	config.h version.h libhttpd.h mime_encodings.h mime_types.h \
-		mmc.h timers.h match.h tdate_parse.h hkp.h
-fdwatch.o:	fdwatch.h
-mmc.o:		mmc.h libhttpd.h
-timers.o:	timers.h
-match.o:	match.h
-tdate_parse.o:	tdate_parse.h
-hkp.o:		hkp.h libhttpd.h
+scope:
+	cscope -bR
+
+tar:
+	@name=`sed -n -e '/SERVER_SOFTWARE/!d' -e 's,.*thttpd/,thttpd-,' -e 's, .*,,p' version.h` ; \
+	  rm -rf $$name ; \
+	  mkdir $$name ; \
+	  tar cf - `cat FILES` | ( cd $$name ; tar xfBp - ) ; \
+	  chmod 644 $$name/Makefile.in $$name/config.h $$name/mime_encodings.txt $$name/mime_types.txt ; \
+	  chmod 755 $$name/cgi-bin $$name/cgi-src $$name/contrib $$name/contrib/redhat-rpm ; \
+	  tar cf $$name.tar $$name ; \
+	  rm -rf $$name ; \
+	  gzip $$name.tar
+
