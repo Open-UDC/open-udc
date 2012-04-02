@@ -91,6 +91,7 @@ install:	installthis install-man installsubdirs
 installthis:
 	-mkdir -p $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 555 ludd $(DESTDIR)$(BINDIR)
+	useradd -r -c "system user for ludd" -d "$(WEBDIR)" -s /sbin/nologin .ludd
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
@@ -112,6 +113,7 @@ uninstall:	uninstallthis uninstall-man uninstallsubdirs
 
 uninstallthis:
 	rm -f $(DESTDIR)$(BINDIR)/ludd
+	userdel .ludd
 
 uninstall-man:
 	rm -f $(DESTDIR)$(MANDIR)/man8/ludd.8

@@ -151,9 +151,9 @@
 ** to the home directory of the user specified by -u or DEFAULT_USER.
 ** An explicit -d still overrides this.
 */
-#ifdef notdef
+//#ifdef notdef
 #define USE_USER_DIR
-#endif
+//#endif
 
 /* CONFIGURE: If this is defined, some of the built-in error pages will
 ** have more explicit information about exactly what the problem is.
