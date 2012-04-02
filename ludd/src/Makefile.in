@@ -26,21 +26,6 @@
 
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
 
-# Top level hierarchy.
-prefix = @prefix@
-exec_prefix = @exec_prefix@
-# Pathname of directory to install the binary.
-BINDIR = @sbindir@
-# Pathname of directory to install the man page.
-MANDIR = @mandir@
-# Pathname of directory to install the CGI programs.
-WEBDIR = $(prefix)/var/.ludd
-
-# CONFIGURE: Directory for CGI executables.
-CGIBINDIR =	$(WEBDIR)/in
-
-# You shouldn't need to edit anything below here.
-
 CC =		@CC@
 CCOPT =		@V_CCOPT@
 DEFS =		@DEFS@
@@ -94,9 +79,10 @@ subdirs:
 	    cd $$i ; \
 	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
+		BINDIR=$(BINDIR) \
+		MANDIR=$(MANDIR) \
 		WEBDIR=$(WEBDIR) \
 		CGIBINDIR=$(CGIBINDIR) \
-		MANDIR=$(MANDIR) \
 	) ; done
 
 
@@ -108,19 +94,39 @@ installthis:
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
-	$(INSTALL) -m 444 -o bin -g bin ludd.8 $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -m 444 -g man ludd.8 $(DESTDIR)$(MANDIR)/man8
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
 	    cd $$i ; \
 	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
+		BINDIR=$(BINDIR) \
+		MANDIR=$(MANDIR) \
 		WEBDIR=$(WEBDIR) \
 		CGIBINDIR=$(CGIBINDIR) \
-		MANDIR=$(MANDIR) \
 		install \
 	) ; done
 
+uninstall:	uninstallthis uninstall-man uninstallsubdirs
+
+uninstallthis:
+	rm -f $(DESTDIR)$(BINDIR)/ludd
+
+uninstall-man:
+	rm -f $(DESTDIR)$(MANDIR)/man8/ludd.8
+
+uninstallsubdirs:
+	for i in $(SUBDIRS) ; do ( \
+	    cd $$i ; \
+	    pwd ; \
+	    $(MAKE) $(MFLAGS) \
+		BINDIR=$(BINDIR) \
+		MANDIR=$(MANDIR) \
+		WEBDIR=$(WEBDIR) \
+		CGIBINDIR=$(CGIBINDIR) \
+		uninstall \
+	) ; done
 
 clean:		cleansubdirs
 	rm -f $(CLEANFILES)

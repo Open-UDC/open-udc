@@ -1,19 +1,18 @@
 To build:
 
-    % ./configure
+    $ ./configure
 
     Edit config.h to change the configuration options if necessary.
 
-    % make
+    $ make
 
 
-To install:
+To install (should need root privileges) :
 
-    % make install
+    # make install
 
-    Edit one of your system rc files to run thttpd at boot time.  Do NOT
-    run it from inetd, that setup is inefficient so thttpd doesn't support it.
-
+---- Things following are deprecated ... ----
+    Edit one of your system rc files to run ludd at boot time.
 
 Red Hat:
 

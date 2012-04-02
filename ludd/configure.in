@@ -122,3 +122,4 @@ AC_SUBST(V_STATICFLAG)
 AC_SUBST(V_NETLIBS)
 
 AC_OUTPUT(Makefile src/Makefile src/cgi-src/Makefile)
+

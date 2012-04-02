@@ -32,9 +32,10 @@ exec_prefix = @exec_prefix@
 # Pathname of directory to install the binary.
 BINDIR = @sbindir@
 # Pathname of directory to install the man page.
-MANDIR = @mandir@
+#MANDIR = @mandir@ # Weirdo autotool bugs here ...
+MANDIR = @datarootdir@/man
 # Pathname of directory to install the CGI programs.
-WEBDIR = $(prefix)/var/.ludd
+WEBDIR = @localstatedir@/.ludd
 
 # CONFIGURE: Directory for CGI executables.
 CGIBINDIR =	$(WEBDIR)/in
@@ -63,9 +64,10 @@ subdirs:
 	    cd $$i ; \
 	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
+		BINDIR=$(BINDIR) \
+		MANDIR=$(MANDIR) \
 		WEBDIR=$(WEBDIR) \
 		CGIBINDIR=$(CGIBINDIR) \
-		MANDIR=$(MANDIR) \
 	) ; done
 
 
@@ -76,12 +78,26 @@ installsubdirs:
 	    cd $$i ; \
 	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
+		BINDIR=$(BINDIR) \
+		MANDIR=$(MANDIR) \
 		WEBDIR=$(WEBDIR) \
 		CGIBINDIR=$(CGIBINDIR) \
-		MANDIR=$(MANDIR) \
 		install \
 	) ; done
 
+uninstall:	uninstallsubdirs
+
+uninstallsubdirs:
+	for i in $(SUBDIRS) ; do ( \
+	    cd $$i ; \
+	    pwd ; \
+	    $(MAKE) $(MFLAGS) \
+		BINDIR=$(BINDIR) \
+		MANDIR=$(MANDIR) \
+		WEBDIR=$(WEBDIR) \
+		CGIBINDIR=$(CGIBINDIR) \
+		uninstall \
+	) ; done
 
 clean:		cleansubdirs
 

@@ -24,12 +24,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-prefix =	@prefix@
-exec_prefix =	@exec_prefix@
-WEBDIR =	$(prefix)/var/.ludd
-CGIBINDIR =	$(WEBDIR)/in
-MANDIR =	@mandir@
-
 CC =		@CC@
 CCOPT =		@V_CCOPT@
 DEFS =		@DEFS@
@@ -79,6 +73,11 @@ install:	all
 	rm -f $(CGIBINDIR)/phf
 	cp phf $(CGIBINDIR)/phf
 
+uninstall:
+	rm -rf $(CGIBINDIR)
+	rm -f $(MANDIR)/man8/redirect.8
+	rm -f $(MANDIR)/man8/ssi.8
+	
 clean:
 	rm -f $(CLEANFILES)
 
