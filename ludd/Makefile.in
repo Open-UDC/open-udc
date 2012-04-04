@@ -34,11 +34,13 @@ BINDIR = @sbindir@
 # Pathname of directory to install the man page.
 #MANDIR = @mandir@ # Weirdo autotool bugs here ...
 MANDIR = @datarootdir@/man
+
+HOMEDIR = @localstatedir@/.ludd
 # Pathname of directory to install the CGI programs.
-WEBDIR = @localstatedir@/.ludd
+WEBDIR = pub
 
 # CONFIGURE: Directory for CGI executables.
-CGIBINDIR =	$(WEBDIR)/in
+CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/in
 
 # You shouldn't need to edit anything below here.
 
@@ -62,40 +64,33 @@ this:		all
 subdirs:
 	for i in $(SUBDIRS) ; do ( \
 	    cd $$i ; \
-	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
-		BINDIR=$(BINDIR) \
-		MANDIR=$(MANDIR) \
-		WEBDIR=$(WEBDIR) \
-		CGIBINDIR=$(CGIBINDIR) \
+		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
 	) ; done
 
 
 install:	installsubdirs
+	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin .ludd
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
 	    cd $$i ; \
-	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
-		BINDIR=$(BINDIR) \
-		MANDIR=$(MANDIR) \
-		WEBDIR=$(WEBDIR) \
-		CGIBINDIR=$(CGIBINDIR) \
+		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
 		install \
 	) ; done
 
 uninstall:	uninstallsubdirs
+	userdel .ludd
 
 uninstallsubdirs:
 	for i in $(SUBDIRS) ; do ( \
 	    cd $$i ; \
-	    pwd ; \
 	    $(MAKE) $(MFLAGS) \
-		BINDIR=$(BINDIR) \
-		MANDIR=$(MANDIR) \
-		WEBDIR=$(WEBDIR) \
-		CGIBINDIR=$(CGIBINDIR) \
+		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
 		uninstall \
 	) ; done
 
@@ -103,23 +98,25 @@ clean:		cleansubdirs
 
 distclean:	distcleansubdirs
 	rm -f Makefile config.cache config.log config.status cscope.out
+	rm -rf doxydocs/html
 
 cleansubdirs:
 	for i in $(SUBDIRS) ; do ( \
 	    cd $$i ; \
-	    pwd ; \
 	    $(MAKE) $(MFLAGS) clean \
 	) ; done
 
 distcleansubdirs:
 	for i in $(SUBDIRS) ; do ( \
 	    cd $$i ; \
-	    pwd ; \
 	    $(MAKE) $(MFLAGS) distclean \
 	) ; done
 
-scope:
+cscope:
 	cscope -bR
+
+doc:
+	doxygen doxydocs/Doxyfile
 
 tar:
 	@name=`sed -n -e '/SERVER_SOFTWARE/!d' -e 's,.*thttpd/,thttpd-,' -e 's, .*,,p' version.h` ; \

@@ -81,7 +81,6 @@ static char* argv0;
 static int debug;
 static unsigned short port;
 static char* dir;
-static char* data_dir;
 static int do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
 static int cgi_limit;
@@ -186,7 +185,7 @@ handle_term( int sig )
 	}
 
 
-/* SIGCHLD - a chile process exitted, so we need to reap the zombie */
+/* SIGCHLD - a child process exitted, so we need to reap the zombie */
 static void
 handle_chld( int sig )
 	{
@@ -503,7 +502,11 @@ main( int argc, char** argv )
 #endif /* USE_USER_DIR */
 
 	/* Get current directory. */
-	(void) getcwd( cwd, sizeof(cwd) - 1 );
+	if (! getcwd( cwd, sizeof(cwd) - 1 ) ) {
+			syslog( LOG_CRIT, "getcwd - %m" );
+			perror( "getcwd" );
+			exit( 1 );
+	}
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
 
@@ -609,20 +612,15 @@ main( int argc, char** argv )
 		if ( chdir( cwd ) < 0 )
 			{
 			syslog( LOG_CRIT, "chroot chdir - %m" );
-			perror( "chroot chdir" );
 			exit( 1 );
 			}
 		}
 
 	/* Switch directories again if requested. */
-	if ( data_dir != (char*) 0 )
+	if ( chdir( DATA_DIR ) < 0 )
 		{
-		if ( chdir( data_dir ) < 0 )
-			{
-			syslog( LOG_CRIT, "data_dir chdir - %m" );
-			perror( "data_dir chdir" );
-			exit( 1 );
-			}
+		syslog( LOG_CRIT, DATA_DIR" chdir - %m" );
+		exit( 1 );
 		}
 
 	/* Set up to catch signals. */
@@ -871,7 +869,6 @@ parse_args( int argc, char** argv )
 	debug = 0;
 	port = DEFAULT_PORT;
 	dir = (char*) 0;
-	data_dir = (char*) 0;
 #ifdef ALWAYS_CHROOT
 	do_chroot = 1;
 #else /* ALWAYS_CHROOT */
@@ -927,11 +924,6 @@ parse_args( int argc, char** argv )
 			do_chroot = 0;
 			no_symlink_check = 0;
 			}
-		else if ( strcmp( argv[argn], "-dd" ) == 0 && argn + 1 < argc )
-			{
-			++argn;
-			data_dir = argv[argn];
-			}
 		else if ( strcmp( argv[argn], "-u" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
@@ -977,7 +969,7 @@ static void
 usage( void )
 	{
 	(void) fprintf( stderr,
-"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-dd data_dir] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n",
+"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n",
 		argv0 );
 	exit( 1 );
 	}
@@ -1050,11 +1042,6 @@ read_config( char* filename )
 				no_value_required( name, value );
 				do_chroot = 0;
 				no_symlink_check = 0;
-				}
-			else if ( strcasecmp( name, "data_dir" ) == 0 )
-				{
-				value_required( name, value );
-				data_dir = e_strdup( value );
 				}
 			else if ( strcasecmp( name, "user" ) == 0 )
 				{

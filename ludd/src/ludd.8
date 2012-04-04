@@ -9,8 +9,6 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR port ]
 .RB [ -d
 .IR dir ]
-.RB [ -dd
-.IR data_dir ]
 .RB [ -r | -nor ]
 .RB [ -u
 .IR user ]
@@ -54,7 +52,8 @@ Specifies a directory to chdir() to at startup.
 This is merely a convenience - you could just as easily
 do a cd in the shell script that invokes the program.
 The config-file option name for this flag is "dir",
-and the config.h options are WEBDIR, USE_USER_DIR.
+the directory should contain expected arborescense,
+and the config.h options are WEBDIR, USE_USER_DIR, DATA_DIR.
 .TP
 .B -r
 Do a chroot() at initialization time, restricting file access
@@ -63,15 +62,6 @@ If -r is the compiled-in default, then -nor disables it.
 See below for details.
 The config-file option names for this flag are "chroot" and "nochroot",
 and the config.h option is ALWAYS_CHROOT.
-.TP
-.B -dd
-Specifies a directory to chdir() to after chrooting.
-If you're not chrooting, you might as well do a single chdir() with
-the -d flag.
-If you are chrooting, this lets you put the web files in a subdirectory
-of the chroot tree, instead of in the top level mixed in with the
-chroot files.
-The config-file option name for this flag is "data_dir".
 .TP
 .B -u
 Specifies what user to switch to after initialization when started as root.

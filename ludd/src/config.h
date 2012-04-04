@@ -148,12 +148,18 @@
 #define DEFAULT_USER ".ludd"
 
 /* CONFIGURE: When started as root, the program can automatically chdir()
-** to the home directory of the user specified by -u or DEFAULT_USER.
-** An explicit -d still overrides this.
+** (before chrooting) to the home directory of the user specified by -u or
+** DEFAULT_USER. An explicit -d still overrides this.
 */
-//#ifdef notdef
 #define USE_USER_DIR
-//#endif
+
+/* CONFIGURE: data directory (inside the one which should be chrooted)	
+ * which contain all public data. It should be defined externally because
+ * there are things (like cgi programs) to install in it.
+ */
+#ifndef DATA_DIR 
+#warning "DATA_DIR is not defined"
+#endif
 
 /* CONFIGURE: If this is defined, some of the built-in error pages will
 ** have more explicit information about exactly what the problem is.
