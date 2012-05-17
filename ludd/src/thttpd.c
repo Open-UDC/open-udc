@@ -40,6 +40,7 @@
 #include <sys/uio.h>
 
 #include <errno.h>
+#include <err.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -504,44 +505,34 @@ main( int argc, char** argv )
 	/* Get current directory. */
 	if (! getcwd( cwd, sizeof(cwd) - 1 ) ) {
 			syslog( LOG_CRIT, "getcwd - %m" );
-			perror( "getcwd" );
-			exit( 1 );
+			err(1,"getcwd");
+			//exit( 1 );
 	}
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
 
 	if ( ! debug )
 		{
-		/* We're not going to use stdin stdout or stderr from here on, so close
+		/* We're not going to use stdin or stdout from here on, so close
 		** them to save file descriptors.
 		*/
 		(void) fclose( stdin );
 		if ( logfp != stdout )
 			(void) fclose( stdout );
-		(void) fclose( stderr );
 
-		/* Daemonize - make ourselves a subprocess. */
-#ifdef HAVE_DAEMON
-		if ( daemon( 1, 1 ) < 0 )
-			{
-			syslog( LOG_CRIT, "daemon - %m" );
-			exit( 1 );
-			}
-#else /* HAVE_DAEMON */
-		switch ( fork() )
+	switch ( fork() )
 			{
 			case 0:
 			break;
 			case -1:
 			syslog( LOG_CRIT, "fork - %m" );
-			exit( 1 );
+			err( 1 , "fork");
 			default:
 			exit( 0 );
 			}
 #ifdef HAVE_SETSID
 		(void) setsid();
 #endif /* HAVE_SETSID */
-#endif /* HAVE_DAEMON */
 		}
 	else
 		{
@@ -604,7 +595,7 @@ main( int argc, char** argv )
 			else
 				{
 				syslog( LOG_WARNING, "logfile is not within the chroot tree, you will not be able to re-open it" );
-				(void) fprintf( stderr, "%s: logfile is not within the chroot tree, you will not be able to re-open it\n", argv0 );
+				warnx("logfile is not within the chroot tree, you will not be able to re-open it.");
 				}
 			}
 		(void) strcpy( cwd, "/" );
@@ -612,15 +603,15 @@ main( int argc, char** argv )
 		if ( chdir( cwd ) < 0 )
 			{
 			syslog( LOG_CRIT, "chroot chdir - %m" );
-			exit( 1 );
+			err(1,"chroot chdir");
 			}
 		}
 
 	/* Switch directories again if requested. */
 	if ( chdir( DATA_DIR ) < 0 )
 		{
-		syslog( LOG_CRIT, DATA_DIR" chdir - %m" );
-		exit( 1 );
+		syslog( LOG_CRIT, DATA_DIR"-- chdir - %m" );
+		errx(1,"%s doesn't look friendly for me (chdir %s failed), exiting.",cwd,DATA_DIR); 
 		}
 
 	/* Set up to catch signals. */
@@ -761,6 +752,9 @@ main( int argc, char** argv )
 		if ( hs->listen6_fd != -1 )
 			fdwatch_add_fd( hs->listen6_fd, (void*) 0, FDW_READ );
 		}
+
+	/* We will now only use syslog if some errors happen, so close stderr */
+	fclose( stderr );
 
 	/* Main loop. */
 	(void) gettimeofday( &tv, (struct timezone*) 0 );

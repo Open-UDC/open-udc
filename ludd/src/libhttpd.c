@@ -128,7 +128,7 @@ static void check_options( void );
 static void free_httpd_server( httpd_server* hs );
 static int initialize_listen_socket( httpd_sockaddr* saP );
 static void add_response( httpd_conn* hc, char* str );
-static void send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod );
+void send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod );
 static void send_response( httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg );
 static void send_response_tail( httpd_conn* hc );
 static void defang( char* str, char* dfstr, int dfsize );
@@ -153,7 +153,7 @@ static void init_mime( void );
 static void figure_mime( httpd_conn* hc );
 #ifdef CGI_TIMELIMIT
 static void cgi_kill2( ClientData client_data, struct timeval* nowP );
-static void cgi_kill( ClientData client_data, struct timeval* nowP );
+void cgi_kill( ClientData client_data, struct timeval* nowP );
 #endif /* CGI_TIMELIMIT */
 #ifdef GENERATE_INDEXES
 static int ls( httpd_conn* hc );
@@ -542,7 +542,7 @@ httpd_clear_ndelay( int fd )
 	}
 
 
-static void
+void
 send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod )
 	{
 	time_t now, expires;
@@ -2323,7 +2323,7 @@ cgi_kill2( ClientData client_data, struct timeval* nowP )
 		syslog( LOG_ERR, "hard-killed CGI process %d", pid );
 	}
 
-static void
+void
 cgi_kill( ClientData client_data, struct timeval* nowP )
 	{
 	pid_t pid;
