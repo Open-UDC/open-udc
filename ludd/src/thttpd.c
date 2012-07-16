@@ -654,21 +654,21 @@ main( int argc, char** argv )
 		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
 	if ( hs == (httpd_server*) 0 )
 	{
-		syslog ( LOG_ERR, "Could not perform initialization. Exiting." );
-		exit( 1 );
+		syslog ( LOG_ERR, "Could not perform httpd initialization. Exiting." );
+		errx(1,"Could not perform httpd initialization. Exiting.");
 	}
 
 	/* Set up the occasional timer. */
 	if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
 		{
 		syslog( LOG_CRIT, "tmr_create(occasional) failed" );
-		exit( 1 );
+		errx(1,"tmr_create(occasional) failed");
 		}
 	/* Set up the idle timer. */
 	if ( tmr_create( (struct timeval*) 0, idle, JunkClientData, 5 * 1000L, 1 ) == (Timer*) 0 )
 		{
 		syslog( LOG_CRIT, "tmr_create(idle) failed" );
-		exit( 1 );
+		errx(1,"tmr_create(idle) failed");
 		}
 	if ( numthrottles > 0 )
 		{
@@ -676,7 +676,7 @@ main( int argc, char** argv )
 		if ( tmr_create( (struct timeval*) 0, update_throttles, JunkClientData, THROTTLE_TIME * 1000L, 1 ) == (Timer*) 0 )
 			{
 			syslog( LOG_CRIT, "tmr_create(update_throttles) failed" );
-			exit( 1 );
+			errx(1,"tmr_create(update_throttles) failed");
 			}
 		}
 #ifdef STATS_TIME
@@ -684,7 +684,7 @@ main( int argc, char** argv )
 	if ( tmr_create( (struct timeval*) 0, show_stats, JunkClientData, STATS_TIME * 1000L, 1 ) == (Timer*) 0 )
 		{
 		syslog( LOG_CRIT, "tmr_create(show_stats) failed" );
-		exit( 1 );
+		errx(1,"tmr_create(show_stats) failed");
 		}
 #endif /* STATS_TIME */
 	start_time = stats_time = time( (time_t*) 0 );
@@ -699,13 +699,13 @@ main( int argc, char** argv )
 		if ( setgroups( 0, (const gid_t*) 0 ) < 0 )
 			{
 			syslog( LOG_CRIT, "setgroups - %m" );
-			exit( 1 );
+			errx(1,"setgroups - %m");
 			}
 		/* Set primary group. */
 		if ( setgid( gid ) < 0 )
 			{
 			syslog( LOG_CRIT, "setgid - %m" );
-			exit( 1 );
+			errx(1,"setgid - %m");
 			}
 		/* Try setting aux groups correctly - not critical if this fails. */
 		if ( initgroups( user, gid ) < 0 )
@@ -754,6 +754,7 @@ main( int argc, char** argv )
 		}
 
 	/* We will now only use syslog if some errors happen, so close stderr */
+    warnx("%s (pid %d) started successfully ! (only syslog is now used)",argv[0],getpid());
 	fclose( stderr );
 
 	/* Main loop. */

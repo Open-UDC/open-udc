@@ -37,7 +37,7 @@ BINDIR = @sbindir@
 MANDIR = @datarootdir@/man
 
 HOMEDIR = @localstatedir@/.ludd
-# Pathname of directory to install the CGI programs.
+# Pathname of directory available trough internet.
 WEBDIR = pub
 
 # CONFIGURE: Directory for CGI executables.
