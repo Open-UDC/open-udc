@@ -244,6 +244,31 @@ extern char* httpd_err408form;
 extern char* httpd_err503title;
 extern char* httpd_err503form;
 
+/* all other http message  */
+extern char* ok200title;
+extern char* ok206title;
+extern char* err302title;
+extern char* err302form;
+extern char* err304title;
+
+#ifdef AUTH_FILE
+extern char* err401title;
+extern char* err401form;
+#endif /* AUTH_FILE */
+
+extern char* err403title;
+#ifndef EXPLICIT_ERROR_PAGES
+extern char* err403form;
+#endif /* !EXPLICIT_ERROR_PAGES */
+
+extern char* err404title;
+extern char* err404form;
+extern char* err500title;
+extern char* err500form;
+extern char* err501title;
+extern char* err501form;
+
+
 /* Generate a string representation of a method number. */
 extern char* httpd_method_str( int method );
 

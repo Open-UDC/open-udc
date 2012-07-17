@@ -184,7 +184,7 @@ static long long atoll( const char* str );
 ** response definitely gets written.  So, it checks this variable.  A bit
 ** of a hack but it seems to do the right thing.
 */
-static int sub_process = 0;
+int sub_process = 0;
 
 
 static void
@@ -436,45 +436,44 @@ httpd_unlisten( httpd_server* hs )
 #define ERROR_FORM(a,b) a
 #endif /* EXPLICIT_ERROR_PAGES */
 
+char* ok200title = "OK";
+char* ok206title = "Partial Content";
 
-static char* ok200title = "OK";
-static char* ok206title = "Partial Content";
+char* err302title = "Found";
+char* err302form = "The actual URL is '%.80s'.\n";
 
-static char* err302title = "Found";
-static char* err302form = "The actual URL is '%.80s'.\n";
-
-static char* err304title = "Not Modified";
+char* err304title = "Not Modified";
 
 char* httpd_err400title = "Bad Request";
 char* httpd_err400form =
 	"Your request has bad syntax or is inherently impossible to satisfy.\n";
 
 #ifdef AUTH_FILE
-static char* err401title = "Unauthorized";
-static char* err401form =
+char* err401title = "Unauthorized";
+char* err401form =
 	"Authorization required for the URL '%.80s'.\n";
 #endif /* AUTH_FILE */
 
-static char* err403title = "Forbidden";
+char* err403title = "Forbidden";
 #ifndef EXPLICIT_ERROR_PAGES
-static char* err403form =
+char* err403form =
 	"You do not have permission to get URL '%.80s' from this server.\n";
 #endif /* !EXPLICIT_ERROR_PAGES */
 
-static char* err404title = "Not Found";
-static char* err404form =
+char* err404title = "Not Found";
+char* err404form =
 	"The requested URL '%.80s' was not found on this server.\n";
 
 char* httpd_err408title = "Request Timeout";
 char* httpd_err408form =
 	"No request appeared within a reasonable time period.\n";
 
-static char* err500title = "Internal Error";
-static char* err500form =
+char* err500title = "Internal Error";
+char* err500form =
 	"There was an unusual problem serving the requested URL '%.80s'.\n";
 
-static char* err501title = "Not Implemented";
-static char* err501form =
+char* err501title = "Not Implemented";
+char* err501form =
 	"The requested method '%.80s' is not implemented by this server.\n";
 
 char* httpd_err503title = "Service Temporarily Overloaded";

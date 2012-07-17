@@ -13,43 +13,21 @@
 
 #include "hkp.h"
 #include "timers.h"
-//#include "libhttpd.h"
-void cgi_kill( ClientData client_data, struct timeval* nowP );
+#include "libhttpd.h"
 
-static char* ok200title = "OK";
-static char* ok206title = "Partial Content";
+#ifdef CGI_TIMELIMIT
+extern void cgi_kill(ClientData client_data, struct timeval* nowP );
+#endif /* CGI_TIMELIMIT */
 
-static char* err302title = "Found";
-static char* err302form = "The actual URL is '%.80s'.\n";
-
-static char* err304title = "Not Modified";
-
-#ifdef AUTH_FILE
-static char* err401title = "Unauthorized";
-static char* err401form =
-	"Authorization required for the URL '%.80s'.\n";
-#endif /* AUTH_FILE */
-
-static char* err403title = "Forbidden";
-#ifndef EXPLICIT_ERROR_PAGES
-static char* err403form =
-	"You do not have permission to get URL '%.80s' from this server.\n";
-#endif /* !EXPLICIT_ERROR_PAGES */
-
-static char* err404title = "Not Found";
-static char* err404form =
-	"The requested URL '%.80s' was not found on this server.\n";
-
-static char* err500title = "Internal Error";
-static char* err500form =
-	"There was an unusual problem serving the requested URL '%.80s'.\n";
-
-static char* err501title = "Not Implemented";
-static char* err501form =
-	"The requested method '%.80s' is not implemented by this server.\n";
-
-//extern int sub_process;
-static int sub_process = 0;
+/* This global keeps track of whether we are in the main process or a
+** sub-process.  The reason is that httpd_write_response() can get called
+** in either context; when it is called from the main process it must use
+** non-blocking I/O to avoid stalling the server, but when it is called
+** from a sub-process it wants to use blocking I/O so that the whole
+** response definitely gets written.  So, it checks this variable.  A bit
+** of a hack but it seems to do the right thing.
+*/
+extern int sub_process;
 
 #define GPGBUFFSIZE 2048
 
