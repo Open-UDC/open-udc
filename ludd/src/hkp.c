@@ -131,28 +131,15 @@ int hkp_add( httpd_conn* hc ) {
 <HR>",
 				hc->encodedurl, hc->encodedurl );
 
-
-
-   /* The function `gpgme_check_version' must be called before any other
-    * function in the library, because it initializes the thread support
-    * subsystem in GPGME. (from the info page) */
-   setlocale (LC_ALL, "");
-   p = (char *) gpgme_check_version(NULL);
-   fprintf(fp,"version=%s\n",p);
-   /* set locale, because tests do also */
-   gpgme_set_locale(NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
-
-   /* check for OpenPGP support */
-   err = gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
-   if(err != GPG_ERR_NO_ERROR) return 1;
-
-   p = (char *) gpgme_get_protocol_name(GPGME_PROTOCOL_OpenPGP);
-   fprintf(fp,"Protocol name: %s\n",p);
+    /* check for OpenPGP support */
+   if ( gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP) != GPG_ERR_NO_ERROR )
+	   errx(1,"gpgme library has been compiled  without OpenPGP support :-(%d) ", gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP) );
 
    /* get engine information */
    err = gpgme_get_engine_info(&enginfo);
    if(err != GPG_ERR_NO_ERROR) return 2;
    fprintf(fp,"file=%s, home=%s\n",enginfo->file_name,enginfo->home_dir);
+   fprintf(fp,"PWD=%s\n",get_current_dir_name());
 
    /* create our own context */
    err = gpgme_new(&ceofcontext);
@@ -172,7 +159,12 @@ int hkp_add( httpd_conn* hc ) {
    /*err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
                enginfo->file_name,enginfo->home_dir);*/
    err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
-               enginfo->file_name,"/usr/local/var/.ludd/.gnupg");
+               enginfo->file_name,"."); // "." -> pub dir
+   
+   /* get engine information */
+   err = gpgme_get_engine_info(&enginfo);
+   if(err != GPG_ERR_NO_ERROR) return 2;
+   fprintf(fp,"file=%s, home=%s\n",enginfo->file_name,enginfo->home_dir);
 
    if(err != GPG_ERR_NO_ERROR) return 5;
 

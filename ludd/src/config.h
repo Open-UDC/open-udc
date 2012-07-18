@@ -161,6 +161,10 @@
 #warning "DATA_DIR is not defined"
 #endif
 
+/* CONFIGURE: required (at least) version of gpgme
+ */
+#define GPGME_VERSION_MIN "1.3.1"
+
 /* CONFIGURE: If this is defined, some of the built-in error pages will
 ** have more explicit information about exactly what the problem is.
 ** Some sysadmins don't like this, for security reasons.

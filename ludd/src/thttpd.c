@@ -60,6 +60,9 @@
 
 #include <fcntl.h>
 
+#include <locale.h>
+#include <gpgme.h>
+
 #include "fdwatch.h"
 #include "libhttpd.h"
 #include "mmc.h"
@@ -451,13 +454,12 @@ main( int argc, char** argv )
 			if ( logfp == (FILE*) 0 )
 				{
 				syslog( LOG_CRIT, "%.80s - %m", logfile );
-				perror( logfile );
-				exit( 1 );
+				err(1,logfile);
 				}
 			if ( logfile[0] != '/' )
 				{
 				syslog( LOG_WARNING, "logfile is not an absolute path, you may not be able to re-open it" );
-				(void) fprintf( stderr, "%s: logfile is not an absolute path, you may not be able to re-open it\n", argv0 );
+				warnx("%s: logfile is not an absolute path, you may not be able to re-open it\n", argv0 );
 				}
 			(void) fcntl( fileno( logfp ), F_SETFD, 1 );
 			if ( getuid() == 0 )
@@ -468,7 +470,7 @@ main( int argc, char** argv )
 				if ( fchown( fileno( logfp ), uid, gid ) < 0 )
 					{
 					syslog( LOG_WARNING, "fchown logfile - %m" );
-					perror( "fchown logfile" );
+					warn( "fchown logfile" );
 					}
 				}
 			}
@@ -482,8 +484,7 @@ main( int argc, char** argv )
 		if ( chdir( dir ) < 0 )
 			{
 			syslog( LOG_CRIT, "chdir - %m" );
-			perror( "chdir" );
-			exit( 1 );
+			err(1, "chdir" );
 			}
 		}
 #ifdef USE_USER_DIR
@@ -496,8 +497,7 @@ main( int argc, char** argv )
 		if ( chdir( pwd->pw_dir ) < 0 )
 			{
 			syslog( LOG_CRIT, "chdir - %m" );
-			perror( "chdir" );
-			exit( 1 );
+			err(1, "chdir" );
 			}
 		}
 #endif /* USE_USER_DIR */
@@ -506,7 +506,6 @@ main( int argc, char** argv )
 	if (! getcwd( cwd, sizeof(cwd) - 1 ) ) {
 			syslog( LOG_CRIT, "getcwd - %m" );
 			err(1,"getcwd");
-			//exit( 1 );
 	}
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
@@ -642,6 +641,15 @@ main( int argc, char** argv )
 	watchdog_flag = 0;
 	(void) alarm( OCCASIONAL_TIME * 3 );
 
+	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
+	setlocale (LC_ALL, "");
+	if ( ! gpgme_check_version (GPGME_VERSION_MIN) )
+		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
+#ifdef LC_MESSAGES
+	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
+#endif	   
+
 	/* Initialize the timer package. */
 	tmr_init();
 
@@ -754,7 +762,7 @@ main( int argc, char** argv )
 		}
 
 	/* We will now only use syslog if some errors happen, so close stderr */
-    warnx("%s (pid %d) started successfully ! (only syslog is now used)",argv[0],getpid());
+    warnx("started successfully ! (pid %d, only syslog is now used)",getpid());
 	fclose( stderr );
 
 	/* Main loop. */

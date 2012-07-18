@@ -80,7 +80,9 @@
 #define MAXPATHLEN 4096
 #endif
 
+#ifdef AUTH_FILE
 extern char* crypt( const char* key, const char* setting );
+#endif /* AUTH_FILE */
 
 #include "libhttpd.h"
 #include "mmc.h"
