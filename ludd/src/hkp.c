@@ -131,10 +131,6 @@ int hkp_add( httpd_conn* hc ) {
 <HR>",
 				hc->encodedurl, hc->encodedurl );
 
-    /* check for OpenPGP support */
-   if ( gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP) != GPG_ERR_NO_ERROR )
-	   errx(1,"gpgme library has been compiled  without OpenPGP support :-(%d) ", gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP) );
-
    /* get engine information */
    err = gpgme_get_engine_info(&enginfo);
    if(err != GPG_ERR_NO_ERROR) return 2;
@@ -160,12 +156,6 @@ int hkp_add( httpd_conn* hc ) {
                enginfo->file_name,enginfo->home_dir);*/
    err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
                enginfo->file_name,"."); // "." -> pub dir
-   
-   /* get engine information */
-   err = gpgme_get_engine_info(&enginfo);
-   if(err != GPG_ERR_NO_ERROR) return 2;
-   fprintf(fp,"file=%s, home=%s\n",enginfo->file_name,enginfo->home_dir);
-
    if(err != GPG_ERR_NO_ERROR) return 5;
 
    /* do ascii armor data, so output is readable in console */

@@ -550,7 +550,7 @@ main( int argc, char** argv )
 		if ( pidfp == (FILE*) 0 )
 			{
 			syslog( LOG_CRIT, "%.80s - %m", pidfile );
-			exit( 1 );
+			err(1,"%.80s",pidfile);
 			}
 		(void) fprintf( pidfp, "%d\n", (int) getpid() );
 		(void) fclose( pidfp );
@@ -563,7 +563,7 @@ main( int argc, char** argv )
 	if ( max_connects < 0 )
 		{
 		syslog( LOG_CRIT, "fdwatch initialization failure" );
-		exit( 1 );
+		errx(1,"fdwatch initialization failure");
 		}
 	max_connects -= SPARE_FDS;
 
@@ -573,8 +573,7 @@ main( int argc, char** argv )
 		if ( chroot( cwd ) < 0 )
 			{
 			syslog( LOG_CRIT, "chroot - %m" );
-			perror( "chroot" );
-			exit( 1 );
+			err(1, "chroot" );
 			}
 		/* If we're logging and the logfile's pathname begins with the
 		** chroot tree's pathname, then elide the chroot pathname so
@@ -640,15 +639,6 @@ main( int argc, char** argv )
 	got_bus = 0;
 	watchdog_flag = 0;
 	(void) alarm( OCCASIONAL_TIME * 3 );
-
-	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
-	setlocale (LC_ALL, "");
-	if ( ! gpgme_check_version (GPGME_VERSION_MIN) )
-		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
-	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
-#ifdef LC_MESSAGES
-	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
-#endif	   
 
 	/* Initialize the timer package. */
 	tmr_init();
@@ -760,6 +750,19 @@ main( int argc, char** argv )
 		if ( hs->listen6_fd != -1 )
 			fdwatch_add_fd( hs->listen6_fd, (void*) 0, FDW_READ );
 		}
+
+	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
+	setlocale (LC_ALL, "");
+	if ( ! gpgme_check_version (GPGME_VERSION_MIN) )
+		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
+#ifdef LC_MESSAGES
+	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
+#endif
+	/* check for OpenPGP support */
+	if ( gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP))  != GPG_ERR_NO_ERROR )
+	   errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)) );
+
 
 	/* We will now only use syslog if some errors happen, so close stderr */
     warnx("started successfully ! (pid %d, only syslog is now used)",getpid());
