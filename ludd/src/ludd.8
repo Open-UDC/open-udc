@@ -52,8 +52,8 @@ Specifies a directory to chdir() to at startup.
 This is merely a convenience - you could just as easily
 do a cd in the shell script that invokes the program.
 The config-file option name for this flag is "dir",
-the directory should contain expected arborescense,
-and the config.h options are WEBDIR, USE_USER_DIR, DATA_DIR.
+the directory should contain expected arborescense (pub dir, gpg keyrings...), 
+and the config.h options is WEB_DIR.
 .TP
 .B -r
 Do a chroot() at initialization time, restricting file access

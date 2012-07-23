@@ -487,20 +487,6 @@ main( int argc, char** argv )
 			err(1, "chdir" );
 			}
 		}
-#ifdef USE_USER_DIR
-	else if ( getuid() == 0 )
-		{
-		/* No explicit directory was specified, we're root, and the
-		** USE_USER_DIR option is set - switch to the specified user's
-		** home dir.
-		*/
-		if ( chdir( pwd->pw_dir ) < 0 )
-			{
-			syslog( LOG_CRIT, "chdir - %m" );
-			err(1, "chdir" );
-			}
-		}
-#endif /* USE_USER_DIR */
 
 	/* Get current directory. */
 	if (! getcwd( cwd, sizeof(cwd) - 1 ) ) {
@@ -605,11 +591,11 @@ main( int argc, char** argv )
 			}
 		}
 
-	/* Switch directories again if requested. */
-	if ( chdir( DATA_DIR ) < 0 )
+	/* Switch to the web (public) directory. */
+	if ( chdir( WEB_DIR ) < 0 )
 		{
-		syslog( LOG_CRIT, DATA_DIR"-- chdir - %m" );
-		errx(1,"%s doesn't look friendly for me (chdir %s failed), exiting.",cwd,DATA_DIR); 
+		syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
+		err(1,"%s doesn't look friendly for me (chdir %s failed), exiting.",cwd,WEB_DIR); 
 		}
 
 	/* Set up to catch signals. */
@@ -706,12 +692,10 @@ main( int argc, char** argv )
 			errx(1,"setgid - %m");
 			}
 		/* Try setting aux groups correctly - not critical if this fails. */
-		if ( initgroups( user, gid ) < 0 )
+		if ( initgroups( user, gid ) < 0 ) {
 			syslog( LOG_WARNING, "initgroups - %m" );
-#ifdef HAVE_SETLOGIN
-		/* Set login name. */
-		(void) setlogin( user );
-#endif /* HAVE_SETLOGIN */
+			warn("initgroups");
+			}
 		/* Set uid. */
 		if ( setuid( uid ) < 0 )
 			{
@@ -760,7 +744,7 @@ main( int argc, char** argv )
 	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
 #endif
 	/* check for OpenPGP support */
-	if ( gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP))  != GPG_ERR_NO_ERROR )
+	if ( gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)  != GPG_ERR_NO_ERROR )
 	   errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)) );
 
 

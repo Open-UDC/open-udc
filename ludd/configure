@@ -4144,7 +4144,7 @@ esac
 fi
 
 
-for ac_func in waitpid vsnprintf setsid setlogin getaddrinfo getnameinfo gai_strerror kqueue sigset atoll
+for ac_func in waitpid vsnprintf setsid getaddrinfo getnameinfo gai_strerror kqueue sigset atoll
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"

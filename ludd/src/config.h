@@ -147,19 +147,11 @@
 */
 #define DEFAULT_USER ".ludd"
 
-/* CONFIGURE: When started as root, the program can automatically chdir()
-** (before chrooting) to the home directory of the user specified by -u or
-** DEFAULT_USER. An explicit -d still overrides this.
-*/
-#define USE_USER_DIR
-
 /* CONFIGURE: data directory (inside the one which should be chrooted)	
- * which contain all public data. It should be defined externally because
- * there are things (like cgi programs) to install in it.
+ * which contain all public data. It should also be defined in Makefiles
+ * because there are things (like cgi programs) to install in it.
  */
-#ifndef DATA_DIR 
-#warning "DATA_DIR is not defined"
-#endif
+#define WEB_DIR "pub"
 
 /* CONFIGURE: required (at least) version of gpgme
  */

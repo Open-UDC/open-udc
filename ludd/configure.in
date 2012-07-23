@@ -96,7 +96,7 @@ AC_CHECK_FUNC(hstrerror, ,
     AC_CHECK_LIB(resolv, hstrerror, V_NETLIBS="-lresolv $V_NETLIBS"))
 
 AC_REPLACE_FUNCS(strerror)
-AC_CHECK_FUNCS(waitpid vsnprintf setsid setlogin getaddrinfo getnameinfo gai_strerror kqueue sigset atoll)
+AC_CHECK_FUNCS(waitpid vsnprintf setsid getaddrinfo getnameinfo gai_strerror kqueue sigset atoll)
 AC_FUNC_MMAP
 
 case "$target_os" in
