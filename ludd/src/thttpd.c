@@ -85,7 +85,7 @@ static char* argv0;
 static int debug;
 static unsigned short port;
 static char* dir;
-static int do_chroot, no_log, no_symlink_check;
+static int do_init, do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
 static int cgi_limit;
 static char* logfile;
@@ -489,192 +489,196 @@ main( int argc, char** argv )
 		}
 
 	/* Get current directory. */
-	if (! getcwd( cwd, sizeof(cwd) - 1 ) ) {
-			syslog( LOG_CRIT, "getcwd - %m" );
-			err(1,"getcwd");
-	}
+	if (! getcwd( cwd, sizeof(cwd) - 1 ) )
+		{
+		syslog( LOG_CRIT, "getcwd - %m" );
+		err(1,"getcwd");
+		}
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
 
-	if ( ! debug )
+	if ( ! do_init )
 		{
-		/* We're not going to use stdin or stdout from here on, so close
-		** them to save file descriptors.
-		*/
-		(void) fclose( stdin );
-		if ( logfp != stdout )
-			(void) fclose( stdout );
-
-	switch ( fork() )
+		if ( ! debug )
 			{
-			case 0:
-			break;
-			case -1:
-			syslog( LOG_CRIT, "fork - %m" );
-			err( 1 , "fork");
-			default:
-			exit( 0 );
-			}
-#ifdef HAVE_SETSID
-		(void) setsid();
-#endif /* HAVE_SETSID */
-		}
-	else
-		{
-		/* Even if we don't daemonize, we still want to disown our parent
-		** process.
-		*/
-#ifdef HAVE_SETSID
-		(void) setsid();
-#endif /* HAVE_SETSID */
-		}
+			/* We're not going to use stdin or stdout from here on, so close
+			** them to save file descriptors.
+			*/
+			(void) fclose( stdin );
+			if ( logfp != stdout )
+				(void) fclose( stdout );
 
-	if ( pidfile != (char*) 0 )
-		{
-		/* Write the PID file. */
-		FILE* pidfp = fopen( pidfile, "w" );
-		if ( pidfp == (FILE*) 0 )
-			{
-			syslog( LOG_CRIT, "%.80s - %m", pidfile );
-			err(1,"%.80s",pidfile);
-			}
-		(void) fprintf( pidfp, "%d\n", (int) getpid() );
-		(void) fclose( pidfp );
-		}
-
-	/* Initialize the fdwatch package.  Have to do this before chroot,
-	** if /dev/poll is used.
-	*/
-	max_connects = fdwatch_get_nfiles();
-	if ( max_connects < 0 )
-		{
-		syslog( LOG_CRIT, "fdwatch initialization failure" );
-		errx(1,"fdwatch initialization failure");
-		}
-	max_connects -= SPARE_FDS;
-
-	/* Chroot if requested. */
-	if ( do_chroot )
-		{
-		if ( chroot( cwd ) < 0 )
-			{
-			syslog( LOG_CRIT, "chroot - %m" );
-			err(1, "chroot" );
-			}
-		/* If we're logging and the logfile's pathname begins with the
-		** chroot tree's pathname, then elide the chroot pathname so
-		** that the logfile pathname still works from inside the chroot
-		** tree.
-		*/
-		if ( logfile != (char*) 0 && strcmp( logfile, "-" ) != 0 )
-			{
-			if ( strncmp( logfile, cwd, strlen( cwd ) ) == 0 )
+		switch ( fork() )
 				{
-				(void) strcpy( logfile, &logfile[strlen( cwd ) - 1] );
-				/* (We already guaranteed that cwd ends with a slash, so leaving
-				** that slash in logfile makes it an absolute pathname within
-				** the chroot tree.)
-				*/
+				case 0:
+				break;
+				case -1:
+				syslog( LOG_CRIT, "fork - %m" );
+				err( 1 , "fork");
+				default:
+				exit( 0 );
 				}
-			else
-				{
-				syslog( LOG_WARNING, "logfile is not within the chroot tree, you will not be able to re-open it" );
-				warnx("logfile is not within the chroot tree, you will not be able to re-open it.");
-				}
+#ifdef HAVE_SETSID
+			(void) setsid();
+#endif /* HAVE_SETSID */
 			}
-		(void) strcpy( cwd, "/" );
-		/* Always chdir to / after a chroot. */
-		if ( chdir( cwd ) < 0 )
+		else
 			{
-			syslog( LOG_CRIT, "chroot chdir - %m" );
-			err(1,"chroot chdir");
+			/* Even if we don't daemonize, we still want to disown our parent
+			** process.
+			*/
+#ifdef HAVE_SETSID
+			(void) setsid();
+#endif /* HAVE_SETSID */
 			}
-		}
 
-	/* Switch to the web (public) directory. */
-	if ( chdir( WEB_DIR ) < 0 )
-		{
-		syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
-		err(1,"%s doesn't look friendly for me (chdir %s failed), exiting.",cwd,WEB_DIR); 
-		}
+		if ( pidfile != (char*) 0 )
+			{
+			/* Write the PID file. */
+			FILE* pidfp = fopen( pidfile, "w" );
+			if ( pidfp == (FILE*) 0 )
+				{
+				syslog( LOG_CRIT, "%.80s - %m", pidfile );
+				err(1,"%.80s",pidfile);
+				}
+			(void) fprintf( pidfp, "%d\n", (int) getpid() );
+			(void) fclose( pidfp );
+			}
 
-	/* Set up to catch signals. */
+		/* Initialize the fdwatch package.  Have to do this before chroot,
+		** if /dev/poll is used.
+		*/
+		max_connects = fdwatch_get_nfiles();
+		if ( max_connects < 0 )
+			{
+			syslog( LOG_CRIT, "fdwatch initialization failure" );
+			errx(1,"fdwatch initialization failure");
+			}
+		max_connects -= SPARE_FDS;
+
+		/* Chroot if requested. */
+		if ( do_chroot )
+			{
+			if ( chroot( cwd ) < 0 )
+				{
+				syslog( LOG_CRIT, "chroot - %m" );
+				err(1, "chroot" );
+				}
+			/* If we're logging and the logfile's pathname begins with the
+			** chroot tree's pathname, then elide the chroot pathname so
+			** that the logfile pathname still works from inside the chroot
+			** tree.
+			*/
+			if ( logfile != (char*) 0 && strcmp( logfile, "-" ) != 0 )
+				{
+				if ( strncmp( logfile, cwd, strlen( cwd ) ) == 0 )
+					{
+					(void) strcpy( logfile, &logfile[strlen( cwd ) - 1] );
+					/* (We already guaranteed that cwd ends with a slash, so leaving
+					** that slash in logfile makes it an absolute pathname within
+					** the chroot tree.)
+					*/
+					}
+				else
+					{
+					syslog( LOG_WARNING, "logfile is not within the chroot tree, you will not be able to re-open it" );
+					warnx("logfile is not within the chroot tree, you will not be able to re-open it.");
+					}
+				}
+			(void) strcpy( cwd, "/" );
+			/* Always chdir to / after a chroot. */
+			if ( chdir( cwd ) < 0 )
+				{
+				syslog( LOG_CRIT, "chroot chdir - %m" );
+				err(1,"chroot chdir");
+				}
+			}
+
+		/* Switch to the web (public) directory. */
+		if ( chdir( WEB_DIR ) < 0 )
+			{
+			syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
+			err(1,"Exiting because %s doesn't look friendly (forget -init ?) - chdir %s",cwd,WEB_DIR); 
+			}
+
+		/* Set up to catch signals. */
 #ifdef HAVE_SIGSET
-	(void) sigset( SIGTERM, handle_term );
-	(void) sigset( SIGINT, handle_term );
-	(void) sigset( SIGCHLD, handle_chld );
-	(void) sigset( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
-	(void) sigset( SIGHUP, handle_hup );
-	(void) sigset( SIGUSR1, handle_usr1 );
-	(void) sigset( SIGUSR2, handle_usr2 );
-	(void) sigset( SIGALRM, handle_alrm );
-	(void) sigset( SIGBUS, handle_bus );
+		(void) sigset( SIGTERM, handle_term );
+		(void) sigset( SIGINT, handle_term );
+		(void) sigset( SIGCHLD, handle_chld );
+		(void) sigset( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
+		(void) sigset( SIGHUP, handle_hup );
+		(void) sigset( SIGUSR1, handle_usr1 );
+		(void) sigset( SIGUSR2, handle_usr2 );
+		(void) sigset( SIGALRM, handle_alrm );
+		(void) sigset( SIGBUS, handle_bus );
 #else /* HAVE_SIGSET */
-	(void) signal( SIGTERM, handle_term );
-	(void) signal( SIGINT, handle_term );
-	(void) signal( SIGCHLD, handle_chld );
-	(void) signal( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
-	(void) signal( SIGHUP, handle_hup );
-	(void) signal( SIGUSR1, handle_usr1 );
-	(void) signal( SIGUSR2, handle_usr2 );
-	(void) signal( SIGALRM, handle_alrm );
-	(void) signal( SIGBUS, handle_bus );
+		(void) signal( SIGTERM, handle_term );
+		(void) signal( SIGINT, handle_term );
+		(void) signal( SIGCHLD, handle_chld );
+		(void) signal( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
+		(void) signal( SIGHUP, handle_hup );
+		(void) signal( SIGUSR1, handle_usr1 );
+		(void) signal( SIGUSR2, handle_usr2 );
+		(void) signal( SIGALRM, handle_alrm );
+		(void) signal( SIGBUS, handle_bus );
 #endif /* HAVE_SIGSET */
-	got_hup = 0;
-	got_usr1 = 0;
-	got_bus = 0;
-	watchdog_flag = 0;
-	(void) alarm( OCCASIONAL_TIME * 3 );
+		got_hup = 0;
+		got_usr1 = 0;
+		got_bus = 0;
+		watchdog_flag = 0;
+		(void) alarm( OCCASIONAL_TIME * 3 );
 
-	/* Initialize the timer package. */
-	tmr_init();
+		/* Initialize the timer package. */
+		tmr_init();
 
-	/* Initialize the HTTP layer.  Got to do this before giving up root,
-	** so that we can bind to a privileged port.
-	*/
-	hs = httpd_initialize(
-		hostname,
-		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
-	if ( hs == (httpd_server*) 0 )
-	{
-		syslog ( LOG_ERR, "Could not perform httpd initialization. Exiting." );
-		errx(1,"Could not perform httpd initialization. Exiting.");
-	}
-
-	/* Set up the occasional timer. */
-	if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
+		/* Initialize the HTTP layer.  Got to do this before giving up root,
+		** so that we can bind to a privileged port.
+		*/
+		hs = httpd_initialize(
+			hostname,
+			gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
+			port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
+		if ( hs == (httpd_server*) 0 )
 		{
-		syslog( LOG_CRIT, "tmr_create(occasional) failed" );
-		errx(1,"tmr_create(occasional) failed");
+			syslog ( LOG_ERR, "Could not perform httpd initialization. Exiting." );
+			errx(1,"Could not perform httpd initialization. Exiting.");
 		}
-	/* Set up the idle timer. */
-	if ( tmr_create( (struct timeval*) 0, idle, JunkClientData, 5 * 1000L, 1 ) == (Timer*) 0 )
-		{
-		syslog( LOG_CRIT, "tmr_create(idle) failed" );
-		errx(1,"tmr_create(idle) failed");
-		}
-	if ( numthrottles > 0 )
-		{
-		/* Set up the throttles timer. */
-		if ( tmr_create( (struct timeval*) 0, update_throttles, JunkClientData, THROTTLE_TIME * 1000L, 1 ) == (Timer*) 0 )
+
+		/* Set up the occasional timer. */
+		if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
 			{
-			syslog( LOG_CRIT, "tmr_create(update_throttles) failed" );
-			errx(1,"tmr_create(update_throttles) failed");
+			syslog( LOG_CRIT, "tmr_create(occasional) failed" );
+			errx(1,"tmr_create(occasional) failed");
 			}
-		}
+		/* Set up the idle timer. */
+		if ( tmr_create( (struct timeval*) 0, idle, JunkClientData, 5 * 1000L, 1 ) == (Timer*) 0 )
+			{
+			syslog( LOG_CRIT, "tmr_create(idle) failed" );
+			errx(1,"tmr_create(idle) failed");
+			}
+		if ( numthrottles > 0 )
+			{
+			/* Set up the throttles timer. */
+			if ( tmr_create( (struct timeval*) 0, update_throttles, JunkClientData, THROTTLE_TIME * 1000L, 1 ) == (Timer*) 0 )
+				{
+				syslog( LOG_CRIT, "tmr_create(update_throttles) failed" );
+				errx(1,"tmr_create(update_throttles) failed");
+				}
+			}
 #ifdef STATS_TIME
-	/* Set up the stats timer. */
-	if ( tmr_create( (struct timeval*) 0, show_stats, JunkClientData, STATS_TIME * 1000L, 1 ) == (Timer*) 0 )
-		{
-		syslog( LOG_CRIT, "tmr_create(show_stats) failed" );
-		errx(1,"tmr_create(show_stats) failed");
-		}
+		/* Set up the stats timer. */
+		if ( tmr_create( (struct timeval*) 0, show_stats, JunkClientData, STATS_TIME * 1000L, 1 ) == (Timer*) 0 )
+			{
+			syslog( LOG_CRIT, "tmr_create(show_stats) failed" );
+			errx(1,"tmr_create(show_stats) failed");
+			}
 #endif /* STATS_TIME */
-	start_time = stats_time = time( (time_t*) 0 );
-	stats_connections = 0;
-	stats_bytes = 0;
-	stats_simultaneous = 0;
+		start_time = stats_time = time( (time_t*) 0 );
+		stats_connections = 0;
+		stats_bytes = 0;
+		stats_simultaneous = 0;
+		}
 
 	/* If we're root, try to become someone else. */
 	if ( getuid() == 0 )
@@ -709,12 +713,29 @@ main( int argc, char** argv )
 				"started as root without requesting chroot(), warning only" );
 		}
 
+	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
+	setlocale (LC_ALL, "");
+	if ( ! gpgme_check_version (GPGME_VERSION_MIN) )
+		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
+#ifdef LC_MESSAGES
+	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
+#endif
+	/* check for OpenPGP support */
+	if ( gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)  != GPG_ERR_NO_ERROR )
+	   errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)) );
+
+	if (do_init)
+		{
+		errx(2,"TODO...");
+		}
+
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
 	if ( connects == (connecttab*) 0 )
 		{
 		syslog( LOG_CRIT, "out of memory allocating a connecttab" );
-		exit( 1 );
+		errx( 1,"out of memory allocating a connecttab" );
 		}
 	for ( cnum = 0; cnum < max_connects; ++cnum )
 		{
@@ -734,19 +755,6 @@ main( int argc, char** argv )
 		if ( hs->listen6_fd != -1 )
 			fdwatch_add_fd( hs->listen6_fd, (void*) 0, FDW_READ );
 		}
-
-	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
-	setlocale (LC_ALL, "");
-	if ( ! gpgme_check_version (GPGME_VERSION_MIN) )
-		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
-	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
-#ifdef LC_MESSAGES
-	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
-#endif
-	/* check for OpenPGP support */
-	if ( gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)  != GPG_ERR_NO_ERROR )
-	   errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)) );
-
 
 	/* We will now only use syslog if some errors happen, so close stderr */
     warnx("started successfully ! (pid %d, only syslog is now used)",getpid());
@@ -856,6 +864,7 @@ parse_args( int argc, char** argv )
 	{
 	int argn;
 
+	do_init = 0;
 	debug = 0;
 	port = DEFAULT_PORT;
 	dir = (char*) 0;
@@ -888,6 +897,9 @@ parse_args( int argc, char** argv )
 			{
 			(void) printf( "%s\n", SERVER_SOFTWARE );
 			exit( 0 );
+			}
+		else if ( strcmp( argv[argn], "-init" ) == 0 ) {
+			do_init = 1;
 			}
 		else if ( strcmp( argv[argn], "-C" ) == 0 && argn + 1 < argc )
 			{
@@ -959,8 +971,9 @@ static void
 usage( void )
 	{
 	(void) fprintf( stderr,
-"usage:  %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n",
-		argv0 );
+"usage: %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n"
+"(or, to initialize: %s -init [-d dir] [-u user] )\n",
+		argv0,argv0 );
 	exit( 1 );
 	}
 
