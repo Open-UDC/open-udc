@@ -391,6 +391,10 @@ main( int argc, char** argv )
 	int gotv4, gotv6;
 	struct timeval tv;
 
+	gpgme_ctx_t gpgctx;
+	gpgme_key_t gpgkey;
+	gpgme_error_t gpgerr;
+
 	argv0 = argv[0];
 
 	cp = strrchr( argv0, '/' );
@@ -722,13 +726,25 @@ main( int argc, char** argv )
 	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
 #endif
 	/* check for OpenPGP support */
-	if ( gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)  != GPG_ERR_NO_ERROR )
-	   errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgme_err_code(gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP)) );
+	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
+
+	/* create first context */
+	gpgerr=gpgme_new(&gpgctx);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"can't create gpg context :-( (%d)", gpgerr);
+
+	/* check for an expected secret key */
+
 
 	if (do_init)
 		{
 		errx(2,"TODO...");
 		}
+
+	/* release context (but keep the key in a global variable) */
+	gpgme_release (gpgctx);
 
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
