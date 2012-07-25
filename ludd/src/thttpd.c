@@ -394,6 +394,7 @@ main( int argc, char** argv )
 	gpgme_ctx_t gpgctx;
 	gpgme_key_t gpgkey;
 	gpgme_error_t gpgerr;
+	gpgme_engine_info_t enginfo;
 
 	argv0 = argv[0];
 
@@ -501,7 +502,15 @@ main( int argc, char** argv )
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
 
-	if ( ! do_init )
+	if ( do_init )
+		{
+		fprintf(stdout,"%s will create its stuff to run in %s, press a key to confirm (or Ctrl-C to exit) ...",argv[0],cwd);
+		getchar();
+		if ( chdir(WEB_DIR) ) 
+			if ( mkdir(WEB_DIR,0755) || chdir(WEB_DIR) )
+				err(1,"creating %s dir",WEB_DIR);
+		}
+	else
 		{
 		if ( ! debug )
 			{
@@ -735,12 +744,81 @@ main( int argc, char** argv )
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
 		errx(1,"can't create gpg context :-( (%d)", gpgerr);
 
+	gpgerr = gpgme_get_engine_info(&enginfo);
+	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"..");
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);
+
 	/* check for an expected secret key */
+	gpgerr = gpgme_op_keylist_start(gpgctx, "udbot", 1);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme_op_keylist_start :-( (%d)", gpgerr);
+
+	do
+		{
+		gpgerr = gpgme_op_keylist_next (gpgctx, &gpgkey);
+
+		if ( gpgerr == GPG_ERR_EOF )
+			gpgme_key_unref(gpgkey);
+		else if ( gpgerr != GPG_ERR_NO_ERROR )
+			if (do_init)
+				break;
+			else
+				//errx(1,"there is no private key, forget -init ? (%d)", gpgerr);
+				warnx("there is no private key, forget -init ? (%d)", gpgerr); // Just because "-init" is not finished ...
+		else if ( gpgkey->revoked )
+			warnx("key %s is revoked",gpgkey->uids->uid);
+		else if ( gpgkey->expired )
+			warnx("key %s is expired",gpgkey->uids->uid);
+		else if ( gpgkey->disabled )
+			warnx("key %s is disabled",gpgkey->uids->uid);
+		else if ( gpgkey->invalid )
+			warnx("key %s is invalid",gpgkey->uids->uid);
+		else if (! gpgkey->can_sign )
+			warnx("key %s can not sign",gpgkey->uids->uid);
+		else
+			{
+			warnx("found key %s",gpgkey->uids->uid);
+			//TODO: verify that comment part of uid is expected
+			//and warn if not signed by the associated udid in the keyring
+			break;
+			}
+
+		gpgme_key_unref(gpgkey);
+		}
+	while (gpgerr == GPG_ERR_NO_ERROR);
+
+	//if (gpgerr == GPG_ERR_EOF) // no secret key found for node
 
 
 	if (do_init)
 		{
-		errx(2,"TODO...");
+		if ( ! chdir("udid2") )
+			chdir("..");
+		else if ( mkdir("udid2",0755) )
+			err(1,"creating udid2 dir");
+
+		if ( ! chdir("self") )
+			chdir("..");
+		else if ( mkdir("self",0755) )
+			err(1,"creating self dir");
+
+		if ( ! chdir("c") )
+			chdir("..");
+		else if ( mkdir("c",0755) )
+			err(1,"creating c dir");
+
+		if ( ! chdir("d") )
+			chdir("..");
+		else if ( mkdir("d",0755) )
+			err(1,"creating d dir");
+
+		if ( ! chdir("k") )
+			chdir("..");
+		else if ( mkdir("k",0755) )
+			err(1,"creating k dir");
+
+		errx(2,"TODO...(to finish)");
 		}
 
 	/* release context (but keep the key in a global variable) */

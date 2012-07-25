@@ -154,7 +154,7 @@ int hkp_add( httpd_conn* hc ) {
 
    /*err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
                enginfo->file_name,enginfo->home_dir);*/
-   err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
+   /*err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
                enginfo->file_name,"."); // "." -> pub dir
    if(err != GPG_ERR_NO_ERROR) return 5;
 
