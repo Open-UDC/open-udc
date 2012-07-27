@@ -390,6 +390,7 @@ main( int argc, char** argv )
 	httpd_sockaddr sa6;
 	int gotv4, gotv6;
 	struct timeval tv;
+	struct stat stf;
 
 	gpgme_ctx_t gpgctx;
 	gpgme_key_t gpgkey;
@@ -436,8 +437,7 @@ main( int argc, char** argv )
 		if ( pwd == (struct passwd*) 0 )
 			{
 			syslog( LOG_CRIT, "unknown user - '%.80s'", user );
-			(void) fprintf( stderr, "%s: unknown user - '%s'\n", argv0, user );
-			exit( 1 );
+			errx(1, "%s: unknown user - '%s'\n", argv0, user );
 			}
 		uid = pwd->pw_uid;
 		gid = pwd->pw_gid;
@@ -492,6 +492,23 @@ main( int argc, char** argv )
 			err(1, "chdir" );
 			}
 		}
+	else
+		dir="." ;
+	
+	/* if we are root make sure that directory is owned by the specified user */
+	if ( getuid() == 0 )
+	    {
+		if (stat(".",&stf) )
+			err(1,"stat %s",dir);
+
+		if (stf.st_uid != uid)
+			{
+			warnx("dir \"%s/\" was not owned by %s... I DO \"chown\" !!!\n",dir,user);
+
+			if ( chown(".",uid,gid) )
+				err(1,"chown %s",dir);
+			}
+		}
 
 	/* Get current directory. */
 	if (! getcwd( cwd, sizeof(cwd) - 1 ) )
@@ -507,7 +524,7 @@ main( int argc, char** argv )
 		fprintf(stdout,"%s will create its stuff to run in %s, press a key to confirm (or Ctrl-C to exit) ...",argv[0],cwd);
 		getchar();
 		if ( chdir(WEB_DIR) ) 
-			if ( mkdir(WEB_DIR,0755) || chdir(WEB_DIR) )
+			if ( mkdir(WEB_DIR,0755) || (getuid()==0 ? chown(WEB_DIR,uid,gid) : (0) ) || chdir(WEB_DIR) )
 				err(1,"creating %s dir",WEB_DIR);
 		}
 	else
@@ -717,7 +734,7 @@ main( int argc, char** argv )
 		if ( setuid( uid ) < 0 )
 			{
 			syslog( LOG_CRIT, "setuid - %m" );
-			exit( 1 );
+			err(1,"setuid");
 			}
 		/* Check for unnecessary security exposure. */
 		if ( ! do_chroot )
