@@ -72,7 +72,7 @@ subdirs:
 
 
 install:	installsubdirs
-	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin .ludd
+	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin .ludd || true
 	chown -R .ludd "$(HOMEDIR)"
 
 installsubdirs:
@@ -86,6 +86,7 @@ installsubdirs:
 
 uninstall:	uninstallsubdirs
 	userdel .ludd
+	rm -rf "$(HOMEDIR)"
 
 uninstallsubdirs:
 	for i in $(SUBDIRS) ; do ( \

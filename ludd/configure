@@ -3716,7 +3716,7 @@ fi
 done
 
 
-for ac_header in fcntl.h grp.h memory.h paths.h poll.h sys/poll.h sys/devpoll.h sys/event.h osreldate.h gpgme.h sys/stat.h semaphore.h
+for ac_header in grp.h memory.h dirent.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -3725,6 +3725,51 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
+fi
+
+done
+
+for ac_header in poll.h sys/poll.h sys/devpoll.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
+else
+  as_fn_error $? "\"Missing at least a *poll.h header\"" "$LINENO" 5
+fi
+
+done
+
+for ac_header in syslog.h sys/syslog.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
+else
+  as_fn_error $? "\"Missing a required header file\"" "$LINENO" 5
+fi
+
+done
+
+for ac_header in fcntl.h sys/stat.h gpgme.h semaphore.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+else
+  as_fn_error $? "\"Missing a required header file\"" "$LINENO" 5
 fi
 
 done
@@ -4029,6 +4074,8 @@ _ACEOF
 
   LIBS="-lgpgme-pthread $LIBS"
 
+else
+  as_fn_error $? "\"libgpgme-pthread.so missing (or incorrect).\"" "$LINENO" 5
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sem_open in -lpthread" >&5
@@ -4074,6 +4121,8 @@ _ACEOF
 
   LIBS="-lpthread $LIBS"
 
+else
+  as_fn_error $? "\"libpthread.so missing (or incorrect).\"" "$LINENO" 5
 fi
 
 

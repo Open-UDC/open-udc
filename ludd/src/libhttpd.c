@@ -55,10 +55,6 @@
 #include <unistd.h>
 #include <stdarg.h>
 
-#ifdef HAVE_OSRELDATE_H
-#include <osreldate.h>
-#endif /* HAVE_OSRELDATE_H */
-
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)

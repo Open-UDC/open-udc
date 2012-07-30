@@ -59,10 +59,6 @@
 #endif /* !HAVE_DEVPOLL */
 #endif /* HAVE_SYS_DEVPOLL_H */
 
-#ifdef HAVE_SYS_EVENT_H
-#include <sys/event.h>
-#endif /* HAVE_SYS_EVENT_H */
-
 #include "fdwatch.h"
 
 #ifdef HAVE_SELECT
