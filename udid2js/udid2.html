@@ -279,6 +279,9 @@ function resetform() {
 	documentElement("locationcell").className = "hidden";
 	documentElement("generated").className = "hidden";
 	emptyElement(documentElement("geonameslist"));
+	documentElement("lat").disabled    = false;
+	documentElement("lon").disabled    = false;
+	documentElement("place").disabled  = false;
 	return false;
    } catch (err) {
        alert("An error occurred: " + err.message);
