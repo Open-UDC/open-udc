@@ -352,7 +352,24 @@ function fullgeoname(t) {
     return n;
 }
 
-function showgeonameslist(l) {
+function showgeonameslist() {
+    setMessageAfterElement("geonameslist", "Select your birthplace");
+    documentElement("geonameslistcell").className = "";
+    documentElement("coordmethodcell").className = "";
+    documentElement("placecell").className = "hidden";
+    documentElement("locationcell").className = "hidden";
+}
+
+function addselectlistoption(s) {
+    if (s == null) s = documentElement("coordmethod");
+    var o = document.createElement("option");
+    o.text = "Select location found via geonames.org";
+    o.value = "selectlist";
+    o.name = "selectlist";
+    addoption(s, o);
+}
+
+function setgeonameslist(l) {
     var i;
     var s = l.length;
     var sel = documentElement("geonameslist");
@@ -367,20 +384,13 @@ function showgeonameslist(l) {
 	addoption(sel, o);
     }
     sel.value = first;
-    setMessageAfterElement("geonameslist", "Select your birthplace");
-    documentElement("geonameslistcell").className = "";
-    documentElement("coordmethodcell").className = "";
-    documentElement("placecell").className = "hidden";
-    documentElement("locationcell").className = "hidden";
     var x = documentElement("coordmethod");
     if (x.length > 2) {
 	x.remove(2);
     }
-    var o = document.createElement("option");
-    o.text = "Select location found via geonames.org";
-    o.value = "selectlist";
-    addoption(x, o);
+    addselectlistoption(x);
     x.value = "selectlist";
+    showgeonameslist();
 }
 
 function selectgeonamesorg() {
@@ -393,14 +403,28 @@ function selectgeonamesorg() {
     documentElement("geonameslistcell").className = "hidden";
 }
 
+function removeusefoundoption() {
+    var x = documentElement("coordmethod");
+    if ((x.length > 2) && (x.options[2].value == "usefound")) {
+	x.remove(2);
+	if (documentElement("geonameslist").firstChild != null)
+	    addselectlistoption();
+    }
+}
+
 function coordmethodselect() {
     var x = documentElement("coordmethod");
     x = x.options[x.selectedIndex].value;
     if (x == "geonamesorg") {
+	removeusefoundoption();
 	selectgeonamesorg();
 	return true;
     } else if (x == "latlon") {
+	removeusefoundoption();
 	selectlatlon();
+	return true;
+    } else if (x == "selectlist") {
+	showgeonameslist();
 	return true;
     }
     return false;
@@ -712,7 +736,7 @@ function generateudid2() {
 			    continuewithlatlon(lat, lon);
 			} else {
 			    setMessageAfterElement("place");
-			    showgeonameslist(g);
+			    setgeonameslist(g);
 			}
 		    } catch (err) {
 			setMessageAfterElement("place", "Error processing geonames response: " + err.message);
