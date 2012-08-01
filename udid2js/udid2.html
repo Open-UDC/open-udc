@@ -417,6 +417,7 @@ function geonamesclearmsg() {
 
 function useselectedgeoname() {
     geonamesclearmsg();
+    setMessageAfterElement("location");
     var l = documentElement("geonameslist");
     var o = l.options[l.selectedIndex];
     var x = o.value.split(/ /g);
