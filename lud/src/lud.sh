@@ -2,31 +2,26 @@
 # -*- mode: sh; tabstop: 4; shiftwidth: 4; softtabstop: 4; -*-
 
 #set -x
-. ${0%/*}/uset.env
-UDinit
-. ucreate.env
-. udb.env
-. umanage.env
-. ugenid.env
+. ${0%/*}/lud_set.env || exit 1
+lud_init || exit 2
+. lud_utils.env || exit 3
 
 while true ; do
 	lud_utils_chooseinlist "Please choose what to do ?" 1 \
 					 "Register your udid2 for Universal Monetary Dividend" \
 					 "Change registered key for Universal Monetary Dividend" \
 					 "Generate/Check an udid2" \
-					 "Signalize a (living/deceased) individual" \
+					 "Vouch (or no longer vouch) for someone else" \
 					 "Synchronyse Monetary creation" \
 					 "Check the local balance of your account(s)" \
-					 "Make and send a transaction" \
-					 "Check if your receive new transaction(s)" \
-					 "Validate a transaction file" \
+					 "Make and send a transaction file" \
+					 "Check received transaction file(s)" \
 					 "quit ${0##*/}" >&2
+#"Signalize a (living/deceased) individual" \
 #"Update all database" \
-#"Vouch (or no longer vouch) for someone else" \
 	case $? in
 	  1)
-		# gpg --export ...
-		echo "Sorry: Not implemented yet." >&2
+		$lud_gpg --keyserver "${KeyServList[0]}" --send-keys $mymainkeys
 		read -t 5
 		;;
 	  2)
@@ -34,7 +29,9 @@ while true ; do
 		read -t 5
 		;;
 	  3)
-		UDgenudid
+		
+		. lud_generator.env
+		lud_generator_udid
 		read -t 5
 		;;
 	  4)
@@ -51,9 +48,14 @@ while true ; do
 #		read -t 5
 #		;;
 	  5)
-		UDsyncCreation
+		#UDsyncCreation
+		echo "Sorry: Not implemented yet." >&2
+		read -t 5
 		;;
 	  6)
+		echo "Sorry: Not implemented yet." >&2
+		read -t 5
+		continue
 	  [[ "${myaccounts[0]}" ]] || echo "No account found."
 		for account in "${myaccounts[@]}" ; do
 			echo -n "$account: "
@@ -62,6 +64,9 @@ while true ; do
 		read -t 5
 		;;
 	  7)
+		echo "Sorry: Not implemented yet." >&2
+		read -t 5
+		continue
 		if ((${#myaccounts[@]}>1)) ; then
 			lud_utils_chooseinlist "From which account ?" 1 "${myaccounts[@]}" >&2
 			account="${myaccounts[$(($?-1))]}"
@@ -106,16 +111,14 @@ while true ; do
 		fi
 		;;
 	  8)
-		echo "Sorry: Not implemented yet." >&2
 		read -t 5
-		;;
-	  9)
+		continue
 		read -p "filename ? "
 		UDvalidate "$REPLY"
 		#echo "function UDvalidate return $?"
 		read -t 5
 		;;
-	  10)
+	  9)
 		break
 		;;
 	  *)
