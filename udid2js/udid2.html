@@ -480,6 +480,16 @@ function jsonquery(u, f, p, e) {
     };
 }
 
+function birthplacechanged() {
+    if (documentElement("coordmethod").value != "geonamesorg") {
+        documentElement("coordmethodcell").className = "";
+    }
+    documentElement("lat").value   = "";
+    documentElement("lon").value   = "";
+    documentElement("coordmethod").value = "geonamesorg";    
+    return true;
+}
+
 function generateudid2() {
     var no_focusing = false; // Set this in json callbacks, so we don't change focus asynchronously from user input
     var to_focus = null;
@@ -900,7 +910,7 @@ input, select {
 		<option value="latlon">Specify latitude/longitude</option>
               </select>
 	    </div>
-	    <div id=placecell><input id=place name=place size=30 type=text></div>
+	    <div id=placecell><input id=place name=place size=30 type=text onChange="birthplacechanged()"></div>
 	    <div class=hidden id=geonameslistcell>
 	      <select style="width:19em" id=geonameslist name=geonameslist onChange="geonameselect()" onMouseDown="geonamesclearmsg()">
 		<option></option>
