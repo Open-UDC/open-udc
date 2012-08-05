@@ -3302,10 +3302,10 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 				LOG_INFO,
 				"%.80s is non-existent, check if it as to be managed dynamicaly (%.80s) ",
 				hc->pathinfo , hc->decodedurl );
-			if ( ! strcasecmp(hc->decodedurl,"/pks/add") ) {
-				return hkp_add(hc);
+			if ( ! strcasecmp(hc->decodedurl,"/pks/dump") ) {
+				return hkp_dump(hc);
 			}
-			else if ( ! strncasecmp(hc->decodedurl,"/pks/lookup?",12) ) {
+			else if ( ! strncasecmp(hc->decodedurl,"/pks/look?",12) ) {
 				return hkp_lookup(hc);
 			}
 			else {

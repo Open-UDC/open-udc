@@ -52,7 +52,7 @@ GENHDR =	mime_encodings.h mime_types.h
 
 CLEANFILES =	$(ALL) $(OBJ) $(GENSRC) $(GENHDR)
 
-SUBDIRS =	cgi-src
+SUBDIRS =	cgi-src pks
 
 all:		this subdirs
 this:		$(ALL)

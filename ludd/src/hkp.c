@@ -31,7 +31,7 @@ extern int sub_process;
 
 #define GPGBUFFSIZE 2048
 
-int hkp_add( httpd_conn* hc ) {
+int hkp_dump( httpd_conn* hc ) {
 
 	struct dirent* de;
 	int namlen;
@@ -154,8 +154,8 @@ int hkp_add( httpd_conn* hc ) {
 
    /*err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
                enginfo->file_name,enginfo->home_dir);*/
-   /*err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
-               enginfo->file_name,"."); // "." -> pub dir
+   err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
+               enginfo->file_name,".."); // "." -> pub dir
    if(err != GPG_ERR_NO_ERROR) return 5;
 
    /* do ascii armor data, so output is readable in console */

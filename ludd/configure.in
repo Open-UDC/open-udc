@@ -125,5 +125,5 @@ AC_SUBST(V_CCOPT)
 AC_SUBST(V_STATICFLAG)
 AC_SUBST(V_NETLIBS)
 
-AC_OUTPUT(Makefile src/Makefile src/cgi-src/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/cgi-src/Makefile src/pks/Makefile)
 

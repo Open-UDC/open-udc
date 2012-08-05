@@ -36,7 +36,7 @@ BINDIR = @sbindir@
 #MANDIR = @mandir@ # Weirdo autotool bugs here ...
 MANDIR = @datarootdir@/man
 
-HOMEDIR = @localstatedir@/.ludd
+HOMEDIR = @localstatedir@/ludd
 # Pathname of directory available trough internet.
 WEBDIR = pub
 

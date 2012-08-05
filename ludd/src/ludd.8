@@ -126,10 +126,10 @@ The option names are listed above with their corresponding command-line flags.
 chroot() is a system call that restricts the program's view
 of the filesystem to the current directory and directories
 below it.
-It becomes impossible for remote users to access any file
-outside of the initial directory.
 The restriction is inherited by child processes, so CGI programs get it too.
-This is a very strong security measure, and is recommended.
+It becomes impossible for remote users to access any file
+outside of the initial directory (through CGI programs, as HTTP request are
+checked and can't go outside of WEB_DIR, even with symlinks).
 The only downside is that only root can call chroot(), so this means
 the program must be started as root.
 However, the last thing it does during initialization is to
@@ -138,15 +138,15 @@ give up root access by becoming another user, so this is safe.
 The program can also be compile-time configured to always
 do a chroot(), without needing the -r flag.
 .PP
-Note that with some other web servers, such as NCSA httpd, setting
-up a directory tree for use with chroot() is complicated, involving
-creating a bunch of special directories and copying in various files.
-With thttpd it's a lot easier, all you have to do is make sure
+Note that this is a very strong security measure, and you have to make sure
 any shells, utilities, and config files used by your CGI programs and
-scripts are available.
+scripts are available in the chroot.
 If you have CGI disabled, or if you make a policy that all CGI programs
 must be written in a compiled language such as C and statically linked,
 then you probably don't have to do any setup at all.
+But that is not the case for CGI sripts of the hkp key server, which won't run
+in a chrooted environment.
+.B So CHROOT will desactivate the hkp key server feature for the node.
 .PP
 However, one thing you should do is tell syslogd about the chroot tree,
 so that thttpd can still generate syslog messages.

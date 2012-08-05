@@ -69,7 +69,7 @@
 #define CGI_PATTERN "/*/cgi-bin/*"
 #endif
 
-#define CGI_PATTERN "/in/*"
+#define CGI_PATTERN "/in/*|/pks/add|/pks/lookup"
 
 /* CONFIGURE: How many seconds to allow CGI programs to run before killing
 ** them.  This is in case someone writes a CGI program that goes into an

@@ -4708,7 +4708,7 @@ test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/cgi-src/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/cgi-src/Makefile src/pks/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5431,6 +5431,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/cgi-src/Makefile") CONFIG_FILES="$CONFIG_FILES src/cgi-src/Makefile" ;;
+    "src/pks/Makefile") CONFIG_FILES="$CONFIG_FILES src/pks/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

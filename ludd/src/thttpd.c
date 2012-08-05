@@ -376,7 +376,6 @@ re_open_logfile( void )
 int
 main( int argc, char** argv )
 	{
-	char* cp;
 	struct passwd* pwd;
 	uid_t uid = 32767;
 	gid_t gid = 32767;
@@ -397,14 +396,12 @@ main( int argc, char** argv )
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
 
-	argv0 = argv[0];
-
-	cp = strrchr( argv0, '/' );
-	if ( cp != (char*) 0 )
-		++cp;
+	argv0 = strrchr( argv[0], '/' );
+	if ( argv0 != (char*) 0 )
+		++argv0;
 	else
-		cp = argv0;
-	openlog( cp, LOG_NDELAY|LOG_PID, LOG_FACILITY );
+		argv0 = argv[0];
+	openlog( argv0, LOG_NDELAY|LOG_PID, LOG_FACILITY );
 
 	/* Handle command-line arguments. */
 	parse_args( argc, argv );
@@ -442,6 +439,8 @@ main( int argc, char** argv )
 		uid = pwd->pw_uid;
 		gid = pwd->pw_gid;
 		}
+	else
+		pwd = getpwuid(getuid());
 
 	/* Log file. */
 	if ( logfile != (char*) 0 )
@@ -483,17 +482,31 @@ main( int argc, char** argv )
 	else
 		logfp = (FILE*) 0;
 
-	/* Switch directories if requested. */
-	if ( dir != (char*) 0 )
-		{
-		if ( chdir( dir ) < 0 )
-			{
-			syslog( LOG_CRIT, "chdir - %m" );
-			err(1, "chdir" );
-			}
+	/* Switch directory : the one in parameters, or the $HOME of the user(setuid) if root, or $HOME/.ludd  */
+	if ( dir == (char*) 0 )
+		if ( getuid() == 0 ) 
+			dir=(pwd->pw_dir?pwd->pw_dir:".");
+		else {
+			dir=NEW(char,strlen(pwd->pw_dir)+3+strlen(argv0));
+			strcpy(dir,pwd->pw_dir);
+			strcat(dir,"/.");
+			strcat(dir,argv0);
 		}
-	else
-		dir="." ;
+	if ( do_init ) {
+		fprintf(stdout,"%s will create its stuff to run in %s, press a key to confirm (or Ctrl-C to exit) ...",argv0,dir);
+		getchar();
+		if ( chdir(dir) ) {
+			if ( mkdir(dir,0755) || (getuid()==0 ? chown(dir,uid,gid) : (0) ) )
+				err(1,"creating %s dir",dir);
+		} else
+			chdir("..");
+	}
+
+	if ( chdir( dir ) < 0 )
+		{
+		syslog( LOG_CRIT, "chdir - %m" );
+		err(1, "Exiting (forget -init ?) - chdir %s",dir );
+		}
 	
 	/* if we are root make sure that directory is owned by the specified user */
 	if ( getuid() == 0 )
@@ -521,8 +534,7 @@ main( int argc, char** argv )
 
 	if ( do_init )
 		{
-		fprintf(stdout,"%s will create its stuff to run in %s, press a key to confirm (or Ctrl-C to exit) ...",argv[0],cwd);
-		getchar();
+		/* In this case just create and chdir in public directory */
 		if ( chdir(WEB_DIR) ) 
 			if ( mkdir(WEB_DIR,0755) || (getuid()==0 ? chown(WEB_DIR,uid,gid) : (0) ) || chdir(WEB_DIR) )
 				err(1,"creating %s dir",WEB_DIR);
@@ -625,7 +637,7 @@ main( int argc, char** argv )
 			}
 
 		/* Switch to the web (public) directory. */
-		if ( chdir( WEB_DIR ) < 0 )
+		if ( chdir(WEB_DIR) < 0 )
 			{
 			syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
 			err(1,"Exiting because %s doesn't look friendly (forget -init ?) - chdir %s",cwd,WEB_DIR); 
