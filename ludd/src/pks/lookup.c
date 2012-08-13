@@ -51,54 +51,25 @@
 #define KEYRING_VALID 2
 #define KEYRING_BLACKLIST 4
 
-#define SERVER_STR "Server: ludd/0.1.0\n"
-#define CTYPE_STR "Content-type: text/html\n"
+#define SERVER_STR "Server: ludd/0.1.0"
+#define CTYPE_STR "Content-type: text/html"
 #define QSTRING_MAX 1024
-
-void find_keys(char *search, uint64_t keyid, bool ishex,
-		bool fingerprint, bool skshash, bool exact, bool verbose,
-		bool mrhkp)
-{
-	struct openpgp_publickey *publickey = NULL;
-	int count = 0;
-
-	if (ishex) {
-		count = config.dbbackend->fetch_key(keyid, &publickey, false);
-	} else {
-		count = config.dbbackend->fetch_key_text(search, &publickey);
-	}
-	if (publickey != NULL) {
-		if (mrhkp) {
-			printf("info:1:%d\n", count);
-			mrkey_index(publickey);
-		} else {
-			key_index(publickey, verbose, fingerprint, skshash,
-				true);
-		}
-		free_publickey(publickey);
-	} else if (count == 0) {
-		if (mrhkp) {
-			puts("info:1:0");
-		} else {
-			puts("Key not found.");
-		}
-	} else {
-		if (mrhkp) {
-			puts("info:1:0");
-		} else {
-			printf("Found %d keys, but maximum number to return"
-				" is %d.\n",
-				count,
-				config.maxkeys);
-			puts("Try again with a more specific search.");
-		}
-	}
-}
 
 inline void error_header(int code)
 {
 	printf("HTTP/1.0 %d OK\n",code);
-	printf("%s%s\n",SERVER_STR,CTYPE_STR);
+	printf("%s\n%s\n\n",SERVER_STR,CTYPE_STR);
+}
+
+gpgme_error_t export_armor_keys (gpgme_ctx_t ctx, const char *pattern, gpgme_data_t keydata) {
+	gpgme_data_release(keydata);
+	gpgerr = gpgme_data_new(&keydata);
+	if (gpgerr != GPG_ERR_NO_ERROR)
+		return gpgerr ;
+	gpgerr = gpgme_data_set_encoding(keydata,GPGME_DATA_ENCODING_ARMOR);
+	if (gpgerr != GPG_ERR_NO_ERROR)
+		return gpgerr ;
+	return gpgme_op_export(gpgctx_new,search,0,gpgdata);
 }
 
 int main(int argc, char *argv[])
@@ -108,9 +79,7 @@ int main(int argc, char *argv[])
 	char * search=(char *)0;
 	char * exact=(char *)0;
 
-	gpgme_ctx_t gpgctx_new;
-	gpgme_ctx_t gpgctx_valid;
-	gpgme_ctx_t gpgctx_blacklist;
+	gpgme_ctx_t gpgctx_new, gpgctx_valid, gpgctx_blacklist;
 	gpgme_key_t gpgkey;
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
@@ -176,15 +145,19 @@ int main(int argc, char *argv[])
 
 	keyring=KEYRING_ALL;
 	if (xkeyring) {
+		keyring=0;
 		if (!strcmp(xkeyring,"new"))
-			keyring=KEYRING_NEW;
+			keyring&=KEYRING_NEW;
 		else if (strcmp(xkeyring,"valid"))
-			keyring=KEYRING_VALID;
+			keyring&=KEYRING_VALID;
 		else if (strcmp(xkeyring,"blacklist"))
-			keyring=KEYRING_BLACKLIST;
+			keyring&=KEYRING_BLACKLIST;
+		else {
+			error_header(500);
+			printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: \"x-keyring\" parameter only take \"new\", \"valid\" or \"blacklist\" as argument.</h1></body></html>");
+			return 1;
+		}
 	}
-
-				
 
 	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
 	setlocale (LC_ALL, "");
@@ -212,48 +185,115 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 		gpgerr = gpgme_ctx_set_engine_info(gpgctx_new, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"../../new");
-		if ( gpgerr  != GPG_ERR_NO_ERROR )
-			errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			error_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_ctx_set_engine_info %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+	}
+	if (keyring & KEYRING_VALID) {
+		/* create context for valid keyring*/
+		gpgerr=gpgme_new(&gpgctx_valid);
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			error_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_new %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+		gpgerr = gpgme_ctx_set_engine_info(gpgctx_valid, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"../../valid");
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			error_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_ctx_set_engine_info %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+	}
+	if (keyring & KEYRING_BLACKLIST) {
+		/* create context for blacklist keyring*/
+		gpgerr=gpgme_new(&gpgctx_blacklist);
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			error_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_new %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+		gpgerr = gpgme_ctx_set_engine_info(gpgctx_blacklist, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"../../blacklist");
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			error_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_ctx_set_engine_info %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+	}
 
-	/* check for an expected secret key */
-	gpgerr = gpgme_op_keylist_start(gpgctx, "udbot", 1);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_op_keylist_start :-( (%d)", gpgerr);
 
-	do
-		{
-		gpgerr = gpgme_op_keylist_next (gpgctx, &gpgkey);
+	if (!strcmp(op, "get")) {
+		gpgme_data_t gpgdata_new;
+		gpgme_data_t gpgdata_valid;
+		gpgme_data_t gpgdata_blacklist;
 
-		if ( gpgerr == GPG_ERR_EOF )
-			gpgme_key_unref(gpgkey);
-		else if ( gpgerr != GPG_ERR_NO_ERROR )
-			if (do_init)
+
+		if (keyring & KEYRING_NEW) {
+			if ( export_armor_keys(gpgctx_new,search,gpgdata_new) != GPG_ERR_NO_ERROR) {
+				error_header(500);
+				printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (export_armor_keys new %d).</h1></body></html>",gpgerr);
+				return 1;
+			}
+		}
+		if (keyring & KEYRING_VALID) {
+			if ( export_armor_keys(gpgctx_valid,search,gpgdata_valid) != GPG_ERR_NO_ERROR) {
+				error_header(500);
+				printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (export_armor_keys valid %d).</h1></body></html>",gpgerr);
+				return 1;
+			}
+		}
+		if (keyring & KEYRING_BLACKLIST) {
+			if ( export_armor_keys(gpgctx_blacklist,search,gpgdata_blacklist) != GPG_ERR_NO_ERROR) {
+				error_header(500);
+				printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (export_armor_keys blacklist %d).</h1></body></html>",gpgerr);
+				return 1;
+			}
+		}
+
+		error_header(200);
+		printf("<html><head><title>ludd Public Key Server -- Get: %s</title></head><body><h1>Public Key Server -- Get ``brucker ''</h1><pre>"...
+
+
+
+
+	//http://www.nico.schottelius.org/docs/a-small-introduction-for-using-gpgme/
+	} else if (!strcmp(op, "index")) {
+
+		/* check for the searched key(s) */
+		gpgerr = gpgme_op_keylist_start(gpgctx, search, 0);
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			error_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_op_keylist_start %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+
+		do {
+			gpgerr = gpgme_op_keylist_next (gpgctx, &gpgkey);
+
+			if ( gpgerr == GPG_ERR_EOF )
+				gpgme_key_unref(gpgkey);
+			else if ( gpgerr != GPG_ERR_NO_ERROR ) {
+				error_header(404);
+				printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: No keys found</h1></body></html>");
+				return 1;
+			} else {
+				warnx("found key %s",gpgkey->uids->uid);
+				//TODO: ... 
 				break;
-			else
-				//errx(1,"there is no private key, forget -init ? (%d)", gpgerr);
-				warnx("there is no private key, forget -init ? (%d)", gpgerr); // Just because "-init" is not finished ...
-		else if ( gpgkey->revoked )
-			warnx("key %s is revoked",gpgkey->uids->uid);
-		else if ( gpgkey->expired )
-			warnx("key %s is expired",gpgkey->uids->uid);
-		else if ( gpgkey->disabled )
-			warnx("key %s is disabled",gpgkey->uids->uid);
-		else if ( gpgkey->invalid )
-			warnx("key %s is invalid",gpgkey->uids->uid);
-		else if (! gpgkey->can_sign )
-			warnx("key %s can not sign",gpgkey->uids->uid);
-		else
-			{
-			warnx("found key %s",gpgkey->uids->uid);
-			//TODO: verify that comment part of uid is expected
-			//and warn if not signed by the associated udid in the keyring
-			break;
 			}
 
-		gpgme_key_unref(gpgkey);
-		}
-	while (gpgerr == GPG_ERR_NO_ERROR);
+			gpgme_key_unref(gpgkey);
+		} while (gpgerr == GPG_ERR_NO_ERROR);
 
+	} else if ( !strcmp(op, "photo") || !strcmp(op, "x-photo") ) {
+	} else {
+		error_header(500);
+		printf("HTTP/1.0 500 OK\n");
+		printf("%s%s\n",SERVER_STR,CTYPE_STR);
+		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Unrecognized action in \"%s\".</h1></body></html>",qstring);
+		return 1;
+	}
 
 
 	for (i = 0; params != NULL && params[i] != NULL; i += 2) {
@@ -271,13 +311,7 @@ int main(int argc, char *argv[])
 				op = OP_VINDEX;
 			} else if ( !strcmp(params[i+1], "photo") || !strcmp(params[i+1], "x-photo") ) {
 				op = OP_PHOTO;
-			} else {
-				error_header(500);
-				printf("HTTP/1.0 500 OK\n");
-				printf("%s%s\n",SERVER_STR,CTYPE_STR);
-				printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Unrecognized action in \"%s\".</h1></body></html>",qstring);
-				return 1;
-			}
+	v²
 		} else if (!strcmp(params[i], "search")) {
 			search = params[i+1];
 			params[i+1] = NULL;
@@ -436,3 +470,45 @@ int main(int argc, char *argv[])
 	
 	return (EXIT_SUCCESS);
 }
+
+void find_keys(char *search, uint64_t keyid, bool ishex,
+		bool fingerprint, bool skshash, bool exact, bool verbose,
+		bool mrhkp)
+{
+	struct openpgp_publickey *publickey = NULL;
+	int count = 0;
+
+	if (ishex) {
+		count = config.dbbackend->fetch_key(keyid, &publickey, false);
+	} else {
+		count = config.dbbackend->fetch_key_text(search, &publickey);
+	}
+	if (publickey != NULL) {
+		if (mrhkp) {
+			printf("info:1:%d\n", count);
+			mrkey_index(publickey);
+		} else {
+			key_index(publickey, verbose, fingerprint, skshash,
+				true);
+		}
+		free_publickey(publickey);
+	} else if (count == 0) {
+		if (mrhkp) {
+			puts("info:1:0");
+		} else {
+			puts("Key not found.");
+		}
+	} else {
+		if (mrhkp) {
+			puts("info:1:0");
+		} else {
+			printf("Found %d keys, but maximum number to return"
+				" is %d.\n",
+				count,
+				config.maxkeys);
+			puts("Try again with a more specific search.");
+		}
+	}
+}
+
+
