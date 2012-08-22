@@ -1,11 +1,11 @@
 /*
  * lookup.c - CGI to lookup keys.
  *
- * Copyright 2002-2005,2007-2009,2011 Jonathan McDowell <noodles@earth.li>
+ * Copyright 2012 Jean-Jacques Brucker <open-udc@googlegroups.com>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
- * Software Foundation; version 2 of the License.
+ * Software Foundation; version 3 of the License.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
@@ -77,21 +77,6 @@ static void strencode( char* to, int tosize, char* from ) {
 		}
 	}
 	*to = '\0';
-}
-
-gpgme_error_t export_armor_keys (gpgme_ctx_t ctx, const char *pattern, gpgme_data_t keydata) {
-	gpgme_error_t gpgerr;
-
-	gpgme_data_release(keydata);
-	gpgerr = gpgme_data_new(&keydata);
-	if (gpgerr != GPG_ERR_NO_ERROR)
-		return gpgerr ;
-	gpgerr = gpgme_data_set_encoding(keydata,GPGME_DATA_ENCODING_ARMOR);
-	if (gpgerr != GPG_ERR_NO_ERROR)
-		return gpgerr ;
-	if( gpgme_data_get_encoding(keydata) != GPGME_DATA_ENCODING_ARMOR)
-		return ( 100 + gpgme_data_get_encoding(keydata) );
-	return gpgme_op_export(ctx,pattern,0,keydata);
 }
 
 int main(int argc, char *argv[])
@@ -205,8 +190,9 @@ int main(int argc, char *argv[])
 	if (!strcmp(op, "get")) {
 		gpgme_data_t gpgdata;
 		char buff[BUFFSIZE];
-		ssize_t read_bytes,d1,d2;
+		ssize_t read_bytes;
 
+		gpgme_set_armor(gpgctx,1);
 		gpgerr = gpgme_data_new(&gpgdata);
 		if (gpgerr == GPG_ERR_NO_ERROR) {
 			gpgerr = gpgme_data_set_encoding(gpgdata,GPGME_DATA_ENCODING_ARMOR);
@@ -219,13 +205,15 @@ int main(int argc, char *argv[])
 			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (%d).</h1></body></html>",gpgerr);
 			return 1;
 		}
-		d1=gpgme_data_seek (gpgdata, 0, SEEK_END);
-		d2=gpgme_data_seek (gpgdata, 0, SEEK_SET);
+		gpgme_data_seek (gpgdata, 0, SEEK_SET);
 		read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE);
-		if ( read_bytes <= 0 ) {
+		if ( read_bytes == -1 ) {
+			http_header(500,CTYPE_HTML_STR);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (%s).</h1></body></html>",gpgme_strerror(errno));
+			return 1;
+		} else if ( read_bytes <= 0 ) {
 			http_header(404,CTYPE_HTML_STR);
 			printf("<html><head><title>ludd Public Key Server -- Get: %s</title></head><body><h1>Public Key Server -- Get: %s : No key found ! :-( </h1></body></html>",search,search);
-			printf("debug: %d - %d - %d - %d -%s\n",read_bytes,d2,d1,gpgme_data_get_encoding(gpgdata),gpgme_strerror(errno));
 			return 0;
 		} else {
 			http_header(200,CTYPE_HTML_STR);
@@ -271,7 +259,7 @@ int main(int argc, char *argv[])
 			gpgme_key_unref(gpgkey); /* ... because i don't know how "gpgme_op_keylist_next" behave when not returning GPG_ERR_NO_ERROR */
 		if (!begin) {
 			http_header(404,CTYPE_HTML_STR);
-			printf("<html><head><title>ludd Public Key Server -- index: %s</title></head><body><h1>index Error: No keys found</h1></body></html>");
+			printf("<html><head><title>ludd Public Key Server -- index: %s</title></head><body><h1>index Error: No keys found</h1></body></html>",search);
 			return 1;
 		}
 		return 0;
