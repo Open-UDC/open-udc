@@ -21,10 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+#include <locale.h>  /* locale support    */
+#include <gpgme.h>
 
 #include "version.h"
 
-#define SERVER_STR "Server: ludd/0.1.0"
 #define CTYPE_HTML_STR "text/html"
 #define QSTRING_MAX 1024
 #define BUFFSIZE 1024
@@ -32,7 +34,7 @@
 static void http_header(int code,const char * ctype)
 {
 	printf("HTTP/1.0 %d OK\n",code);
-	printf("%s\nContent-type: %s\n\n",SERVER_STR,(ctype?ctype:CTYPE_HTML_STR));
+	printf("Server: %s\nContent-type: %s\n\n",SERVER_SOFTWARE,(ctype?ctype:CTYPE_HTML_STR));
 }
 
 static int hexit( char c ) {
@@ -87,12 +89,13 @@ gpgme_error_t export_armor_keys (gpgme_ctx_t ctx, const char *pattern, gpgme_dat
 	gpgerr = gpgme_data_set_encoding(keydata,GPGME_DATA_ENCODING_ARMOR);
 	if (gpgerr != GPG_ERR_NO_ERROR)
 		return gpgerr ;
+	if( gpgme_data_get_encoding(keydata) != GPGME_DATA_ENCODING_ARMOR)
+		return ( 100 + gpgme_data_get_encoding(keydata) );
 	return gpgme_op_export(ctx,pattern,0,keydata);
 }
 
 int main(int argc, char *argv[])
 {
-	uint64_t keyid = 0 ;
 	char * op=(char *)0;
 	char * search=(char *)0;
 	char * searchdec=(char *)0;
@@ -103,13 +106,15 @@ int main(int argc, char *argv[])
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
 
-	char * qstring=strndup(getenv("QUERY_STRING"),QSTRING_MAX);
+	char * qstring, * pchar;
 
-	if (! qstring) {
+	pchar=getenv("QUERY_STRING");
+	if (! pchar || *pchar == '\0' ) {
 		http_header(500,CTYPE_HTML_STR);
 		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: there is no query string.</h1></body></html>");
 		return 1;
 	}
+	qstring=strndup(pchar,QSTRING_MAX); /* copy the QUERY from env to write in */
 	pchar=qstring;
 
 	while (pchar && *pchar) {
@@ -129,7 +134,7 @@ int main(int argc, char *argv[])
 			//fingerprints=pchar;
 		} else if (!strncmp(pchar,"exact=",6)) {
 			pchar+=6;
-			exact=pchar
+			exact=pchar;
 		} /*else: Other parameter not in hkp draft are quietly ignored */
 		pchar=strchr(pchar,'&');
 		if (pchar) {
@@ -155,7 +160,7 @@ int main(int argc, char *argv[])
 	if ( ! search ) { 
 		/* (mandatory parameter) */
 		http_header(500,CTYPE_HTML_STR);
-		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Missing \"search\" parameter in \"%s\".</h1></body></html>",qstring);
+		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Missing \"search\" parameter in \"%s\".</h1></body></html>",getenv("QUERY_STRING"));
 		return 1;
 	} else {
 		if (searchdec=malloc(strlen(search)*sizeof(char)+1)) 
@@ -200,17 +205,27 @@ int main(int argc, char *argv[])
 	if (!strcmp(op, "get")) {
 		gpgme_data_t gpgdata;
 		char buff[BUFFSIZE];
-		size_t read_bytes;
+		ssize_t read_bytes,d1,d2;
 
-		if ( export_armor_keys(gpgctx,searchdec,gpgdata) != GPG_ERR_NO_ERROR) {
+		gpgerr = gpgme_data_new(&gpgdata);
+		if (gpgerr == GPG_ERR_NO_ERROR) {
+			gpgerr = gpgme_data_set_encoding(gpgdata,GPGME_DATA_ENCODING_ARMOR);
+			if (gpgerr == GPG_ERR_NO_ERROR)
+				gpgerr = gpgme_op_export(gpgctx,searchdec,0,gpgdata);
+		}
+
+		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			http_header(500,CTYPE_HTML_STR);
-			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (export_armor_keys new %d).</h1></body></html>",gpgerr);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (%d).</h1></body></html>",gpgerr);
 			return 1;
 		}
+		d1=gpgme_data_seek (gpgdata, 0, SEEK_END);
+		d2=gpgme_data_seek (gpgdata, 0, SEEK_SET);
 		read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE);
-		if ( read_byte <= 0 ) {
+		if ( read_bytes <= 0 ) {
 			http_header(404,CTYPE_HTML_STR);
 			printf("<html><head><title>ludd Public Key Server -- Get: %s</title></head><body><h1>Public Key Server -- Get: %s : No key found ! :-( </h1></body></html>",search,search);
+			printf("debug: %d - %d - %d - %d -%s\n",read_bytes,d2,d1,gpgme_data_get_encoding(gpgdata),gpgme_strerror(errno));
 			return 0;
 		} else {
 			http_header(200,CTYPE_HTML_STR);
@@ -225,9 +240,11 @@ int main(int argc, char *argv[])
 	} else if (!strcmp(op, "index")) {
 		char uidenc[BUFFSIZE];
 		char begin=0;
+		gpgme_user_id_t gpguid;
 
 		/* check for the searched key(s) */
 		gpgerr = gpgme_op_keylist_start(gpgctx, searchdec, 0);
+		//gpgerr = gpgme_op_keylist_start(gpgctx, NULL, 0);
 		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 			http_header(500,CTYPE_HTML_STR);
 			printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme_op_keylist_start %d).</h1></body></html>",gpgerr);
@@ -242,7 +259,7 @@ int main(int argc, char *argv[])
 				/* Luckily: info "header" is optionnal, see draft-shaw-openpgp-hkp-00.txt */
 			}
 			/* first subkey is the main key */
-			printf("pub:%s:%d:%d:%d:%s\n",gpgkey->subkeys->fpr,gpgkey->subkeys->pubkey_algo,gpgkey->subkeys->length,gpgkey->subkeys->timestamp,(gpgkey->subkeys->expires?atoi(gpgkey->subkeys->expires):""));
+			printf("pub:%s:%d:%d:%d:%d\n",gpgkey->subkeys->fpr,gpgkey->subkeys->pubkey_algo,gpgkey->subkeys->length,gpgkey->subkeys->timestamp,(gpgkey->subkeys->expires?gpgkey->subkeys->expires:-1));
 			gpguid=gpgkey->uids;
 			while (gpguid) {
 				printf("uid:%s (%s) <%s>:\n",gpguid->name,gpguid->comment,gpguid->email);
@@ -265,9 +282,7 @@ int main(int argc, char *argv[])
 			return 1;
 	} else {
 		http_header(500,CTYPE_HTML_STR);
-		printf("HTTP/1.0 500 OK\n");
-		printf("%s%s\n",SERVER_STR,CTYPE_STR);
-		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Unrecognized action in \"%s\".</h1></body></html>",qstring);
+		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Unrecognized action in \"%s\".</h1></body></html>",getenv("QUERY_STRING"));
 		return 1;
 	}
 }
