@@ -44,12 +44,12 @@ CLEANFILES =	*.o lookup
 
 all:		lookup
 
-lookup:	lookup.o
-	$(CC) $(LDFLAGS) lookup.o $(LIBS) -o lookup
+lookup:	cgi-lookup.o
+	$(CC) $(LDFLAGS) cgi-lookup.o $(LIBS) -o lookup
 
 install:	all
 	-mkdir -p $(HOMEDIR)/$(WEBDIR)/pks
-	$(INSTALL) add.sh $(HOMEDIR)/$(WEBDIR)/pks/add
+	$(INSTALL) cgi-add.sh $(HOMEDIR)/$(WEBDIR)/pks/add
 	$(INSTALL) lookup $(HOMEDIR)/$(WEBDIR)/pks/lookup
 
 uninstall:
