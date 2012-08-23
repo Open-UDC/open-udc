@@ -16,8 +16,10 @@ done
 }
 
 # first 8 char should be "keytext=" which gpg don't recognize
-if ! ((CONTENT_LENGTH>8)) || ! read -t 1 -N 8 || ! response="$(urldec $CONTENT_LENGTH | gpg --armor --fast-import 2>&1 )" ; then
+if ! ((CONTENT_LENGTH>8)) || ! read -t 3 -N 8 || ! response="$(urldec $CONTENT_LENGTH | gpg --armor --fast-import 2>&1 )" ; then
 	echo "HTTP/1.0 500 OK"
+else
+	echo "HTTP/1.0 200 OK"
 fi
 
 cat << EOF
