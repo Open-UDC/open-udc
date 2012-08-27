@@ -34,7 +34,7 @@ LIBS =		@LIBS@
 NETLIBS =	@V_NETLIBS@
 INSTALL =	@INSTALL@
 
-CLEANFILES =	*.o lookup
+CLEANFILES =	*.o cgi-lookup cgi-add
 
 @SET_MAKE@
 
@@ -42,15 +42,19 @@ CLEANFILES =	*.o lookup
 	@rm -f $@
 	$(CC) $(CFLAGS) -c $*.c
 
-all:		lookup
+all:		lookup add
 
 lookup:	cgi-lookup.o
-	$(CC) $(LDFLAGS) cgi-lookup.o $(LIBS) -o lookup
+	$(CC) $(LDFLAGS) cgi-lookup.o $(LIBS) -o cgi-lookup
+
+add:	cgi-add.o
+	$(CC) $(LDFLAGS) cgi-add.o $(LIBS) -o cgi-add
 
 install:	all
 	-mkdir -p $(HOMEDIR)/$(WEBDIR)/pks
-	$(INSTALL) cgi-add.sh $(HOMEDIR)/$(WEBDIR)/pks/add
-	$(INSTALL) lookup $(HOMEDIR)/$(WEBDIR)/pks/lookup
+	$(INSTALL) cgi-lookup $(HOMEDIR)/$(WEBDIR)/pks/lookup
+	$(INSTALL) cgi-add $(HOMEDIR)/$(WEBDIR)/pks/add
+#	$(INSTALL) cgi-add.sh $(HOMEDIR)/$(WEBDIR)/pks/add
 
 uninstall:
 	rm -rf $(HOMEDIR)/$(WEBDIR)/pks
