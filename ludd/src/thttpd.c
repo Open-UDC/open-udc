@@ -144,6 +144,8 @@ int stats_simultaneous;
 
 static volatile int got_hup, got_usr1, got_bus, watchdog_flag;
 
+/* The main gpgme context */
+gpgme_ctx_t gpgctx;
 
 /* Forwards. */
 static void parse_args( int argc, char** argv );
@@ -260,7 +262,6 @@ handle_hup( int sig )
 	errno = oerrno;
 	}
 
-
 /* SIGUSR1 says to exit as soon as all current connections are done. */
 static void
 handle_usr1( int sig )
@@ -372,7 +373,6 @@ re_open_logfile( void )
 		}
 	}
 
-
 int
 main( int argc, char** argv )
 	{
@@ -391,7 +391,6 @@ main( int argc, char** argv )
 	struct timeval tv;
 	struct stat stf;
 
-	gpgme_ctx_t gpgctx;
 	gpgme_key_t gpgkey;
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
@@ -748,6 +747,11 @@ main( int argc, char** argv )
 			syslog( LOG_CRIT, "setuid - %m" );
 			err(1,"setuid");
 			}
+		/* Setenv(HOME) (for gpgme) . */
+		if ( setenv("HOME",dir,1) < 0 ) {
+			syslog( LOG_CRIT, "setenv - %m" );
+			err(1,"setenv");
+		}
 		/* Check for unnecessary security exposure. */
 		if ( ! do_chroot )
 			syslog(
@@ -768,15 +772,15 @@ main( int argc, char** argv )
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
 		errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
 
-	/* create first context */
+	/* create context */
 	gpgerr=gpgme_new(&gpgctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
 		errx(1,"can't create gpg context :-( (%d)", gpgerr);
 
-	gpgerr = gpgme_get_engine_info(&enginfo);
-	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"..");
+	/*gpgerr = gpgme_get_engine_info(&enginfo);
+	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);
+		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);*/
 
 	/* check for an expected secret key */
 	gpgerr = gpgme_op_keylist_start(gpgctx, "udbot", 1);

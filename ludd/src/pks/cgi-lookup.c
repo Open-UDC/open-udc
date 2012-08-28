@@ -27,7 +27,7 @@
 
 #include "version.h"
 
-#define CTYPE_HTML_STR "text/html"
+#define CTYPE_HTML_STR "text/html; charset=utf-8"
 #define QSTRING_MAX 1024
 #define BUFFSIZE 1024
 
@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 		gpgerr = gpgme_op_keylist_next (gpgctx, &gpgkey);
 		while (gpgerr == GPG_ERR_NO_ERROR) {
 			if (!begin) {
-				http_header(200,"text/plain");
+				http_header(200,"text/plain; charset=utf-8");
 				begin=1;
 				/* Luckily: info "header" is optionnal, see draft-shaw-openpgp-hkp-00.txt */
 			}

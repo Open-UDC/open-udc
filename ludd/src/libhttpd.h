@@ -153,6 +153,10 @@ typedef struct {
 #define CHST_CRLFCR 10
 #define CHST_BOGUS 11
 
+/* Copies and decodes a string.  It's ok for from and to to be the
+** same string. Return the lenght of decoded string.
+*/
+extern int strdecode( char* to, char* from );
 
 /* Initializes.  Does the socket(), bind(), and listen().   Returns an
 ** httpd_server* which includes a socket fd that you can select() on.

@@ -140,7 +140,6 @@ static int auth_check( httpd_conn* hc, char* dirname  );
 #endif /* AUTH_FILE */
 static void send_dirredirect( httpd_conn* hc );
 static int hexit( char c );
-static void strdecode( char* to, char* from );
 #ifdef GENERATE_INDEXES
 static void strencode( char* to, int tosize, char* from );
 #endif /* GENERATE_INDEXES */
@@ -1086,39 +1085,31 @@ httpd_method_str( int method )
 		}
 	}
 
-
-static int
-hexit( char c )
-	{
+static int hexit( char c ) {
 	if ( c >= '0' && c <= '9' )
 		return c - '0';
 	if ( c >= 'a' && c <= 'f' )
 		return c - 'a' + 10;
 	if ( c >= 'A' && c <= 'F' )
 		return c - 'A' + 10;
-	return 0;		   /* shouldn't happen, we're guarded by isxdigit() */
-	}
-
+	return -1;	
+}
 
 /* Copies and decodes a string.  It's ok for from and to to be the
-** same string.
+** same string. Return the lenght of decoded string.
 */
-static void
-strdecode( char* to, char* from )
-	{
-	for ( ; *from != '\0'; ++to, ++from )
-		{
-		if ( from[0] == '%' && isxdigit( from[1] ) && isxdigit( from[2] ) )
-			{
-			*to = hexit( from[1] ) * 16 + hexit( from[2] );
+int strdecode( char* to, char* from ) {
+	int a,b,r;
+	for ( r=0 ; *from != '\0'; to++, from++, r++ ) {
+		if ( from[0] == '%' && (a=hexit(from[1])) >= 0 && (b=hexit(from[2])) >= 0 ) {
+			*to = a* 16 + b;
 			from += 2;
-			}
-		else
+		} else
 			*to = *from;
-		}
-	*to = '\0';
 	}
-
+	*to = '\0';
+	return r;
+}
 
 #ifdef GENERATE_INDEXES
 /* Copies and encodes a string. */
