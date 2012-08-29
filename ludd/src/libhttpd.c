@@ -467,7 +467,7 @@ char* httpd_err408form =
 
 char* err500title = "Internal Error";
 char* err500form =
-	"There was an unusual problem serving the requested URL '%.80s'.\n";
+	"There was an unusual problem serving the requested URL (%.80s).\n";
 
 char* err501title = "Not Implemented";
 char* err501form =
@@ -491,8 +491,7 @@ add_response( httpd_conn* hc, char* str )
 	}
 
 /* Send the buffered response. */
-void
-httpd_write_response( httpd_conn* hc )
+void httpd_write_response( httpd_conn* hc )
 	{
 	/* If we are in a sub-process, turn off no-delay mode. */
 	if ( sub_process )
@@ -669,14 +668,15 @@ send_response( httpd_conn* hc, int status, char* title, char* extraheads, char* 
 	defang( arg, defanged_arg, sizeof(defanged_arg) );
 	(void) my_snprintf( buf, sizeof(buf), form, defanged_arg );
 	add_response( hc, buf );
-	if ( match( "**MSIE**", hc->useragent ) )
+	/* if ( match( "**MSIE**", hc->useragent ) )
+	// Fuck off old (~#!) MSIE !!
 		{
 		int n;
 		add_response( hc, "<!--\n" );
 		for ( n = 0; n < 6; ++n )
 			add_response( hc, "Padding so that MSIE deigns to show this error instead of its own canned one.\n");
 		add_response( hc, "-->\n" );
-		}
+		} */
 	send_response_tail( hc );
 	}
 
@@ -732,6 +732,10 @@ defang( char* str, char* dfstr, int dfsize )
 void
 httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg )
 	{
+	/* log server error */
+	if (status>=500)
+		syslog( LOG_ERR, "HTTP %d (%.80s):%m \"%.80s\"",status,arg,hc->encodedurl );
+
 #ifdef ERR_DIR
 
 	char filename[1000];

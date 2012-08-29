@@ -377,8 +377,6 @@ int
 main( int argc, char** argv )
 	{
 	struct passwd* pwd;
-	uid_t uid = 32767;
-	gid_t gid = 32767;
 	char cwd[MAXPATHLEN+1];
 	FILE* logfp;
 	int num_ready;
@@ -435,8 +433,6 @@ main( int argc, char** argv )
 			syslog( LOG_CRIT, "unknown user - '%.80s'", user );
 			errx(1, "%s: unknown user - '%s'\n", argv0, user );
 			}
-		uid = pwd->pw_uid;
-		gid = pwd->pw_gid;
 		}
 	else
 		pwd = getpwuid(getuid());
@@ -470,7 +466,7 @@ main( int argc, char** argv )
 				/* If we are root then we chown the log file to the user we'll
 				** be switching to.
 				*/
-				if ( fchown( fileno( logfp ), uid, gid ) < 0 )
+				if ( fchown( fileno( logfp ), pwd->pw_uid, pwd->pw_gid ) < 0 )
 					{
 					syslog( LOG_WARNING, "fchown logfile - %m" );
 					warn( "fchown logfile" );
@@ -495,7 +491,7 @@ main( int argc, char** argv )
 		fprintf(stdout,"%s will create its stuff to run in %s, press a key to confirm (or Ctrl-C to exit) ...",argv0,dir);
 		getchar();
 		if ( chdir(dir) ) {
-			if ( mkdir(dir,0755) || (getuid()==0 ? chown(dir,uid,gid) : (0) ) )
+			if ( mkdir(dir,0755) || (getuid()==0 ? chown(dir,pwd->pw_uid,pwd->pw_gid) : (0) ) )
 				err(1,"creating %s dir",dir);
 		} else
 			chdir("..");
@@ -513,11 +509,11 @@ main( int argc, char** argv )
 		if (stat(".",&stf) )
 			err(1,"stat %s",dir);
 
-		if (stf.st_uid != uid)
+		if (stf.st_uid != pwd->pw_uid)
 			{
 			warnx("dir \"%s/\" was not owned by %s... I DO \"chown\" !!!\n",dir,user);
 
-			if ( chown(".",uid,gid) )
+			if ( chown(".",pwd->pw_uid,pwd->pw_gid) )
 				err(1,"chown %s",dir);
 			}
 		}
@@ -535,7 +531,7 @@ main( int argc, char** argv )
 		{
 		/* In this case just create and chdir in public directory */
 		if ( chdir(WEB_DIR) ) 
-			if ( mkdir(WEB_DIR,0755) || (getuid()==0 ? chown(WEB_DIR,uid,gid) : (0) ) || chdir(WEB_DIR) )
+			if ( mkdir(WEB_DIR,0755) || (getuid()==0 ? chown(WEB_DIR,pwd->pw_uid,pwd->pw_gid) : (0) ) || chdir(WEB_DIR) )
 				err(1,"creating %s dir",WEB_DIR);
 		}
 	else
@@ -731,24 +727,24 @@ main( int argc, char** argv )
 			errx(1,"setgroups - %m");
 			}
 		/* Set primary group. */
-		if ( setgid( gid ) < 0 )
+		if ( setgid( pwd->pw_gid ) < 0 )
 			{
 			syslog( LOG_CRIT, "setgid - %m" );
 			errx(1,"setgid - %m");
 			}
 		/* Try setting aux groups correctly - not critical if this fails. */
-		if ( initgroups( user, gid ) < 0 ) {
+		if ( initgroups( user, pwd->pw_gid ) < 0 ) {
 			syslog( LOG_WARNING, "initgroups - %m" );
 			warn("initgroups");
 			}
 		/* Set uid. */
-		if ( setuid( uid ) < 0 )
+		if ( setuid( pwd->pw_uid ) < 0 )
 			{
 			syslog( LOG_CRIT, "setuid - %m" );
 			err(1,"setuid");
 			}
 		/* Setenv(HOME) (for gpgme) . */
-		if ( setenv("HOME",dir,1) < 0 ) {
+		if ( setenv("HOME",pwd->pw_dir,1) < 0 ) {
 			syslog( LOG_CRIT, "setenv - %m" );
 			err(1,"setenv");
 		}

@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <syslog.h>
+#include <string.h>
 #include <errno.h>   /* errno             */
 #include <locale.h>  /* locale support    */
 #include <gpgme.h>
@@ -14,6 +15,7 @@
 #include "hkp.h"
 #include "timers.h"
 #include "libhttpd.h"
+#include "version.h"
 
 #ifdef CGI_TIMELIMIT
 extern void cgi_kill(ClientData client_data, struct timeval* nowP );
@@ -29,214 +31,255 @@ extern void cgi_kill(ClientData client_data, struct timeval* nowP );
 */
 extern int sub_process;
 
-#define GPGBUFFSIZE 2048
+#define QSTRING_MAX 1024
+#define BUFFSIZE 2048
 
 int hkp_dump( httpd_conn* hc ) {
+   return(-1);
+}
 
-	struct dirent* de;
-	int namlen;
-	static int maxnames = 0;
-	int nnames;
-	static char* names;
-	static char** nameptrs;
-	static char* name;
-	static size_t maxname = 0;
-	static char* rname;
-	static size_t maxrname = 0;
-	static char* encrname;
-	static size_t maxencrname = 0;
+int hkp_lookup( httpd_conn* hc ) {
+
+	int r;
 	FILE* fp;
-	int i, r;
-	struct stat sb;
-	struct stat lsb;
-	char modestr[20];
-	char* linkprefix;
-	char link[MAXPATHLEN+1];
-	int linklen;
-	char* fileclass;
-	time_t now;
-	char* timestr;
 	ClientData client_data;
 
-	char *p;
-	char buf[GPGBUFFSIZE];
-	size_t read_bytes;
-	int tmp;
-	gpgme_ctx_t ceofcontext;
-	gpgme_error_t err;
-	gpgme_data_t data;
+	char * op=(char *)0;
+	char * search=(char *)0;
+	char * searchdec=(char *)0;
+	char * exact=(char *)0;
 
-	gpgme_engine_info_t enginfo;
+	gpgme_ctx_t gpglctx;
+	gpgme_key_t gpgkey;
+	gpgme_error_t gpgerr;
 
-	if ( hc->method == METHOD_HEAD )
-		{
+	char * qstring, * pchar;
+
+	if ( hc->method == METHOD_HEAD ) {
 		send_mime(
 			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
 			hc->sb.st_mtime );
-		}
-	else if ( hc->method == METHOD_GET )
+		return 0;
+	} else if ( hc->method =! METHOD_GET ) {
+		httpd_send_err(
+			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
+		return -1;
+	}
+
+	pchar=hc->query;
+	if (! pchar || *pchar == '\0' ) {
+		httpd_send_err(hc, 400, httpd_err400title, "", "Error handling request: there is no query string", "" );
+		return 1;
+	}
+
+	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
 		{
-		if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
-			{
-			httpd_send_err(
-				hc, 503, httpd_err503title, "", httpd_err503form,
-				hc->encodedurl );
-			return -1;
-			}
-		++hc->hs->cgi_count;
-		r = fork( );
-		if ( r < 0 )
-			{
-			syslog( LOG_ERR, "fork - %m" );
-			httpd_send_err(
-				hc, 500, err500title, "", err500form, hc->encodedurl );
-			return -1;
-			}
-		if ( r == 0 )
-			{
-			/* Child process. */
-			sub_process = 1;
-			httpd_unlisten( hc->hs );
-			send_mime(
-				hc, 200, ok200title, "", "", "text/html; charset=%s",
-				(off_t) -1, hc->sb.st_mtime );
-			httpd_write_response( hc );
-
-#ifdef CGI_NICE
-			/* Set priority. */
-			(void) nice( CGI_NICE );
-#endif /* CGI_NICE */
-
-			/* Open a stdio stream so that we can use fprintf, which is more
-			** efficient than a bunch of separate write()s.  We don't have
-			** to worry about double closes or file descriptor leaks cause
-			** we're in a subprocess.
-			*/
-			fp = fdopen( hc->conn_fd, "w" );
-			if ( fp == (FILE*) 0 )
-				{
-				syslog( LOG_ERR, "fdopen - %m" );
-				httpd_send_err(
-					hc, 500, err500title, "", err500form, hc->encodedurl );
-				httpd_write_response( hc );
-				exit( 1 );
-				}
-
-			(void) fprintf( fp, "\
-<HTML>\n\
-<HEAD><TITLE>Index of %.80s</TITLE></HEAD>\n\
-<BODY BGCOLOR=\"#aaccbb\" TEXT=\"#000000\" LINK=\"#2020ff\" VLINK=\"#4040cc\">\n\
-<H2>Index of %.80s</H2>\n\
-<PRE>\n\
-<HR>",
-				hc->encodedurl, hc->encodedurl );
-
-   /* get engine information */
-   err = gpgme_get_engine_info(&enginfo);
-   if(err != GPG_ERR_NO_ERROR) return 2;
-   fprintf(fp,"file=%s, home=%s\n",enginfo->file_name,enginfo->home_dir);
-   fprintf(fp,"PWD=%s\n",get_current_dir_name());
-
-   /* create our own context */
-   err = gpgme_new(&ceofcontext);
-   if(err != GPG_ERR_NO_ERROR) return 3;
-
-   /* set protocol to use in our context */
-   err = gpgme_set_protocol(ceofcontext,GPGME_PROTOCOL_OpenPGP);
-   if(err != GPG_ERR_NO_ERROR) return 4;
-
-   /* set engine info in our context; I changed it for ceof like this:
-
-   err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
-               "/usr/bin/gpg","/home/user/nico/.ceof/gpg/");
-
-      but I'll use standard values for this example: */
-
-   /*err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
-               enginfo->file_name,enginfo->home_dir);*/
-   err = gpgme_ctx_set_engine_info (ceofcontext, GPGME_PROTOCOL_OpenPGP,
-               enginfo->file_name,".."); // "." -> pub dir
-   if(err != GPG_ERR_NO_ERROR) return 5;
-
-   /* do ascii armor data, so output is readable in console */
-   gpgme_set_armor(ceofcontext, 1);
-   
-   /* create buffer for data exchange with gpgme*/
-   err = gpgme_data_new(&data);
-   if(err != GPG_ERR_NO_ERROR) return 6;
-
-   /* set encoding for the buffer... */
-   err = gpgme_data_set_encoding(data,GPGME_DATA_ENCODING_ARMOR);
-   if(err != GPG_ERR_NO_ERROR) return 7;
-
-   /* verify encoding: not really needed */
-   tmp = gpgme_data_get_encoding(data);
-   if(tmp == GPGME_DATA_ENCODING_ARMOR) {
-      fprintf(fp,"encode ok\n");
-   } else {
-      fprintf(fp,"encode broken\n");
-   }
-
-   /* with NULL it exports all public keys */
-   err = gpgme_op_export(ceofcontext,NULL,0,data);
-   if(err != GPG_ERR_NO_ERROR) return 8;
-
-   read_bytes = gpgme_data_seek (data, 0, SEEK_END);
-   fprintf(fp,"end is=%d\n",read_bytes);
-   if(read_bytes == -1) {
-      p = (char *) gpgme_strerror(errno);
-      fprintf(fp,"data-seek-err: %s\n",p);
-      return 9;
-   }
-   read_bytes = gpgme_data_seek (data, 0, SEEK_SET);
-   fprintf(fp,"start is=%d (should be 0)\n",read_bytes);
-
-   fprintf(fp,"\n sizeof... char:%d size_t:%d ssize_t:%d\n",sizeof(char),sizeof(size_t),sizeof(ssize_t));
-   /* write keys to stderr */
-   while ((read_bytes = gpgme_data_read (data, buf,GPGBUFFSIZE)) > 0) {
-      fwrite(buf,sizeof(char),read_bytes,fp);
-   }
-   /* append \n, so that there is really a line feed */
-   fprintf(fp,"\n<br>");
-
-   /* free data */
-   gpgme_data_release(data);
-
-   /* free context */
-   gpgme_release(ceofcontext);
-
-
-			(void) fprintf( fp, "</PRE></BODY>\n</HTML>\n" );
-			(void) fclose( fp );
-			exit( 0 );
-			}
-
+		httpd_send_err(
+			hc, 503, httpd_err503title, "", httpd_err503form,
+			hc->encodedurl );
+		return -1;
+		}
+	++hc->hs->cgi_count;
+	r = fork( );
+	if ( r < 0 ) {
+		httpd_send_err(hc, 500, err500title, "", err500form, "f" );
+		return -1;
+	}
+	if ( r > 0 ) {
 		/* Parent process. */
-		syslog( LOG_INFO, "spawned indexing process %d for directory '%.200s'", r, hc->expnfilename );
+		syslog( LOG_INFO, "spawned lookup process %d for '%.200s'", r, hc->query );
 #ifdef CGI_TIMELIMIT
 		/* Schedule a kill for the child process, in case it runs too long */
 		client_data.i = r;
 		if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
 			{
-			syslog( LOG_CRIT, "tmr_create(cgi_kill ls) failed" );
+			syslog( LOG_CRIT, "tmr_create(cgi_kill lookup) failed" );
+			/* TODO : It kills the daemon, so maybe kill the Child and return instead of exit */
 			exit( 1 );
 			}
 #endif /* CGI_TIMELIMIT */
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
 		hc->should_linger = 0;
+		return 0;
+	}
+	/* Child process. */
+	sub_process = 1;
+	httpd_unlisten( hc->hs );
+#ifdef CGI_NICE
+	/* Set priority. */
+	(void) nice( CGI_NICE );
+#endif /* CGI_NICE */
+
+	qstring=strndup(pchar,QSTRING_MAX); /* copy the QUERY to write in */
+	pchar=qstring;
+
+	while (pchar && *pchar) {
+		if (!strncmp(pchar,"op=",3)) {
+			pchar+=3;
+			op=pchar;
+		} else if (!strncmp(pchar,"search=",7)) {
+			pchar+=7;
+			search=pchar;
+		} else if (!strncmp(pchar,"options=",8)) {
+			/*this parameter is useless now, as today we only support "mr" option and always enable it (machine readable) */
+			pchar+=8;
+			//options=pchar;
+		} else if (!strncmp(pchar,"fingerprint=",12)) {
+			/*this parameter is useless now as we only support "mr" options which don't care this */
+			pchar+=12;
+			//fingerprints=pchar;
+		} else if (!strncmp(pchar,"exact=",6)) {
+			pchar+=6;
+			exact=pchar;
+		} /*else: Other parameter not in hkp draft are quietly ignored */
+		pchar=strchr(pchar,'&');
+		if (pchar) {
+			*pchar='\0';
+			pchar++;
 		}
-	else
+	}
+
+	if (exact) {
+		if (!strcmp(exact,"off")) {
+			exact=(char *) 0; /* off is default */
+		} else if (!strcmp(exact,"on")) {
+			httpd_send_err(hc, 501, err501title, "", err501form, "exact=on" );
+			exit(1);
+		} else {
+			httpd_send_err(hc, 400, httpd_err400title, "", "\"exact\" parameter only take \"on\" or \"off\" as argument.", "" );
+			exit(0);
+		}
+	}
+
+	if ( ! search ) { 
+		/* (mandatory parameter) */
+		httpd_send_err(hc, 400, httpd_err400title, "", "Missing \"search\" parameter in \"%.80s\".</h1></body></html>", hc->query );
+		exit(0);
+	} else {
+		if (searchdec=malloc(strlen(search)*sizeof(char)+1)) 
+			strdecode(searchdec,search);
+		else {
+			httpd_send_err(hc, 500, err500title, "", err500form, "m" );
+			exit(1);
+		}
+	}
+
+	if ( ! op )
+		op="index"; /* defaut operation */
+
+	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
+	setlocale (LC_ALL, "");
+	gpgme_check_version (NULL);
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
+	/* check for OpenPGP support */
+	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
+	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+		httpd_send_err(hc, 500, err500title, "", err500form, "g00" );
+		exit(1);
+	}
+
+	/* create context */
+	gpgerr=gpgme_new(&gpglctx);
+	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+		httpd_send_err(hc, 500, err500title, "", err500form, "g01" );
+		exit(1);
+	}
+	
+
+	/* Open a stdio stream so that we can use fprintf, which is more
+	** efficient than a bunch of separate write()s.  We don't have
+	** to worry about double closes or file descriptor leaks cause
+	** we're in a subprocess.
+	*/
+	fp = fdopen( hc->conn_fd, "w" );
+	if ( fp == (FILE*) 0 )
 		{
-		httpd_send_err(
-			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
-		return -1;
+		httpd_send_err(hc, 500, err500title, "", err500form, "fd" );
+		//httpd_write_response( hc );
+		exit(1);
 		}
 
-   return 0;
-}
+	if (!strcmp(op, "get")) {
+		gpgme_data_t gpgdata;
+		char buff[BUFFSIZE];
+		ssize_t read_bytes;
 
-int hkp_lookup( httpd_conn* hc ) {
-	return -1 ;
+		gpgme_set_armor(gpglctx,1);
+		gpgerr = gpgme_data_new(&gpgdata);
+		if (gpgerr == GPG_ERR_NO_ERROR) {
+			gpgerr = gpgme_data_set_encoding(gpgdata,GPGME_DATA_ENCODING_ARMOR);
+			if (gpgerr == GPG_ERR_NO_ERROR)
+				gpgerr = gpgme_op_export(gpglctx,searchdec,0,gpgdata);
+		}
+
+		if ( gpgerr != GPG_ERR_NO_ERROR) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "g10" );
+			exit(1);
+		}
+		gpgme_data_seek (gpgdata, 0, SEEK_SET);
+		read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE);
+		if ( read_bytes == -1 ) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "g11" );
+			exit(1);
+		} else if ( read_bytes <= 0 ) {
+			httpd_send_err(hc, 404, err404title, "", "Get: %.80s : No key found ! :-(", search );
+			exit(0);
+		} else {
+			send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+			fprintf(fp,"<html><head><title>ludd Public Key Server -- Get: %s</title></head><body><h1>Public Key Server -- Get: %s</h1><pre>",search,search);
+			fwrite(buff, sizeof(char),read_bytes,fp); /* Now it's too late to test fwrite return value ;-) */ 
+			while ( (read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE)) > 0 )
+				fwrite(buff, sizeof(char),read_bytes,fp);
+			fprintf(fp,"\n</pre></body></html>");
+			(void) fclose( fp );
+			exit(0);
+		}
+	} else if (!strcmp(op, "index")) {
+		char uidenc[BUFFSIZE];
+		char begin=0;
+		gpgme_user_id_t gpguid;
+
+		/* check for the searched key(s) */
+		gpgerr = gpgme_op_keylist_start(gpglctx, searchdec, 0);
+		//gpgerr = gpgme_op_keylist_start(gpglctx, NULL, 0);
+		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "g20" );
+			exit(1);
+		}
+
+		gpgerr = gpgme_op_keylist_next (gpglctx, &gpgkey);
+		while (gpgerr == GPG_ERR_NO_ERROR) {
+			if (!begin) {
+				send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+				begin=1;
+				/* Luckily: info "header" is optionnal, see draft-shaw-openpgp-hkp-00.txt */
+			}
+			/* first subkey is the main key */
+			fprintf(fp,"pub:%s:%d:%d:%d:%d\n",gpgkey->subkeys->fpr,gpgkey->subkeys->pubkey_algo,gpgkey->subkeys->length,gpgkey->subkeys->timestamp,(gpgkey->subkeys->expires?gpgkey->subkeys->expires:-1));
+			gpguid=gpgkey->uids;
+			while (gpguid) {
+				fprintf(fp,"uid:%s (%s) <%s>:\n",gpguid->name,gpguid->comment,gpguid->email);
+				gpguid=gpguid->next;
+			}
+			gpgme_key_unref(gpgkey);
+			gpgerr = gpgme_op_keylist_next (gpglctx, &gpgkey);
+		}
+			gpgme_key_unref(gpgkey); /* ... because i don't know how "gpgme_op_keylist_next" behave when not returning GPG_ERR_NO_ERROR */
+		if (!begin) {
+			httpd_send_err(hc, 404, err404title, "", "Get: %.80s : No key found ! :-(", search );
+			exit(0);
+		}
+		(void) fclose( fp );
+		exit(0);
+
+	} else if ( !strcmp(op, "photo") || !strcmp(op, "x-photo") ) {
+			httpd_send_err(hc, 501, err501title, "", err501form, op );
+			exit(1);
+	} else {
+		httpd_send_err(hc, 400, httpd_err400title, "", "Unrecognized operation %.80s", op );
+		exit(0);
+	}
+	exit(-1) ;
 }
 
