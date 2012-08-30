@@ -168,17 +168,6 @@ int hkp_lookup( httpd_conn* hc ) {
 	if ( ! op )
 		op="index"; /* defaut operation */
 
-	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
-	setlocale (LC_ALL, "");
-	gpgme_check_version (NULL);
-	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
-	/* check for OpenPGP support */
-	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
-	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
-		httpd_send_err(hc, 500, err500title, "", err500form, "g00" );
-		exit(1);
-	}
-
 	/* create context */
 	gpgerr=gpgme_new(&gpglctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
@@ -196,7 +185,6 @@ int hkp_lookup( httpd_conn* hc ) {
 	if ( fp == (FILE*) 0 )
 		{
 		httpd_send_err(hc, 500, err500title, "", err500form, "fd" );
-		//httpd_write_response( hc );
 		exit(1);
 		}
 
@@ -227,6 +215,7 @@ int hkp_lookup( httpd_conn* hc ) {
 			exit(0);
 		} else {
 			send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+			httpd_write_response(hc);
 			fprintf(fp,"<html><head><title>ludd Public Key Server -- Get: %s</title></head><body><h1>Public Key Server -- Get: %s</h1><pre>",search,search);
 			fwrite(buff, sizeof(char),read_bytes,fp); /* Now it's too late to test fwrite return value ;-) */ 
 			while ( (read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE)) > 0 )
@@ -251,7 +240,8 @@ int hkp_lookup( httpd_conn* hc ) {
 		gpgerr = gpgme_op_keylist_next (gpglctx, &gpgkey);
 		while (gpgerr == GPG_ERR_NO_ERROR) {
 			if (!begin) {
-				send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+				send_mime(hc, 200, ok200title, "", "", "text/plain; charset=%s",(off_t) -1, hc->sb.st_mtime );
+				httpd_write_response(hc);
 				begin=1;
 				/* Luckily: info "header" is optionnal, see draft-shaw-openpgp-hkp-00.txt */
 			}

@@ -163,22 +163,6 @@
 */
 #define EXPLICIT_ERROR_PAGES
 
-/* CONFIGURE: Subdirectory for custom error pages.  The error filenames are
-** $WEBDIR/$ERR_DIR/err%d.html - if virtual hosting is enabled then
-** $WEBDIR/hostname/$ERR_DIR/err%d.html is searched first.  This allows
-** different custom error pages for each virtual hosting web server.  If
-** no custom page for a given error can be found, the built-in error page
-** is generated.  If ERR_DIR is not defined at all, only the built-in error
-** pages will be generated.
-*/
-#define ERR_DIR "errors"
-
-/* CONFIGURE: Define this if you want a standard HTML tail containing
-** $SERVER_SOFTWARE and $SERVER_ADDRESS to be appended to the custom error
-** pages.  (It is always appended to the built-in error pages.)
-*/
-#define ERR_APPEND_SERVER_INFO
-
 /* CONFIGURE: nice(2) value to use for CGI programs.  If this is undefined,
 ** CGI programs run at normal priority.
 */

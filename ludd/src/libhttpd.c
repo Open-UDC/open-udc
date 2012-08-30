@@ -122,17 +122,12 @@ typedef int socklen_t;
 
 
 /* Forwards. */
-static void check_options( void );
 static void free_httpd_server( httpd_server* hs );
 static int initialize_listen_socket( httpd_sockaddr* saP );
 static void add_response( httpd_conn* hc, char* str );
 void send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod );
-static void send_response( httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg );
 static void send_response_tail( httpd_conn* hc );
 static void defang( char* str, char* dfstr, int dfsize );
-#ifdef ERR_DIR
-static int send_err_file( httpd_conn* hc, int status, char* title, char* extraheads, char* filename );
-#endif /* ERR_DIR */
 #ifdef AUTH_FILE
 static void send_authenticate( httpd_conn* hc, char* realm );
 static int b64_decode( const char* str, unsigned char* space, int size );
@@ -163,7 +158,6 @@ static void post_post_garbage_hack( httpd_conn* hc );
 static void cgi_interpose_output( httpd_conn* hc, int rfd );
 static void cgi_child( httpd_conn* hc );
 static int cgi( httpd_conn* hc );
-static int really_start_request( httpd_conn* hc, struct timeval* nowP );
 static void make_log_entry( httpd_conn* hc, struct timeval* nowP );
 static int sockaddr_check( httpd_sockaddr* saP );
 static size_t sockaddr_len( httpd_sockaddr* saP );
@@ -182,13 +176,6 @@ static long long atoll( const char* str );
 ** of a hack but it seems to do the right thing.
 */
 int sub_process = 0;
-
-
-static void
-check_options( void )
-	{
-	}
-
 
 static void
 free_httpd_server( httpd_server* hs )
@@ -212,8 +199,6 @@ httpd_initialize(
 	httpd_server* hs;
 	static char ghnbuf[256];
 	char* cp;
-
-	check_options();
 
 	hs = NEW( httpd_server, 1 );
 	if ( hs == (httpd_server*) 0 )
@@ -541,7 +526,7 @@ void
 send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod )
 	{
 	time_t now, expires;
-	const char* rfc1123fmt = "%a, %d %b %Y %H:%M:%S GMT";
+	const char* rfc1123fmt = "%a, %d %b %Y %T GMT";
 	char nowbuf[100];
 	char modbuf[100];
 	char expbuf[100];
@@ -649,38 +634,6 @@ httpd_realloc_str( char** strP, size_t* maxsizeP, size_t size )
 		}
 	}
 
-
-static void
-send_response( httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg )
-	{
-	char defanged_arg[1000], buf[2000];
-
-	send_mime(
-		hc, status, title, "", extraheads, "text/html; charset=%s", (off_t) -1,
-		(time_t) 0 );
-	(void) my_snprintf( buf, sizeof(buf), "\
-<HTML>\n\
-<HEAD><TITLE>%d %s</TITLE></HEAD>\n\
-<BODY BGCOLOR=\"#cc9999\" TEXT=\"#000000\" LINK=\"#2020ff\" VLINK=\"#4040cc\">\n\
-<H2>%d %s</H2>\n",
-		status, title, status, title );
-	add_response( hc, buf );
-	defang( arg, defanged_arg, sizeof(defanged_arg) );
-	(void) my_snprintf( buf, sizeof(buf), form, defanged_arg );
-	add_response( hc, buf );
-	/* if ( match( "**MSIE**", hc->useragent ) )
-	// Fuck off old (~#!) MSIE !!
-		{
-		int n;
-		add_response( hc, "<!--\n" );
-		for ( n = 0; n < 6; ++n )
-			add_response( hc, "Padding so that MSIE deigns to show this error instead of its own canned one.\n");
-		add_response( hc, "-->\n" );
-		} */
-	send_response_tail( hc );
-	}
-
-
 static void
 send_response_tail( httpd_conn* hc )
 	{
@@ -732,63 +685,38 @@ defang( char* str, char* dfstr, int dfsize )
 void
 httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg )
 	{
+	char defanged_arg[1000], buf[2000];
+
 	/* log server error */
 	if (status>=500)
 		syslog( LOG_ERR, "HTTP %d (%.80s):%m \"%.80s\"",status,arg,hc->encodedurl );
 
-#ifdef ERR_DIR
-
-	char filename[1000];
-
-	/* Try server-wide error page. */
-	(void) my_snprintf( filename, sizeof(filename),
-		"%s/err%d.html", ERR_DIR, status );
-	if ( send_err_file( hc, status, title, extraheads, filename ) )
-		return;
-
-	/* Fall back on built-in error page. */
-	send_response( hc, status, title, extraheads, form, arg );
-
-#else /* ERR_DIR */
-
-	send_response( hc, status, title, extraheads, form, arg );
-
-#endif /* ERR_DIR */
-	}
-
-
-#ifdef ERR_DIR
-static int
-send_err_file( httpd_conn* hc, int status, char* title, char* extraheads, char* filename )
-	{
-	FILE* fp;
-	char buf[1000];
-	size_t r;
-
-	fp = fopen( filename, "r" );
-	if ( fp == (FILE*) 0 )
-		return 0;
 	send_mime(
 		hc, status, title, "", extraheads, "text/html; charset=%s", (off_t) -1,
 		(time_t) 0 );
-	for (;;)
+	(void) my_snprintf( buf, sizeof(buf), "\
+<HTML>\n\
+<HEAD><TITLE>%d %s</TITLE></HEAD>\n\
+<BODY BGCOLOR=\"#cc9999\" TEXT=\"#000000\" LINK=\"#2020ff\" VLINK=\"#4040cc\">\n\
+<H2>%d %s</H2>\n",
+		status, title, status, title );
+	add_response( hc, buf );
+	defang( arg, defanged_arg, sizeof(defanged_arg) );
+	(void) my_snprintf( buf, sizeof(buf), form, defanged_arg );
+	add_response( hc, buf );
+	/* if ( match( "**MSIE**", hc->useragent ) )
+	// Fuck off old (~#!) MSIE !!
 		{
-		r = fread( buf, 1, sizeof(buf) - 1, fp );
-		if ( r == 0 )
-			break;
-		buf[r] = '\0';
-		add_response( hc, buf );
-		}
-	(void) fclose( fp );
-
-#ifdef ERR_APPEND_SERVER_INFO
+		int n;
+		add_response( hc, "<!--\n" );
+		for ( n = 0; n < 6; ++n )
+			add_response( hc, "Padding so that MSIE deigns to show this error instead of its own canned one.\n");
+		add_response( hc, "-->\n" );
+		} */
 	send_response_tail( hc );
-#endif /* ERR_APPEND_SERVER_INFO */
 
-	return 1;
+	httpd_write_response( hc );
 	}
-#endif /* ERR_DIR */
-
 
 #ifdef AUTH_FILE
 
@@ -1073,7 +1001,7 @@ send_dirredirect( httpd_conn* hc )
 		&header, &maxheader, sizeof(headstr) + strlen( location ) );
 	(void) my_snprintf( header, maxheader,
 		"%s%s\015\012", headstr, location );
-	send_response( hc, 302, err302title, header, err302form, location );
+	httpd_send_err( hc, 302, err302title, header, err302form, location );
 	}
 
 
@@ -2437,7 +2365,6 @@ ls( httpd_conn* hc )
 				syslog( LOG_ERR, "fdopen - %m" );
 				httpd_send_err(
 					hc, 500, err500title, "", err500form, hc->encodedurl );
-				httpd_write_response( hc );
 				closedir( dirp );
 				exit( 1 );
 				}
@@ -3041,7 +2968,6 @@ cgi_child( httpd_conn* hc )
 			{
 			syslog( LOG_ERR, "pipe - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			httpd_write_response( hc );
 			exit( 1 );
 			}
 		r = fork( );
@@ -3049,7 +2975,6 @@ cgi_child( httpd_conn* hc )
 			{
 			syslog( LOG_ERR, "fork - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			httpd_write_response( hc );
 			exit( 1 );
 			}
 		if ( r == 0 )
@@ -3086,7 +3011,6 @@ cgi_child( httpd_conn* hc )
 			{
 			syslog( LOG_ERR, "pipe - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			httpd_write_response( hc );
 			exit( 1 );
 			}
 		r = fork( );
@@ -3094,7 +3018,6 @@ cgi_child( httpd_conn* hc )
 			{
 			syslog( LOG_ERR, "fork - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			httpd_write_response( hc );
 			exit( 1 );
 			}
 		if ( r == 0 )
@@ -3173,7 +3096,6 @@ cgi_child( httpd_conn* hc )
 	/* Something went wrong. */
 	syslog( LOG_ERR, "execve %.80s - %m", hc->expnfilename );
 	httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-	httpd_write_response( hc );
 	exit( 1 );
 	}
 
@@ -3236,9 +3158,8 @@ cgi( httpd_conn* hc )
 	return 0;
 	}
 
-
-static int
-really_start_request( httpd_conn* hc, struct timeval* nowP )
+int
+httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 	{
 	static char* indexname;
 	static size_t maxindexname = 0;
@@ -3291,23 +3212,18 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 	if ( S_ISDIR(hc->sb.st_mode) )
 		{
 		/* If there's pathinfo, it's just a non-existent file. */
-		if ( hc->pathinfo[0] != '\0' )
-			{
-			syslog(
+		if ( hc->pathinfo[0] != '\0' ) {
+			/*syslog(
 				LOG_INFO,
 				"%.80s is non-existent, check if it as to be managed dynamicaly (%.80s) ",
-				hc->pathinfo , hc->decodedurl );
-			if ( ! strcasecmp(hc->decodedurl,"/pks/dump") ) {
-				return hkp_dump(hc);
-			}
-			else if ( ! strncasecmp(hc->decodedurl,"/pks/look?",12) ) {
+				hc->pathinfo , hc->decodedurl );*/
+			if ( ( *(hc->decodedurl+11) == '\0' || *(hc->decodedurl+11) == '?' ) && !strncmp(hc->decodedurl,"/pks/lookup",11) ) {
 				return hkp_lookup(hc);
-			}
-			else {
+			} else {
 				httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
 				return -1;
-				}
 			}
+		}
 
 		/* Special handling for directory URLs that don't end in a slash.
 		** We send back an explicit redirect with the slash, because
@@ -3543,19 +3459,6 @@ really_start_request( httpd_conn* hc, struct timeval* nowP )
 		}
 
 	return 0;
-	}
-
-
-int
-httpd_start_request( httpd_conn* hc, struct timeval* nowP )
-	{
-	int r;
-
-	/* Really start the request. */
-	r = really_start_request( hc, nowP );
-
-	/* And return the status. */
-	return r;
 	}
 
 

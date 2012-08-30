@@ -756,8 +756,8 @@ main( int argc, char** argv )
 		}
 
 	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
-	setlocale (LC_ALL, "");
-	if ( ! gpgme_check_version (GPGME_VERSION_MIN) )
+	setlocale(LC_ALL, "");
+	if ( ! gpgme_check_version(GPGME_VERSION_MIN) )
 		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
 	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
 #ifdef LC_MESSAGES
@@ -767,6 +767,9 @@ main( int argc, char** argv )
 	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
 		errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
+
+	/* for header dates: to be compatible with RFC 2822 */
+	setlocale(LC_TIME,"C");
 
 	/* create context */
 	gpgerr=gpgme_new(&gpgctx);

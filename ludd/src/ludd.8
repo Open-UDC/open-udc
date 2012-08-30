@@ -26,14 +26,13 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .RB [ -D ]
 .SH DESCRIPTION
 .PP
-.I ludd
-is based on thttpd which
-is a simple, small, fast, and secure HTTP server.
-It doesn't have a lot of special features, but it suffices for most uses of
-the web, it's about as fast as the best full-featured servers (Apache, NCSA,
-Netscape),
-and it has one extremely useful feature (URL-traffic-based throttling)
-that no other server currently has.
+.B ludd
+is the first OpenUDC node implementation. OpenUDC protocol aims to manage distributed
+crypto-currencies.
+.PP
+The
+.B ludd
+HTTP engine come from thttpd which is a simple, small, fast, and secure HTTP server.
 .SH OPTIONS
 .TP
 .B -C
@@ -144,9 +143,8 @@ scripts are available in the chroot.
 If you have CGI disabled, or if you make a policy that all CGI programs
 must be written in a compiled language such as C and statically linked,
 then you probably don't have to do any setup at all.
-But that is not the case for CGI sripts of the hkp key server, which won't run
-in a chrooted environment.
-.B So CHROOT will desactivate the hkp key server feature for the node.
+But that is not the case for CGI sripts that ludd need is this earlier versions,
+.B So CHROOT will make ludd unusable (Do not use it yet).
 .PP
 However, one thing you should do is tell syslogd about the chroot tree,
 so that thttpd can still generate syslog messages.
@@ -163,7 +161,7 @@ In Linux the flag is -a instead of -l, and there may be other differences.
 Relevant config.h option: ALWAYS_CHROOT.
 .SH "CGI"
 .PP
-thttpd supports the CGI 1.1 spec.
+ludd supports the CGI 1.1 spec.
 .PP
 In order for a CGI program to be run, its name must match the pattern
 specified either at compile time or on the command line with the -c flag.
@@ -248,24 +246,11 @@ There is also no provision for throttling the number of simultaneous
 connections on a per-URL basis.
 However you can control the overall number of connections for the whole
 server very simply, by setting the operating system's per-process file
-descriptor limit before starting thttpd.
+descriptor limit before starting ludd.
 Be sure to set the hard limit, not the soft limit.
-.SH "CUSTOM ERRORS"
-.PP
-thttpd lets you define your own custom error pages for the various
-HTTP errors.
-There's a separate file for each error number, all stored in one
-special directory.
-The directory name is "errors", at the top of the web directory tree.
-The error files should be named "errNNN.html", where NNN is the error number.
-So for example, to make a custom error page for the authentication failure
-error, which is number 401, you would put your HTML into the file
-"errors/err401.html".
-If no custom error file is found for a given error number, then the
-usual built-in error page is generated.
 .SH SYMLINKS
 .PP
-thttpd is very picky about symbolic links.
+ludd is very picky about symbolic links.
 Before delivering any file, it first checks each element in the path
 to see if it's a symbolic link, and expands them all out to get the final
 actual filename.
@@ -286,21 +271,21 @@ treated as a regular file and returned to the client, instead of getting run.
 This could be confusing.
 .SH PERMISSIONS
 .PP
-thttpd is also picky about file permissions.
+ludd is also picky about file permissions.
 It wants data files (HTML, images) to be world readable.
-Readable by the group that the thttpd process runs as is not enough - thttpd
+Readable by the group that the ludd process runs as is not enough - ludd
 checks explicitly for the world-readable bit.
 This is so that no one ever gets surprised by a file that's not set
 world-readable and yet somehow is readable by the HTTP server and
 therefore the *whole* world.
 .PP
 The same logic applies to directories.
-As with the standard Unix "ls" program, thttpd will only let you
+As with the standard Unix "ls" program, ludd will only let you
 look at the contents of a directory if its read bit is on; but
 as with data files, this must be the world-read bit, not just the
 group-read bit.
 .PP
-thttpd also wants the execute bit to be *off* for data files.
+ludd also wants the execute bit to be *off* for data files.
 A file that is marked executable but doesn't match the CGI pattern
 might be a script or program that got accidentally left in the
 wrong directory.
@@ -366,14 +351,16 @@ definitely doable.
 lud(1), OpenUDC(8)
 .SH THANKS
 .PP
-Many thanks to contributors, reviewers, testers:
+First thanks to Jef Poskanzer and it's thttpd contributors, reviewers, testers:
 John LoVerso, Jordan Hayes, Chris Torek, Jim Thompson, Barton Schaffer,
 Geoff Adams, Dan Kegel, John Hascall, Bennett Todd, KIKUCHI Takahiro,
-Catalin Ionescu.
-Special thanks to Craig Leres for substantial debugging and development,
-and for not complaining about my coding style very much.
+Catalin Ionescu, and Craig Leres (for not complaining about coding style very much).
+.PP
+And many thanks to people in or around OpenUDC adventure : Stephane Laborde (Galuel),
+Emmanuel Charpentier (echarp), Caner Candan, Michele Bini (Rev22), ... (sorry for the
+forgotten ones :-] ) 
 .SH AUTHOR
-Copyright \[co] 2012 by OpenUDC team <open-udc@googlegroups.com>.
+Copyright \[co] 2012 by Jean-Jacques Brucker <open-udc@googlegroups.com>.
 .nf
 Copyright \[co] 1995,1998,1999,2000 by Jef Poskanzer <jef@mail.acme.com>.
 All rights reserved.

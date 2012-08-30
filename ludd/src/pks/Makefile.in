@@ -42,7 +42,7 @@ CLEANFILES =	*.o cgi-lookup cgi-add
 	@rm -f $@
 	$(CC) $(CFLAGS) -c $*.c
 
-all:		lookup add
+all:	add lookup
 
 lookup:	cgi-lookup.o
 	$(CC) $(LDFLAGS) cgi-lookup.o $(LIBS) -o cgi-lookup
@@ -52,9 +52,9 @@ add:	cgi-add.o
 
 install:	all
 	-mkdir -p $(HOMEDIR)/$(WEBDIR)/pks
-	$(INSTALL) cgi-lookup $(HOMEDIR)/$(WEBDIR)/pks/lookup
 	$(INSTALL) cgi-add $(HOMEDIR)/$(WEBDIR)/pks/add
-#	$(INSTALL) cgi-add.sh $(HOMEDIR)/$(WEBDIR)/pks/add
+# lookup is now integrated inside ludd
+#	$(INSTALL) cgi-lookup $(HOMEDIR)/$(WEBDIR)/pks/lookup
 
 uninstall:
 	rm -rf $(HOMEDIR)/$(WEBDIR)/pks
