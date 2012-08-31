@@ -63,13 +63,18 @@ static int strdecode( char* to, char* from ) {
 	return(r);
 }
 
-/* return this first "udid2;c" found in uids comment (or NULL if non found) */
-static inline char * get_first_udid2(gpgme_key_t gkey) {
+/* return this first comment starting with ud found in uids (or NULL if non found) */
+static char * get_starting_comment(char * ud, gpgme_key_t gkey) {
 	gpgme_user_id_t gpguids;
+	size_t n;
 
+	if (! ud)
+		return((char *) 0);
+
+	n=strlen(ud);
 	gpguids=gkey->uids;
 	while (gpguids) {
-		if (!strncmp(gpguids->comment,"udid2;c;",8)) 
+		if (!strncmp(gpguids->comment,ud,n)) 
 			return gpguids->comment;
 		gpguids=gpguids->next;
 	}
@@ -188,8 +193,10 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		/* Check that it does expire and an uid comment start with "udid2;c". */
-		if ( gpgkey->subkeys->expires <= 0 || ! get_first_udid2(gpgkey) ) {
+		/* Check that it does expire and an uid comment start with "udid2;c;" or "udbot1;" */
+		if (!( gpgkey->subkeys->expires > 0
+				&& (get_starting_comment("udid2;c;",gpgkey)
+					|| get_starting_comment("udbot1;",gpgkey)) )) {
 			rcode=202;
 			gpgme_op_delete (gpgctx,gpgkey,1);
 		}
