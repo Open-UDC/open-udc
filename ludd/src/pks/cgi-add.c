@@ -26,24 +26,25 @@
 
 #include "version.h"
 
-#define INPUT_MAX (1<<16) /* 1<<16 = 64ko */
+#define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
 
 static void http_header(int code)
 {
 	printf("HTTP/1.0 %d OK\n",code);
-	//printf("X-HKP-Status: 418 Submitted key was rejected as per keyserver policy\n");
+	if (code == 202)
+		printf("X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\n");
 	printf("Server: %s\nContent-type: text/html\n\n",SERVER_SOFTWARE);
 
 }
 
 static int hexit( char c ) {
 	if ( c >= '0' && c <= '9' )
-		return c - '0';
+		return(c - '0');
 	if ( c >= 'a' && c <= 'f' )
-		return c - 'a' + 10;
+		return(c - 'a' + 10);
 	if ( c >= 'A' && c <= 'F' )
-		return c - 'A' + 10;
-	return -1;	
+		return(c - 'A' + 10);
+	return(-1);	
 }
 
 /* Copies and decodes a string.  It's ok for from and to to be the
@@ -59,8 +60,22 @@ static int strdecode( char* to, char* from ) {
 			*to = *from;
 	}
 	*to = '\0';
-	return r;
+	return(r);
 }
+
+/* return this first "udid2;c" found in uids comment (or NULL if non found) */
+static inline char * get_first_udid2(gpgme_key_t gkey) {
+	gpgme_user_id_t gpguids;
+
+	gpguids=gkey->uids;
+	while (gpguids) {
+		if (!strncmp(gpguids->comment,"udid2;c;",8)) 
+			return gpguids->comment;
+		gpguids=gpguids->next;
+	}
+	return((char *) 0);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -69,9 +84,11 @@ int main(int argc, char *argv[])
 	//gpgme_engine_info_t enginfo;
 	gpgme_data_t gpgdata;
 	gpgme_import_result_t gpgimport;
+	gpgme_import_status_t gpgikey;
+	gpgme_key_t gpgkey;
 
 	char * pclen, * buff;
-	int clen;
+	int clen, rcode=200;
 
 	pclen=getenv("CONTENT_LENGTH");
 	if (! pclen || *pclen == '\0' || (clen=atoi(pclen)) < 9 ) {
@@ -153,17 +170,45 @@ int main(int argc, char *argv[])
 		printf("<html><head><title>Error</title></head><body><h1>Error handling request (No valid key POST).</h1></body></html>",gpgerr);
 		return 1;
 	}
+	/* Check (and eventually delete) imported keys */
+	gpgikey=gpgimport->imports;
+	while (gpgikey) {
 
-	http_header(200);
+		if ( (gpgikey->result != GPG_ERR_NO_ERROR) || (! (gpgikey->status & GPGME_IMPORT_NEW)) ) {
+			/* erronous or known key */
+			gpgikey=gpgikey->next;
+			continue;
+		}
+
+		/* key is new, check that it match our policy. */
+		if ( (gpgerr=gpgme_get_key (gpgctx,gpgikey->fpr,&gpgkey,0)) != GPG_ERR_NO_ERROR ) {
+			/* should not happen */
+			http_header(500);
+			printf("<html><head><title>Internal Error</title></head><body><h1>Internal Error (gpgme get key %d).</h1></body></html>",gpgerr);
+			return 1;
+		}
+
+		/* Check that it does expire and an uid comment start with "udid2;c". */
+		if ( gpgkey->subkeys->expires <= 0 || ! get_first_udid2(gpgkey) ) {
+			rcode=202;
+			gpgme_op_delete (gpgctx,gpgkey,1);
+		}
+		gpgikey=gpgikey->next;
+	}
+		   			   
+
+	http_header(rcode);
 	printf("<html><head><title>%d keys sended </title></head><body><h2>Total: %d<br>imported: %d<br>unchanged: %d<br>no_user_id: %d<br>new_user_ids: %d<br>new_sub_keys: %d<br>new_signatures: %d<br>new_revocations: %d<br>secret_read: %d<br>not_imported: %d</h2></body></html>", gpgimport->considered, gpgimport->considered, gpgimport->imported, gpgimport->unchanged, gpgimport->no_user_id, gpgimport->new_user_ids, gpgimport->new_sub_keys, gpgimport->new_signatures, gpgimport->new_revocations, gpgimport->secret_read, gpgimport->not_imported);
-	return 0;
 
-	/*TODO:
-	 * Note in memory the fpr in gpgme_import_status_t of all keys imported to :
-	 *  - check if they correspond to our policy (expire less than 20 years after, udid2 must be present ...)
+	return(0);
+
+	/* TODO:
+	 *  Note in memory the fpr in gpgme_import_status_t of all keys imported to :
 	 *  - clean them (remove previous or useless signatures).  
 	 *  - revoke the one with with an usable secret key.
 	 *  - propagate them to other ludd key server.
+	 * DONE:
+	 *  - check if they correspond to our policy (expire less than 20 years after, udid2 must be present ...)
 	 */
 
 }

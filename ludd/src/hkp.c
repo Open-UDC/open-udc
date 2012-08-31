@@ -15,7 +15,6 @@
 #include "hkp.h"
 #include "timers.h"
 #include "libhttpd.h"
-#include "version.h"
 
 #ifdef CGI_TIMELIMIT
 extern void cgi_kill(ClientData client_data, struct timeval* nowP );
@@ -34,7 +33,8 @@ extern int sub_process;
 #define QSTRING_MAX 1024
 #define BUFFSIZE 2048
 
-int hkp_dump( httpd_conn* hc ) {
+/* TODO: move pks/add from cgi script to here to increase perf */
+int hkp_add( httpd_conn* hc ) {
    return(-1);
 }
 
