@@ -675,8 +675,8 @@ function generateudid2() {
 
 	if ((firstname !== null) && (lastname !== null) && (ll !== null) && (date !== null)) {
 	    documentElement("generated").className = "";
-	    documentElement("udid2clear").value   = "udid2;c;" + lastname + ";" + firstname + ";" + date + ";e" + ll + ";0;";
-	    documentElement("udid2hashed").value  = "udid2;h;" + Sha1.hash(lastname + ";" + firstname + ";" + date + ";e" + ll) + ";0;";
+	    documentElement("udid2clear").value   = "udid2;c;" + firstname + ";" + lastname + ";" + date + ";e" + ll + ";0;";
+	    documentElement("udid2hashed").value  = "udid2;h;" + Sha1.hash(firstname + ";" + lastname + ";" + date + ";e" + ll) + ";0;";
 	    documentElement("udid2hashed").scrollIntoView(false);
 	    documentElement("udid2clear").readOnly = true;
 	    documentElement("udid2hashed").readOnly = true;
