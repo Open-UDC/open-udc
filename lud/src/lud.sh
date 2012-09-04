@@ -6,6 +6,19 @@
 lud_init || exit 2
 . lud_utils.env || exit 3
 
+helpmsg='
+Usage: '"${lud_call}"' [options]
+'
+
+for ((i=0;$#;)) ; do
+	case "$1" in
+		-h|--h*) lud_utils_usage "$helpmsg" ; $lud_exit ;;
+		-V|--vers*) echo $udcVersion ; $lud_exit ;;
+		*) echo "Error: Unrecognized option $1"; lud_utils_usage "$helpmsg" ; $lud_exit 102 ;;
+	esac
+	shift
+done
+
 while true ; do
 	lud_utils_chooseinlist "Please choose what to do ?" 1 \
 					 "Register your udid2 for Universal Monetary Dividend" \
