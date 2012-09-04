@@ -91,7 +91,7 @@ http[s]://Node[:port]/[Root/]...
 |   `-- lookup
 |-- self/
 |   |-- status
-|   |-- cert.gpg
+|   |-- fpr
 |   `-- peers.list
 |-- c/
 |   `-- [CREATION_SHEET_NUM]/

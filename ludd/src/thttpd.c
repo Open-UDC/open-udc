@@ -85,7 +85,7 @@ static char* argv0;
 static int debug;
 static unsigned short port;
 static char* dir;
-static int do_init, do_chroot, no_log, no_symlink_check;
+static int do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
 static int cgi_limit;
 static char* logfile;
@@ -144,8 +144,8 @@ int stats_simultaneous;
 
 static volatile int got_hup, got_usr1, got_bus, watchdog_flag;
 
-/* The main gpgme context */
-gpgme_ctx_t gpgctx;
+/* bot's key (to sign some request) */
+gpgme_key_t mygpgkey;
 
 /* Forwards. */
 static void parse_args( int argc, char** argv );
@@ -376,20 +376,21 @@ re_open_logfile( void )
 int
 main( int argc, char** argv )
 	{
-	struct passwd* pwd;
+	struct passwd *pwd;
 	char cwd[MAXPATHLEN+1];
-	FILE* logfp;
+	FILE *logfp, *fp;
 	int num_ready;
 	int cnum;
-	connecttab* c;
-	httpd_conn* hc;
+	connecttab *c;
+	httpd_conn *hc;
 	httpd_sockaddr sa4;
 	httpd_sockaddr sa6;
 	int gotv4, gotv6;
 	struct timeval tv;
 	struct stat stf;
 
-	gpgme_key_t gpgkey;
+	char fpr[41];
+	gpgme_ctx_t gpgctx;
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
 
@@ -487,20 +488,11 @@ main( int argc, char** argv )
 			strcat(dir,"/.");
 			strcat(dir,argv0);
 		}
-	if ( do_init ) {
-		fprintf(stdout,"%s will create its stuff to run in %s, press a key to confirm (or Ctrl-C to exit) ...",argv0,dir);
-		getchar();
-		if ( chdir(dir) ) {
-			if ( mkdir(dir,0755) || (getuid()==0 ? chown(dir,pwd->pw_uid,pwd->pw_gid) : (0) ) )
-				err(1,"creating %s dir",dir);
-		} else
-			chdir("..");
-	}
 
 	if ( chdir( dir ) < 0 )
 		{
 		syslog( LOG_CRIT, "chdir - %m" );
-		err(1, "Exiting (forget -init ?) - chdir %s",dir );
+		err(1, "Exiting - chdir %s",dir );
 		}
 	
 	/* if we are root make sure that directory is owned by the specified user */
@@ -527,195 +519,236 @@ main( int argc, char** argv )
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
 
-	if ( do_init )
+	if ( ! debug )
 		{
-		/* In this case just create and chdir in public directory */
-		if ( chdir(WEB_DIR) ) 
-			if ( mkdir(WEB_DIR,0755) || (getuid()==0 ? chown(WEB_DIR,pwd->pw_uid,pwd->pw_gid) : (0) ) || chdir(WEB_DIR) )
-				err(1,"creating %s dir",WEB_DIR);
+		/* We're not going to use stdin or stdout from here on, so close
+		** them to save file descriptors.
+		*/
+		(void) fclose( stdin );
+		if ( logfp != stdout )
+			(void) fclose( stdout );
+
+	switch ( fork() )
+			{
+			case 0:
+			break;
+			case -1:
+			syslog( LOG_CRIT, "fork - %m" );
+			err( 1 , "fork");
+			default:
+			exit( 0 );
+			}
+#ifdef HAVE_SETSID
+		(void) setsid();
+#endif /* HAVE_SETSID */
 		}
 	else
 		{
-		if ( ! debug )
-			{
-			/* We're not going to use stdin or stdout from here on, so close
-			** them to save file descriptors.
-			*/
-			(void) fclose( stdin );
-			if ( logfp != stdout )
-				(void) fclose( stdout );
-
-		switch ( fork() )
-				{
-				case 0:
-				break;
-				case -1:
-				syslog( LOG_CRIT, "fork - %m" );
-				err( 1 , "fork");
-				default:
-				exit( 0 );
-				}
-#ifdef HAVE_SETSID
-			(void) setsid();
-#endif /* HAVE_SETSID */
-			}
-		else
-			{
-			/* Even if we don't daemonize, we still want to disown our parent
-			** process.
-			*/
-#ifdef HAVE_SETSID
-			(void) setsid();
-#endif /* HAVE_SETSID */
-			}
-
-		if ( pidfile != (char*) 0 )
-			{
-			/* Write the PID file. */
-			FILE* pidfp = fopen( pidfile, "w" );
-			if ( pidfp == (FILE*) 0 )
-				{
-				syslog( LOG_CRIT, "%.80s - %m", pidfile );
-				err(1,"%.80s",pidfile);
-				}
-			(void) fprintf( pidfp, "%d\n", (int) getpid() );
-			(void) fclose( pidfp );
-			}
-
-		/* Initialize the fdwatch package.  Have to do this before chroot,
-		** if /dev/poll is used.
+		/* Even if we don't daemonize, we still want to disown our parent
+		** process.
 		*/
-		max_connects = fdwatch_get_nfiles();
-		if ( max_connects < 0 )
-			{
-			syslog( LOG_CRIT, "fdwatch initialization failure" );
-			errx(1,"fdwatch initialization failure");
-			}
-		max_connects -= SPARE_FDS;
+#ifdef HAVE_SETSID
+		(void) setsid();
+#endif /* HAVE_SETSID */
+		}
 
-		/* Chroot if requested. */
-		if ( do_chroot )
-			{
-			if ( chroot( cwd ) < 0 )
-				{
-				syslog( LOG_CRIT, "chroot - %m" );
-				err(1, "chroot" );
-				}
-			/* If we're logging and the logfile's pathname begins with the
-			** chroot tree's pathname, then elide the chroot pathname so
-			** that the logfile pathname still works from inside the chroot
-			** tree.
-			*/
-			if ( logfile != (char*) 0 && strcmp( logfile, "-" ) != 0 )
-				{
-				if ( strncmp( logfile, cwd, strlen( cwd ) ) == 0 )
-					{
-					(void) strcpy( logfile, &logfile[strlen( cwd ) - 1] );
-					/* (We already guaranteed that cwd ends with a slash, so leaving
-					** that slash in logfile makes it an absolute pathname within
-					** the chroot tree.)
-					*/
-					}
-				else
-					{
-					syslog( LOG_WARNING, "logfile is not within the chroot tree, you will not be able to re-open it" );
-					warnx("logfile is not within the chroot tree, you will not be able to re-open it.");
-					}
-				}
-			(void) strcpy( cwd, "/" );
-			/* Always chdir to / after a chroot. */
-			if ( chdir( cwd ) < 0 )
-				{
-				syslog( LOG_CRIT, "chroot chdir - %m" );
-				err(1,"chroot chdir");
-				}
-			}
-
-		/* Switch to the web (public) directory. */
-		if ( chdir(WEB_DIR) < 0 )
-			{
-			syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
-			err(1,"Exiting because %s doesn't look friendly (forget -init ?) - chdir %s",cwd,WEB_DIR); 
-			}
-
-		/* Set up to catch signals. */
-#ifdef HAVE_SIGSET
-		(void) sigset( SIGTERM, handle_term );
-		(void) sigset( SIGINT, handle_term );
-		(void) sigset( SIGCHLD, handle_chld );
-		(void) sigset( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
-		(void) sigset( SIGHUP, handle_hup );
-		(void) sigset( SIGUSR1, handle_usr1 );
-		(void) sigset( SIGUSR2, handle_usr2 );
-		(void) sigset( SIGALRM, handle_alrm );
-		(void) sigset( SIGBUS, handle_bus );
-#else /* HAVE_SIGSET */
-		(void) signal( SIGTERM, handle_term );
-		(void) signal( SIGINT, handle_term );
-		(void) signal( SIGCHLD, handle_chld );
-		(void) signal( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
-		(void) signal( SIGHUP, handle_hup );
-		(void) signal( SIGUSR1, handle_usr1 );
-		(void) signal( SIGUSR2, handle_usr2 );
-		(void) signal( SIGALRM, handle_alrm );
-		(void) signal( SIGBUS, handle_bus );
-#endif /* HAVE_SIGSET */
-		got_hup = 0;
-		got_usr1 = 0;
-		got_bus = 0;
-		watchdog_flag = 0;
-		(void) alarm( OCCASIONAL_TIME * 3 );
-
-		/* Initialize the timer package. */
-		tmr_init();
-
-		/* Initialize the HTTP layer.  Got to do this before giving up root,
-		** so that we can bind to a privileged port.
-		*/
-		hs = httpd_initialize(
-			hostname,
-			gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-			port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
-		if ( hs == (httpd_server*) 0 )
+	if ( pidfile != (char*) 0 )
 		{
-			syslog ( LOG_ERR, "Could not perform httpd initialization. Exiting." );
-			errx(1,"Could not perform httpd initialization. Exiting.");
+		/* Write the PID file. */
+		FILE* pidfp = fopen( pidfile, "w" );
+		if ( pidfp == (FILE*) 0 )
+			{
+			syslog( LOG_CRIT, "%.80s - %m", pidfile );
+			err(1,"%.80s",pidfile);
+			}
+		(void) fprintf( pidfp, "%d\n", (int) getpid() );
+		(void) fclose( pidfp );
 		}
 
-		/* Set up the occasional timer. */
-		if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
+	/* Initialize the fdwatch package.  Have to do this before chroot,
+	** if /dev/poll is used.
+	*/
+	max_connects = fdwatch_get_nfiles();
+	if ( max_connects < 0 )
+		{
+		syslog( LOG_CRIT, "fdwatch initialization failure" );
+		errx(1,"fdwatch initialization failure");
+		}
+	max_connects -= SPARE_FDS;
+
+	/* Chroot if requested. */
+	if ( do_chroot )
+		{
+		if ( chroot( cwd ) < 0 )
 			{
-			syslog( LOG_CRIT, "tmr_create(occasional) failed" );
-			errx(1,"tmr_create(occasional) failed");
+			syslog( LOG_CRIT, "chroot - %m" );
+			err(1, "chroot" );
 			}
-		/* Set up the idle timer. */
-		if ( tmr_create( (struct timeval*) 0, idle, JunkClientData, 5 * 1000L, 1 ) == (Timer*) 0 )
+		/* If we're logging and the logfile's pathname begins with the
+		** chroot tree's pathname, then elide the chroot pathname so
+		** that the logfile pathname still works from inside the chroot
+		** tree.
+		*/
+		if ( logfile != (char*) 0 && strcmp( logfile, "-" ) != 0 )
 			{
-			syslog( LOG_CRIT, "tmr_create(idle) failed" );
-			errx(1,"tmr_create(idle) failed");
-			}
-		if ( numthrottles > 0 )
-			{
-			/* Set up the throttles timer. */
-			if ( tmr_create( (struct timeval*) 0, update_throttles, JunkClientData, THROTTLE_TIME * 1000L, 1 ) == (Timer*) 0 )
+			if ( strncmp( logfile, cwd, strlen( cwd ) ) == 0 )
 				{
-				syslog( LOG_CRIT, "tmr_create(update_throttles) failed" );
-				errx(1,"tmr_create(update_throttles) failed");
+				(void) strcpy( logfile, &logfile[strlen( cwd ) - 1] );
+				/* (We already guaranteed that cwd ends with a slash, so leaving
+				** that slash in logfile makes it an absolute pathname within
+				** the chroot tree.)
+				*/
+				}
+			else
+				{
+				syslog( LOG_WARNING, "logfile is not within the chroot tree, you will not be able to re-open it" );
+				warnx("logfile is not within the chroot tree, you will not be able to re-open it.");
 				}
 			}
-#ifdef STATS_TIME
-		/* Set up the stats timer. */
-		if ( tmr_create( (struct timeval*) 0, show_stats, JunkClientData, STATS_TIME * 1000L, 1 ) == (Timer*) 0 )
+		(void) strcpy( cwd, "/" );
+		/* Always chdir to / after a chroot. */
+		if ( chdir( cwd ) < 0 )
 			{
-			syslog( LOG_CRIT, "tmr_create(show_stats) failed" );
-			errx(1,"tmr_create(show_stats) failed");
+			syslog( LOG_CRIT, "chroot chdir - %m" );
+			err(1,"chroot chdir");
 			}
-#endif /* STATS_TIME */
-		start_time = stats_time = time( (time_t*) 0 );
-		stats_connections = 0;
-		stats_bytes = 0;
-		stats_simultaneous = 0;
 		}
+
+	/* Switch to the web (public) directory. */
+	if ( chdir(WEB_DIR) < 0 )
+		{
+		syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
+		err(1,"Exiting because %s doesn't look friendly (forget ludd_init.sh ?) - chdir %s",cwd,WEB_DIR); 
+		}
+
+	/* Set up to catch signals. */
+#ifdef HAVE_SIGSET
+	(void) sigset( SIGTERM, handle_term );
+	(void) sigset( SIGINT, handle_term );
+	(void) sigset( SIGCHLD, handle_chld );
+	(void) sigset( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
+	(void) sigset( SIGHUP, handle_hup );
+	(void) sigset( SIGUSR1, handle_usr1 );
+	(void) sigset( SIGUSR2, handle_usr2 );
+	(void) sigset( SIGALRM, handle_alrm );
+	(void) sigset( SIGBUS, handle_bus );
+#else /* HAVE_SIGSET */
+	(void) signal( SIGTERM, handle_term );
+	(void) signal( SIGINT, handle_term );
+	(void) signal( SIGCHLD, handle_chld );
+	(void) signal( SIGPIPE, SIG_IGN );		  /* get EPIPE instead */
+	(void) signal( SIGHUP, handle_hup );
+	(void) signal( SIGUSR1, handle_usr1 );
+	(void) signal( SIGUSR2, handle_usr2 );
+	(void) signal( SIGALRM, handle_alrm );
+	(void) signal( SIGBUS, handle_bus );
+#endif /* HAVE_SIGSET */
+	got_hup = 0;
+	got_usr1 = 0;
+	got_bus = 0;
+	watchdog_flag = 0;
+	(void) alarm( OCCASIONAL_TIME * 3 );
+
+	/* Initialize the timer package. */
+	tmr_init();
+
+	/* Initialize the HTTP layer.  Got to do this before giving up root,
+	** so that we can bind to a privileged port.
+	*/
+	hs = httpd_initialize(
+		hostname,
+		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
+		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
+	if ( hs == (httpd_server*) 0 )
+	{
+		syslog ( LOG_ERR, "Could not perform httpd initialization. Exiting." );
+		errx(1,"Could not perform httpd initialization. Exiting.");
+	}
+
+	/* Set up the occasional timer. */
+	if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
+		{
+		syslog( LOG_CRIT, "tmr_create(occasional) failed" );
+		errx(1,"tmr_create(occasional) failed");
+		}
+	/* Set up the idle timer. */
+	if ( tmr_create( (struct timeval*) 0, idle, JunkClientData, 5 * 1000L, 1 ) == (Timer*) 0 )
+		{
+		syslog( LOG_CRIT, "tmr_create(idle) failed" );
+		errx(1,"tmr_create(idle) failed");
+		}
+	if ( numthrottles > 0 )
+		{
+		/* Set up the throttles timer. */
+		if ( tmr_create( (struct timeval*) 0, update_throttles, JunkClientData, THROTTLE_TIME * 1000L, 1 ) == (Timer*) 0 )
+			{
+			syslog( LOG_CRIT, "tmr_create(update_throttles) failed" );
+			errx(1,"tmr_create(update_throttles) failed");
+			}
+		}
+#ifdef STATS_TIME
+	/* Set up the stats timer. */
+	if ( tmr_create( (struct timeval*) 0, show_stats, JunkClientData, STATS_TIME * 1000L, 1 ) == (Timer*) 0 )
+		{
+		syslog( LOG_CRIT, "tmr_create(show_stats) failed" );
+		errx(1,"tmr_create(show_stats) failed");
+		}
+#endif /* STATS_TIME */
+	start_time = stats_time = time( (time_t*) 0 );
+	stats_connections = 0;
+	stats_bytes = 0;
+	stats_simultaneous = 0;
+
+	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
+	setlocale(LC_ALL, "");
+	if ( ! gpgme_check_version(GPGME_VERSION_MIN) )
+		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
+#ifdef LC_MESSAGES
+	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
+#endif
+	/* check for OpenPGP support */
+	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
+
+	/* for header dates: to be compatible with RFC 2822 */
+	setlocale(LC_TIME,"C");
+
+	/* create context */
+	gpgerr=gpgme_new(&gpgctx);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"can't create gpg context :-( (%d)", gpgerr);
+
+	/*gpgerr = gpgme_get_engine_info(&enginfo);
+	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);*/
+
+	/* get the bot  key */
+	fp=fopen("self/fpr","r");
+	if ( fp == (FILE*) 0 ) {
+		warn("self/fpr");
+		errx(1,"forget ludd_init.sh ?");
+	}
+	fgets(fpr, sizeof(fpr),fp);
+
+	gpgerr = gpgme_get_key (gpgctx,fpr,&mygpgkey,1);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme_get_key :-( (%d)", gpgerr);
+	else if ( mygpgkey->revoked )
+		errx(1,"key %s is revoked",mygpgkey->uids->uid);
+	else if ( mygpgkey->expired )
+		errx(1,"key %s is expired",mygpgkey->uids->uid);
+	else if ( mygpgkey->disabled )
+		errx(1,"key %s is disabled",mygpgkey->uids->uid);
+	else if ( mygpgkey->invalid )
+		errx(1,"key %s is invalid",mygpgkey->uids->uid);
+	else if (! mygpgkey->can_sign )
+		errx(1,"key %s can not sign",mygpgkey->uids->uid);
+
+	/* release context (but keep the key in a global variable) */
+	gpgme_release (gpgctx);
 
 	/* If we're root, try to become someone else. */
 	if ( getuid() == 0 )
@@ -754,107 +787,6 @@ main( int argc, char** argv )
 				LOG_WARNING,
 				"started as root without requesting chroot(), warning only" );
 		}
-
-	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
-	setlocale(LC_ALL, "");
-	if ( ! gpgme_check_version(GPGME_VERSION_MIN) )
-		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
-	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
-#ifdef LC_MESSAGES
-	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
-#endif
-	/* check for OpenPGP support */
-	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
-
-	/* for header dates: to be compatible with RFC 2822 */
-	setlocale(LC_TIME,"C");
-
-	/* create context */
-	gpgerr=gpgme_new(&gpgctx);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"can't create gpg context :-( (%d)", gpgerr);
-
-	/*gpgerr = gpgme_get_engine_info(&enginfo);
-	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);*/
-
-	/* check for an expected secret key */
-	gpgerr = gpgme_op_keylist_start(gpgctx, "udbot", 1);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_op_keylist_start :-( (%d)", gpgerr);
-
-	do
-		{
-		gpgerr = gpgme_op_keylist_next (gpgctx, &gpgkey);
-
-		if ( gpgerr == GPG_ERR_EOF )
-			gpgme_key_unref(gpgkey);
-		else if ( gpgerr != GPG_ERR_NO_ERROR )
-			if (do_init)
-				break;
-			else
-				//errx(1,"there is no private key, forget -init ? (%d)", gpgerr);
-				warnx("there is no private key, forget -init ? (%d)", gpgerr); // Just because "-init" is not finished ...
-		else if ( gpgkey->revoked )
-			warnx("key %s is revoked",gpgkey->uids->uid);
-		else if ( gpgkey->expired )
-			warnx("key %s is expired",gpgkey->uids->uid);
-		else if ( gpgkey->disabled )
-			warnx("key %s is disabled",gpgkey->uids->uid);
-		else if ( gpgkey->invalid )
-			warnx("key %s is invalid",gpgkey->uids->uid);
-		else if (! gpgkey->can_sign )
-			warnx("key %s can not sign",gpgkey->uids->uid);
-		else
-			{
-			warnx("found key %s",gpgkey->uids->uid);
-			//TODO: verify that comment part of uid is expected
-			//and warn if not signed by the associated udid in the keyring
-			break;
-			}
-
-		gpgme_key_unref(gpgkey);
-		}
-	while (gpgerr == GPG_ERR_NO_ERROR);
-
-	//if (gpgerr == GPG_ERR_EOF) // no secret key found for node
-
-
-	if (do_init)
-		{
-		if ( ! chdir("udid2") )
-			chdir("..");
-		else if ( mkdir("udid2",0755) )
-			err(1,"creating udid2 dir");
-
-		if ( ! chdir("self") )
-			chdir("..");
-		else if ( mkdir("self",0755) )
-			err(1,"creating self dir");
-
-		if ( ! chdir("c") )
-			chdir("..");
-		else if ( mkdir("c",0755) )
-			err(1,"creating c dir");
-
-		if ( ! chdir("d") )
-			chdir("..");
-		else if ( mkdir("d",0755) )
-			err(1,"creating d dir");
-
-		if ( ! chdir("k") )
-			chdir("..");
-		else if ( mkdir("k",0755) )
-			err(1,"creating k dir");
-
-		errx(2,"TODO...(to finish)");
-		}
-
-	/* release context (but keep the key in a global variable) */
-	gpgme_release (gpgctx);
 
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
@@ -990,7 +922,6 @@ parse_args( int argc, char** argv )
 	{
 	int argn;
 
-	do_init = 0;
 	debug = 0;
 	port = DEFAULT_PORT;
 	dir = (char*) 0;
@@ -1023,9 +954,6 @@ parse_args( int argc, char** argv )
 			{
 			(void) printf( "%s\n", SERVER_SOFTWARE );
 			exit( 0 );
-			}
-		else if ( strcmp( argv[argn], "-init" ) == 0 ) {
-			do_init = 1;
 			}
 		else if ( strcmp( argv[argn], "-C" ) == 0 && argn + 1 < argc )
 			{
@@ -1098,8 +1026,7 @@ usage( void )
 	{
 	(void) fprintf( stderr,
 "usage: %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n"
-"(or, to initialize: %s -init [-d dir] [-u user] )\n",
-		argv0,argv0 );
+		,argv0 );
 	exit( 1 );
 	}
 
@@ -1116,10 +1043,7 @@ read_config( char* filename )
 
 	fp = fopen( filename, "r" );
 	if ( fp == (FILE*) 0 )
-		{
-		perror( filename );
-		exit( 1 );
-		}
+		err(1,filename );
 
 	while ( fgets( line, sizeof(line), fp ) != (char*) 0 )
 		{

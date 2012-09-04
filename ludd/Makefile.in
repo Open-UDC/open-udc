@@ -57,7 +57,7 @@ INSTALL =	@INSTALL@
 
 @SET_MAKE@
 
-SUBDIRS =	src
+SUBDIRS =	src udid2js
 
 all:		subdirs
 this:		all

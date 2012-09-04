@@ -88,6 +88,7 @@ install:	installthis install-man installsubdirs
 installthis:
 	-mkdir -p $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 555 ludd $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 555 ludd_init.sh $(DESTDIR)$(BINDIR)
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
