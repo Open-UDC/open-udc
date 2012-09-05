@@ -675,8 +675,8 @@ function generateudid2() {
 
 	if ((firstname !== null) && (lastname !== null) && (ll !== null) && (date !== null)) {
 	    documentElement("generated").className = "";
-	    documentElement("udid2clear").value   = "udid2;c;" + firstname + ";" + lastname + ";" + date + ";e" + ll + ";0;";
-	    documentElement("udid2hashed").value  = "udid2;h;" + Sha1.hash(firstname + ";" + lastname + ";" + date + ";e" + ll) + ";0;";
+	    documentElement("udid2clear").value   = "udid2;c;" + lastname + ";" + firstname + ";" + date + ";e" + ll + ";0;";
+	    documentElement("udid2hashed").value  = "udid2;h;" + Sha1.hash(lastname + ";" + firstname + ";" + date + ";e" + ll) + ";0;";
 	    documentElement("udid2hashed").scrollIntoView(false);
 	    documentElement("udid2clear").readOnly = true;
 	    documentElement("udid2hashed").readOnly = true;
@@ -834,12 +834,12 @@ input, select {
       <div class=info>This form allows you to create your Open-UDC ID (UDID2).</div>
       <table>
 	<tr>
-	  <td>Your first name:</td>
+	  <td>Your first name (forename):</td>
 	  <td class=inputcell>
 	    <input id=firstname size=30 type=text>
 	  </td>
 	</tr><tr>
-	  <td>Your last name:</td>
+	  <td>Your last name (family name):</td>
 	  <td class=inputcell>
 	    <input id=lastname size=30 type=text>
 	  </td>
