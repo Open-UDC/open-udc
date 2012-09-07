@@ -1024,10 +1024,23 @@ parse_args( int argc, char** argv )
 static void
 usage( void )
 	{
-	(void) fprintf( stderr,
-"usage: %s [-C configfile] [-p port] [-d dir] [-r|-nor] [-u user] [-c cgipat] [-t throttles] [-h host] [-l logfile] [-i pidfile] [-V] [-D]\n"
-		,argv0 );
-	exit( 1 );
+	    (void) fprintf( stderr,
+			    "Usage: %s [options]\n"			\
+			    "Options:\n"				\
+			    "	-C	configfile\n"			\
+			    "	-p	port\n"				\
+			    "	-d	dir\n"				\
+			    "	-r|-nor\n"				\
+			    "	-u	user\n"				\
+			    "	-c	cgipat\n"			\
+			    "	-t	throttles\n"			\
+			    "	-h	host\n"				\
+			    "	-l	logfile\n"			\
+			    "	-i	pidfile\n"			\
+			    "	-V	version of the software\n"	\
+			    "	-D	directory\n"
+			    , argv0 );
+	    exit( 1 );
 	}
 
 
