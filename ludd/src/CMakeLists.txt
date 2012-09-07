@@ -54,5 +54,8 @@ ADD_LIBRARY(match match.c)
 ADD_EXECUTABLE(ludd thttpd.c libhttpd.c fdwatch.c mmc.c timers.c tdate_parse.c hkp.c)
 TARGET_LINK_LIBRARIES(ludd match)
 
+INSTALL(TARGETS ludd RUNTIME DESTINATION bin COMPONENT applications)
+
+ADD_SUBDIRECTORY(cgi-bin)
 ADD_SUBDIRECTORY(cgi-src)
 ADD_SUBDIRECTORY(pks)
