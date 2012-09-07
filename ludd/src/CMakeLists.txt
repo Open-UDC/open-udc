@@ -32,14 +32,14 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 ADD_DEFINITIONS(-DHAVE_DEFINES_H)
 CONFIGURE_FILE(defines.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/defines.h)
 
-EXECUTE_PROCESS(
-  COMMAND awk -f ${CMAKE_CURRENT_SOURCE_DIR}/mime_txt2h.awk ${CMAKE_CURRENT_SOURCE_DIR}/mime_encodings.txt
-  OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/mime_encodings.h
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mime_encodings.h
+  COMMAND awk -f ${CMAKE_CURRENT_SOURCE_DIR}/mime_txt2h.awk ${CMAKE_CURRENT_SOURCE_DIR}/mime_encodings.txt > ${CMAKE_CURRENT_BINARY_DIR}/mime_encodings.h
   )
 
-EXECUTE_PROCESS(
-  COMMAND awk -f ${CMAKE_CURRENT_SOURCE_DIR}/mime_txt2h.awk ${CMAKE_CURRENT_SOURCE_DIR}/mime_types.txt
-  OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/mime_types.h
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/mime_types.h
+  COMMAND awk -f ${CMAKE_CURRENT_SOURCE_DIR}/mime_txt2h.awk ${CMAKE_CURRENT_SOURCE_DIR}/mime_types.txt > ${CMAKE_CURRENT_BINARY_DIR}/mime_types.h
   )
 
 LINK_LIBRARIES(
@@ -51,7 +51,7 @@ LINK_LIBRARIES(
 
 ADD_DEFINITIONS(-O2)
 ADD_LIBRARY(match match.c)
-ADD_EXECUTABLE(ludd thttpd.c libhttpd.c fdwatch.c mmc.c timers.c tdate_parse.c hkp.c)
+ADD_EXECUTABLE(ludd thttpd.c libhttpd.c fdwatch.c mmc.c timers.c tdate_parse.c hkp.c mime_encodings.h mime_types.h)
 TARGET_LINK_LIBRARIES(ludd match)
 
 INSTALL(TARGETS ludd RUNTIME DESTINATION bin COMPONENT applications)
@@ -61,3 +61,5 @@ ADD_SUBDIRECTORY(cgi-src)
 ADD_SUBDIRECTORY(pks)
 
 EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/ludd_init.sh ${CMAKE_CURRENT_BINARY_DIR}/ludd_init.sh)
+
+INSTALL(SCRIPT install.cmake)
