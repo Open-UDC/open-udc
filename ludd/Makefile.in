@@ -45,6 +45,8 @@ CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/in
 
 # You shouldn't need to edit anything below here.
 
+USERLUDD = `uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
+
 CC =		@CC@
 CCOPT =		@V_CCOPT@
 DEFS =		@DEFS@
@@ -72,8 +74,8 @@ subdirs:
 
 
 install:	installsubdirs
-	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin .ludd || true
-	chown -R .ludd "$(HOMEDIR)"
+	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin $(USERLUDD) || true
+	chown -R $(USERLUDD) "$(HOMEDIR)"
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -85,7 +87,7 @@ installsubdirs:
 	) ; done
 
 uninstall:	uninstallsubdirs
-	userdel .ludd
+	userdel $(USERLUDD)
 	rm -rf "$(HOMEDIR)"
 
 uninstallsubdirs:

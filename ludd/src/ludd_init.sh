@@ -1,13 +1,11 @@
 #!/bin/bash
 
 
-helpmsg='
-Usage: '"${0##*/}"' [options]
+helpmsg='Usage: '"${0##*/}"' [options]
 Options:
 	-d, --dir	directory (default: $HOME of .ludd user if root, or $HOME/.ludd if not).
 	-h, --help	this help
-	-V, --version	version
-'
+	-V, --version	version'
 
 function ludd_chooseinlist {
 # Argument 1: Prompt before the list
@@ -76,8 +74,9 @@ EOF
 return $?
 }
 
+USERLUDD=$(uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd)
 
-refdir=$(grep "^.ludd:" /etc/passwd | cut -d ":" -f 6)
+refdir=$(grep "^"$USERLUDD":" /etc/passwd | cut -d ":" -f 6)
 
 if [[ ! "$refdir" ]] ; then
 	echo "${0##*/}: Error: Missing ref dir (HOME of .ludd system user)"
@@ -90,6 +89,9 @@ else
 	isroot=1
 	dir="$refdir"
 fi
+
+lud_exit="exit"
+udcVersion="ludd_init.sh 0.1"
 
 for ((i=0;$#;)) ; do
 	case "$1" in
