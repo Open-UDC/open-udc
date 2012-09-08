@@ -43,9 +43,11 @@ WEBDIR = pub
 # CONFIGURE: Directory for CGI executables.
 CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/in
 
-# You shouldn't need to edit anything below here.
+# default user to switch to, when running as root
+LUDDUSER =	@ludduser@
+#LUDDUSER = `uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
 
-USERLUDD = `uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
+# You shouldn't need to edit anything below here.
 
 CC =		@CC@
 CCOPT =		@V_CCOPT@
@@ -74,8 +76,8 @@ subdirs:
 
 
 install:	installsubdirs
-	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin $(USERLUDD) || true
-	chown -R $(USERLUDD) "$(HOMEDIR)"
+	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin $(LUDDUSER) || true
+	chown -R $(LUDDUSER) "$(HOMEDIR)"
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -87,7 +89,7 @@ installsubdirs:
 	) ; done
 
 uninstall:	uninstallsubdirs
-	userdel $(USERLUDD)
+	userdel $(LUDDUSER)
 	rm -rf "$(HOMEDIR)"
 
 uninstallsubdirs:

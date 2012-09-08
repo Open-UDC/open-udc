@@ -124,7 +124,7 @@ clean:		cleansubdirs
 	rm -f $(CLEANFILES)
 
 distclean:	distcleansubdirs
-	rm -f $(CLEANFILES) Makefile 
+	rm -f $(CLEANFILES) Makefile ludd_init.sh.in
 
 cleansubdirs:
 	for i in $(SUBDIRS) ; do ( \

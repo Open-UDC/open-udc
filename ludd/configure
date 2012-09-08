@@ -604,6 +604,7 @@ ac_subst_vars='LTLIBOBJS
 V_NETLIBS
 V_STATICFLAG
 V_CCOPT
+ludduser
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -4703,12 +4704,18 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+ludduser=`uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
+cat >>confdefs.h <<_ACEOF
+#define DEFAULT_USER "${ludduser}"
+_ACEOF
 
 
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/cgi-src/Makefile src/pks/Makefile udid2js/Makefile"
+
+
+ac_config_files="$ac_config_files Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile udid2js/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5430,6 +5437,7 @@ do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "src/ludd_init.sh") CONFIG_FILES="$CONFIG_FILES src/ludd_init.sh" ;;
     "src/cgi-src/Makefile") CONFIG_FILES="$CONFIG_FILES src/cgi-src/Makefile" ;;
     "src/pks/Makefile") CONFIG_FILES="$CONFIG_FILES src/pks/Makefile" ;;
     "udid2js/Makefile") CONFIG_FILES="$CONFIG_FILES udid2js/Makefile" ;;

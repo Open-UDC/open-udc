@@ -88,6 +88,7 @@
 #ifdef notdef
 #define CGI_LIMIT 50
 #endif
+#define CGI_LIMIT 100
 
 /* CONFIGURE: How many seconds to allow for reading the initial request
 ** on a new connection.
@@ -145,7 +146,9 @@
 ** initializing.  If this user (or the one specified by the -u flag) does
 ** not exist, the program will refuse to run.
 */
+#ifndef DEFAULT_USER
 #define DEFAULT_USER ".ludd"
+#endif
 
 /* CONFIGURE: data directory (inside the one which should be chrooted)	
  * which contain all public data. It should also be defined in Makefiles
