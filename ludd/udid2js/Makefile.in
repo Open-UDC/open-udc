@@ -45,11 +45,11 @@ CLEANFILES =
 all:
 
 install:	all
-	-mkdir -p $(HOMEDIR)/$(WEBDIR)/udid2js
-	$(INSTALL) -m 444 udid2.html $(HOMEDIR)/$(WEBDIR)/udid2js/
+	-mkdir -p $(HOMEDIR)/$(WEBDIR)/udid2
+	$(INSTALL) -m 444 udid2.html $(HOMEDIR)/$(WEBDIR)/udid2/index.html
 
 uninstall:
-	rm -rf $(HOMEDIR)/$(WEBDIR)/udid2js
+	rm -rf $(HOMEDIR)/$(WEBDIR)/udid2
 	
 clean:
 #	rm -f $(CLEANFILES)
