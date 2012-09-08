@@ -950,7 +950,7 @@ parse_args( int argc, char** argv )
 	argn = 1;
 	while ( argn < argc && argv[argn][0] == '-' )
 		{
-		if ( strcmp( argv[argn], "-V" ) == 0 )
+		if ( !strcmp( argv[argn], "-V" ) || !strcmp( argv[argn], "--version" ) ) 
 			{
 			(void) printf( "%s\n", SERVER_SOFTWARE );
 			exit( 0 );
@@ -995,7 +995,7 @@ parse_args( int argc, char** argv )
 			++argn;
 			throttlefile = argv[argn];
 			}
-		else if ( strcmp( argv[argn], "-h" ) == 0 && argn + 1 < argc )
+		else if ( strcmp( argv[argn], "-H" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
 			hostname = argv[argn];
@@ -1025,21 +1025,21 @@ static void
 usage( void )
 	{
 	    (void) fprintf( stderr,
-			    "Usage: %s [options]\n"			\
-			    "Options:\n"				\
-			    "	-C	configfile\n"			\
-			    "	-p	port\n"				\
-			    "	-d	dir\n"				\
-			    "	-r|-nor\n"				\
-			    "	-u	user\n"				\
-			    "	-c	cgipat\n"			\
-			    "	-t	throttles\n"			\
-			    "	-h	host\n"				\
-			    "	-l	logfile\n"			\
-			    "	-i	pidfile\n"			\
-			    "	-V	version of the software\n"	\
-			    "	-D	directory\n"
-			    , argv0 );
+			    "Usage: %s [options]\n" \
+			    "Options:\n" \
+			    "	-C FILE     config file to use (default: none)\n" \
+			    "	-p PORT     listenning port (default: %d)\n" \
+			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/.ludd/)\n" \
+			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
+			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n" \
+			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
+			    "	-t FILE     file of throttle settings (default: no throtlling)\n" \
+			    "	-H HOST	    host or hostname to bind to (default: all)\n" \
+			    "	-l LOGFILE  file for logging (default: via syslog())\n" \
+			    "	-i PIDFILE  file to write the process-id to\n" \
+			    "	-V          show version and exit\n" \
+			    "	-D          stay in foreground\n"
+			    , argv0, DEFAULT_PORT );
 	    exit( 1 );
 	}
 
