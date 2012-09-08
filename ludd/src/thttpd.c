@@ -39,8 +39,6 @@
 #include <sys/wait.h>
 #include <sys/uio.h>
 
-#include <errno.h>
-#include <err.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -52,6 +50,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <err.h>
 #include <syslog.h>
 #ifdef TIME_WITH_SYS_TIME
 #include <time.h>
@@ -94,7 +94,6 @@ static char* hostname;
 static char* pidfile;
 static char* user;
 
-
 typedef struct {
 	char* pattern;
 	long max_limit, min_limit;
@@ -106,7 +105,6 @@ static throttletab* throttles;
 static int numthrottles, maxthrottles;
 
 #define THROTTLE_NOLIMIT -1
-
 
 typedef struct {
 	int conn_state;
@@ -133,7 +131,6 @@ static int httpd_conn_count;
 #define CNST_SENDING 2
 #define CNST_PAUSING 3
 #define CNST_LINGERING 4
-
 
 static httpd_server* hs = (httpd_server*) 0;
 int terminate = 0;
@@ -177,19 +174,21 @@ static void show_stats( ClientData client_data, struct timeval* nowP );
 static void logstats( struct timeval* nowP );
 static void thttpd_logstats( long secs );
 
+/* Macro to DIE */
+#define DIE(code,...) { \
+	syslog( LOG_CRIT,__VA_ARGS__); \
+	errx((code),__VA_ARGS__); \
+	}
 
 /* SIGTERM and SIGINT say to exit immediately. */
-static void
-handle_term( int sig )
-	{
+static void handle_term( int sig ) {
 	/* Don't need to set up the handler again, since it's a one-shot. */
 
 	shut_down();
 	syslog( LOG_NOTICE, "exiting due to signal %d", sig );
 	closelog();
 	exit( 1 );
-	}
-
+}
 
 /* SIGCHLD - a child process exitted, so we need to reap the zombie */
 static void
@@ -410,11 +409,7 @@ main( int argc, char** argv )
 	/* Look up hostname now, in case we chroot(). */
 	lookup_hostname( &sa4, sizeof(sa4), &gotv4, &sa6, sizeof(sa6), &gotv6 );
 	if ( ! ( gotv4 || gotv6 ) )
-		{
-		syslog( LOG_ERR, "can't find any valid address" );
-		(void) fprintf( stderr, "%s: can't find any valid address\n", argv0 );
-		exit( 1 );
-		}
+		DIE(1, "can't find any valid address" );
 
 	/* Throttle file. */
 	numthrottles = 0;
@@ -430,10 +425,7 @@ main( int argc, char** argv )
 		{
 		pwd = getpwnam( user );
 		if ( pwd == (struct passwd*) 0 )
-			{
-			syslog( LOG_CRIT, "unknown user - '%.80s'", user );
-			errx(1, "%s: unknown user - '%s'\n", argv0, user );
-			}
+			DIE(1, "unknown user - '%.80s'", user );
 		}
 	else
 		pwd = getpwuid(getuid());
@@ -452,14 +444,11 @@ main( int argc, char** argv )
 			{
 			logfp = fopen( logfile, "a" );
 			if ( logfp == (FILE*) 0 )
-				{
-				syslog( LOG_CRIT, "%.80s - %m", logfile );
-				err(1,logfile);
-				}
+				DIE(1, "%.80s: %m", logfile );
 			if ( logfile[0] != '/' )
 				{
 				syslog( LOG_WARNING, "logfile is not an absolute path, you may not be able to re-open it" );
-				warnx("%s: logfile is not an absolute path, you may not be able to re-open it\n", argv0 );
+				warnx("logfile is not an absolute path, you may not be able to re-open it");
 				}
 			(void) fcntl( fileno( logfp ), F_SETFD, 1 );
 			if ( getuid() == 0 )
@@ -469,8 +458,8 @@ main( int argc, char** argv )
 				*/
 				if ( fchown( fileno( logfp ), pwd->pw_uid, pwd->pw_gid ) < 0 )
 					{
-					syslog( LOG_WARNING, "fchown logfile - %m" );
-					warn( "fchown logfile" );
+					syslog( LOG_WARNING, "fchown logfile: %m" );
+					warnx( "fchown logfile: %m" );
 					}
 				}
 			}
@@ -490,32 +479,24 @@ main( int argc, char** argv )
 		}
 
 	if ( chdir( dir ) < 0 )
-		{
-		syslog( LOG_CRIT, "chdir - %m" );
-		err(1, "Exiting - chdir %s",dir );
-		}
+		DIE(1, "chdir %s - %m",dir );
 	
 	/* if we are root make sure that directory is owned by the specified user */
-	if ( getuid() == 0 )
-	    {
+	if ( getuid() == 0 ) {
 		if (stat(".",&stf) )
-			err(1,"stat %s",dir);
+			DIE(1,"stat %s - %m",dir);
 
-		if (stf.st_uid != pwd->pw_uid)
-			{
+		if (stf.st_uid != pwd->pw_uid) {
+			syslog(LOG_WARNING,"dir \"%s/\" was not owned by %s... I DO \"chown\" !!!\n",dir,user);
 			warnx("dir \"%s/\" was not owned by %s... I DO \"chown\" !!!\n",dir,user);
-
 			if ( chown(".",pwd->pw_uid,pwd->pw_gid) )
-				err(1,"chown %s",dir);
-			}
+				DIE(1,"chown %s: %m",dir);
 		}
+	}
 
 	/* Get current directory. */
 	if (! getcwd( cwd, sizeof(cwd) - 1 ) )
-		{
-		syslog( LOG_CRIT, "getcwd - %m" );
-		err(1,"getcwd");
-		}
+		DIE(1, "getcwd - %m" );
 	if ( cwd[strlen( cwd ) - 1] != '/' )
 		(void) strcat( cwd, "/" );
 
@@ -533,8 +514,7 @@ main( int argc, char** argv )
 			case 0:
 			break;
 			case -1:
-			syslog( LOG_CRIT, "fork - %m" );
-			err( 1 , "fork");
+			DIE(1, "fork - %m" );
 			default:
 			exit( 0 );
 			}
@@ -557,10 +537,7 @@ main( int argc, char** argv )
 		/* Write the PID file. */
 		FILE* pidfp = fopen( pidfile, "w" );
 		if ( pidfp == (FILE*) 0 )
-			{
-			syslog( LOG_CRIT, "%.80s - %m", pidfile );
-			err(1,"%.80s",pidfile);
-			}
+			DIE(1, "%.80s - %m", pidfile );
 		(void) fprintf( pidfp, "%d\n", (int) getpid() );
 		(void) fclose( pidfp );
 		}
@@ -570,20 +547,13 @@ main( int argc, char** argv )
 	*/
 	max_connects = fdwatch_get_nfiles();
 	if ( max_connects < 0 )
-		{
-		syslog( LOG_CRIT, "fdwatch initialization failure" );
-		errx(1,"fdwatch initialization failure");
-		}
+		DIE(1,"fdwatch initialization failure");
 	max_connects -= SPARE_FDS;
 
 	/* Chroot if requested. */
-	if ( do_chroot )
-		{
+	if ( do_chroot ) {
 		if ( chroot( cwd ) < 0 )
-			{
-			syslog( LOG_CRIT, "chroot - %m" );
-			err(1, "chroot" );
-			}
+			DIE(1, "chroot - %m" );
 		/* If we're logging and the logfile's pathname begins with the
 		** chroot tree's pathname, then elide the chroot pathname so
 		** that the logfile pathname still works from inside the chroot
@@ -608,18 +578,12 @@ main( int argc, char** argv )
 		(void) strcpy( cwd, "/" );
 		/* Always chdir to / after a chroot. */
 		if ( chdir( cwd ) < 0 )
-			{
-			syslog( LOG_CRIT, "chroot chdir - %m" );
-			err(1,"chroot chdir");
-			}
-		}
+			DIE(1, "chroot chdir - %m" );
+	}
 
 	/* Switch to the web (public) directory. */
 	if ( chdir(WEB_DIR) < 0 )
-		{
-		syslog( LOG_CRIT, WEB_DIR"-- chdir - %m" );
-		err(1,"Exiting because %s doesn't look friendly (forget ludd_init.sh ?) - chdir %s",cwd,WEB_DIR); 
-		}
+		DIE(1,"chdir %s - %m (forget ludd_init.sh ?)",WEB_DIR);
 
 	/* Set up to catch signals. */
 #ifdef HAVE_SIGSET
@@ -660,39 +624,25 @@ main( int argc, char** argv )
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
 		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
 	if ( hs == (httpd_server*) 0 )
-	{
-		syslog ( LOG_ERR, "Could not perform httpd initialization. Exiting." );
-		errx(1,"Could not perform httpd initialization. Exiting.");
-	}
+		DIE(1,"Could not perform httpd initialization (%m). Exiting");
 
 	/* Set up the occasional timer. */
 	if ( tmr_create( (struct timeval*) 0, occasional, JunkClientData, OCCASIONAL_TIME * 1000L, 1 ) == (Timer*) 0 )
-		{
-		syslog( LOG_CRIT, "tmr_create(occasional) failed" );
-		errx(1,"tmr_create(occasional) failed");
-		}
+		DIE(1,"tmr_create(occasional) failed");
+
 	/* Set up the idle timer. */
 	if ( tmr_create( (struct timeval*) 0, idle, JunkClientData, 5 * 1000L, 1 ) == (Timer*) 0 )
-		{
-		syslog( LOG_CRIT, "tmr_create(idle) failed" );
-		errx(1,"tmr_create(idle) failed");
-		}
+		DIE(1,"tmr_create(idle) failed");
+
 	if ( numthrottles > 0 )
-		{
 		/* Set up the throttles timer. */
 		if ( tmr_create( (struct timeval*) 0, update_throttles, JunkClientData, THROTTLE_TIME * 1000L, 1 ) == (Timer*) 0 )
-			{
-			syslog( LOG_CRIT, "tmr_create(update_throttles) failed" );
-			errx(1,"tmr_create(update_throttles) failed");
-			}
-		}
+			DIE(1,"tmr_create(update_throttles) failed");
+
 #ifdef STATS_TIME
 	/* Set up the stats timer. */
 	if ( tmr_create( (struct timeval*) 0, show_stats, JunkClientData, STATS_TIME * 1000L, 1 ) == (Timer*) 0 )
-		{
-		syslog( LOG_CRIT, "tmr_create(show_stats) failed" );
-		errx(1,"tmr_create(show_stats) failed");
-		}
+		DIE(1,"tmr_create(show_stats) failed");
 #endif /* STATS_TIME */
 	start_time = stats_time = time( (time_t*) 0 );
 	stats_connections = 0;
@@ -701,8 +651,10 @@ main( int argc, char** argv )
 
 	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
 	setlocale(LC_ALL, "");
-	if ( ! gpgme_check_version(GPGME_VERSION_MIN) )
+	if ( ! gpgme_check_version(GPGME_VERSION_MIN) ) {
+		syslog( LOG_WARNING,"gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN); 
 		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
+	}
 	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
 #ifdef LC_MESSAGES
 	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
@@ -710,7 +662,7 @@ main( int argc, char** argv )
 	/* check for OpenPGP support */
 	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
+		DIE(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
 
 	/* for header dates: to be compatible with RFC 2822 */
 	setlocale(LC_TIME,"C");
@@ -718,7 +670,7 @@ main( int argc, char** argv )
 	/* create context */
 	gpgerr=gpgme_new(&gpgctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"can't create gpg context :-( (%d)", gpgerr);
+		DIE(1,"can't create gpg context :-( (%d)", gpgerr);
 
 	/*gpgerr = gpgme_get_engine_info(&enginfo);
 	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
@@ -727,25 +679,24 @@ main( int argc, char** argv )
 
 	/* get the bot  key */
 	fp=fopen("self/fpr","r");
-	if ( fp == (FILE*) 0 ) {
-		warn("self/fpr");
-		errx(1,"forget ludd_init.sh ?");
-	}
+	if ( fp == (FILE*) 0 ) 
+		DIE( 1, "self/fpr: %m - forget ludd_init.sh ?");
 	fgets(fpr, sizeof(fpr),fp);
 
 	gpgerr = gpgme_get_key (gpgctx,fpr,&mygpgkey,1);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_get_key :-( (%d)", gpgerr);
-	else if ( mygpgkey->revoked )
-		errx(1,"key %s is revoked",mygpgkey->uids->uid);
-	else if ( mygpgkey->expired )
-		errx(1,"key %s is expired",mygpgkey->uids->uid);
-	else if ( mygpgkey->disabled )
-		errx(1,"key %s is disabled",mygpgkey->uids->uid);
-	else if ( mygpgkey->invalid )
-		errx(1,"key %s is invalid",mygpgkey->uids->uid);
-	else if (! mygpgkey->can_sign )
-		errx(1,"key %s can not sign",mygpgkey->uids->uid);
+	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+		DIE(1,"gpgme_get_key :-( (%d)", gpgerr);
+	} else if ( mygpgkey->revoked ) {
+		DIE(1,"key %s is revoked",mygpgkey->uids->uid);
+	} else if ( mygpgkey->expired ) {
+		DIE(1,"key %s is expired",mygpgkey->uids->uid);
+	} else if ( mygpgkey->disabled ) {
+		DIE(1,"key %s is disabled",mygpgkey->uids->uid);
+	} else if ( mygpgkey->invalid ) {
+		DIE(1,"key %s is invalid",mygpgkey->uids->uid);
+	} else if (! mygpgkey->can_sign ) {
+		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
+	}
 
 	/* release context (but keep the key in a global variable) */
 	gpgme_release (gpgctx);
@@ -755,32 +706,21 @@ main( int argc, char** argv )
 		{
 		/* Set aux groups to null. */
 		if ( setgroups( 0, (const gid_t*) 0 ) < 0 )
-			{
-			syslog( LOG_CRIT, "setgroups - %m" );
-			errx(1,"setgroups - %m");
-			}
+			DIE(1,"setgroups - %m");
 		/* Set primary group. */
 		if ( setgid( pwd->pw_gid ) < 0 )
-			{
-			syslog( LOG_CRIT, "setgid - %m" );
-			errx(1,"setgid - %m");
-			}
+			DIE(1,"setgid - %m");
 		/* Try setting aux groups correctly - not critical if this fails. */
 		if ( initgroups( user, pwd->pw_gid ) < 0 ) {
 			syslog( LOG_WARNING, "initgroups - %m" );
-			warn("initgroups");
+			warnx("initgroups - %m");
 			}
 		/* Set uid. */
 		if ( setuid( pwd->pw_uid ) < 0 )
-			{
-			syslog( LOG_CRIT, "setuid - %m" );
-			err(1,"setuid");
-			}
+			DIE(1, "setuid - %m" );
 		/* Setenv(HOME) (for gpgme) . */
-		if ( setenv("HOME",pwd->pw_dir,1) < 0 ) {
-			syslog( LOG_CRIT, "setenv - %m" );
-			err(1,"setenv");
-		}
+		if ( setenv("HOME",pwd->pw_dir,1) < 0 )
+			DIE(1, "setenv - %m" );
 		/* Check for unnecessary security exposure. */
 		if ( ! do_chroot )
 			syslog(
@@ -791,10 +731,7 @@ main( int argc, char** argv )
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
 	if ( connects == (connecttab*) 0 )
-		{
-		syslog( LOG_CRIT, "out of memory allocating a connecttab" );
-		errx( 1,"out of memory allocating a connecttab" );
-		}
+		DIE( 1,"out of memory allocating a connecttab" );
 	for ( cnum = 0; cnum < max_connects; ++cnum )
 		{
 		connects[cnum].conn_state = CNST_FREE;
