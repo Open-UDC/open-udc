@@ -1034,7 +1034,7 @@ usage( void )
 			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n" \
 			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
 			    "	-t FILE     file of throttle settings (default: no throtlling)\n" \
-			    "	-H HOST	    host or hostname to bind to (default: all)\n" \
+			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
 			    "	-l LOGFILE  file for logging (default: via syslog())\n" \
 			    "	-i PIDFILE  file to write the process-id to\n" \
 			    "	-V          show version and exit\n" \
