@@ -539,7 +539,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 	hc->bytes_to_send = length;
 	if ( hc->mime_flag )
 		{
-		if ( status == 200 && hc->got_range &&
+		if ( status == 200 && (hc->hmask & HC_GOT_RANGE) &&
 			 ( hc->last_byte_index >= hc->first_byte_index ) &&
 			 ( ( hc->last_byte_index != length - 1 ) ||
 			   ( hc->first_byte_index != 0 ) ) &&
@@ -553,7 +553,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 		else
 			{
 			partial_content = 0;
-			hc->got_range = 0;
+			hc->hmask &= ~HC_GOT_RANGE;
 			}
 
 		now = time( (time_t*) 0 );
@@ -735,7 +735,7 @@ send_authenticate( httpd_conn* hc, char* realm )
 	** so we need to do a lingering close.
 	*/
 	if ( hc->method == METHOD_POST )
-		hc->should_linger = 1;
+		hc->hmask |= HC_SHOULD_LINGER;
 	}
 
 
@@ -1374,6 +1374,7 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->remoteuser[0] = '\0';
 	hc->response[0] = '\0';
 	hc->responselen = 0;
+	hc->range = "";
 	hc->if_modified_since = (time_t) -1;
 	hc->range_if = (time_t) -1;
 	hc->contentlength = -1;
@@ -1381,12 +1382,10 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->hostname = (char*) 0;
 	hc->mime_flag = 1;
 	hc->one_one = 0;
-	hc->got_range = 0;
 	hc->tildemapped = 0;
 	hc->first_byte_index = 0;
 	hc->last_byte_index = -1;
-	hc->keep_alive = 0;
-	hc->should_linger = 0;
+	hc->hmask=0;
 	hc->file_address = (char*) 0;
 	return GC_OK;
 	}
@@ -1782,7 +1781,12 @@ httpd_parse_request( httpd_conn* hc )
 			else if ( strncasecmp( buf, "Range:", 6 ) == 0 )
 				{
 				/* Only support %d- and %d-%d, not %d-%d,%d-%d or -%d. */
-				if ( strchr( buf, ',' ) == (char*) 0 )
+				/* Except if "multipart/signed" is found in HTTP Accept , where embeded action will handle response and parse Range */
+				cp = &buf[6];
+				cp += strspn( cp, " \t" );
+				hc->range = cp;
+				
+				if ( strchr( cp, ',' ) == (char*) 0 )
 					{
 					char* cp_dash;
 					cp = strpbrk( buf, "=" );
@@ -1792,7 +1796,7 @@ httpd_parse_request( httpd_conn* hc )
 						if ( cp_dash != (char*) 0 && cp_dash != cp + 1 )
 							{
 							*cp_dash = '\0';
-							hc->got_range = 1;
+							hc->hmask |= HC_GOT_RANGE;
 							hc->first_byte_index = atoll( cp + 1 );
 							if ( hc->first_byte_index < 0 )
 								hc->first_byte_index = 0;
@@ -1836,7 +1840,7 @@ httpd_parse_request( httpd_conn* hc )
 				cp = &buf[11];
 				cp += strspn( cp, " \t" );
 				if ( strcasecmp( cp, "keep-alive" ) == 0 )
-					hc->keep_alive = 1;
+					hc->hmask |= HC_KEEP_ALIVE;
 				}
 #ifdef LOG_UNKNOWN_HEADERS
 			else if ( strncasecmp( buf, "Accept-Charset:", 15 ) == 0 ||
@@ -1890,8 +1894,8 @@ httpd_parse_request( httpd_conn* hc )
 		** might be unread pipelined requests waiting.  So, we have to
 		** do a lingering close.
 		*/
-		if ( hc->keep_alive )
-			hc->should_linger = 1;
+		if ( hc->hmask & HC_KEEP_ALIVE )
+			hc->hmask |= HC_SHOULD_LINGER;
 		}
 
 	/* Ok, the request has been parsed.  Now we resolve stuff that
@@ -2549,7 +2553,7 @@ mode  links  bytes  last-changed  name\n\
 #endif /* CGI_TIMELIMIT */
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->should_linger = 0;
+		hc->hmask &= ~HC_SHOULD_LINGER;
 		}
 	else
 		{
@@ -3146,7 +3150,7 @@ cgi( httpd_conn* hc )
 #endif /* CGI_TIMELIMIT */
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->should_linger = 0;
+		hc->hmask &= ~HC_SHOULD_LINGER;
 		}
 	else
 		{
@@ -3427,7 +3431,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 		}
 
 	/* Fill in last_byte_index, if necessary. */
-	if ( hc->got_range &&
+	if ( (hc->hmask & HC_GOT_RANGE) &&
 		 ( hc->last_byte_index == -1 || hc->last_byte_index >= hc->sb.st_size ) )
 		hc->last_byte_index = hc->sb.st_size - 1;
 

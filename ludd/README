@@ -1,14 +1,22 @@
-OpenUDC is an experimental implementation of an open monetary system.
-It permit :
+ ludd is an experimental implementation node of an OpenUDC monetary
+system, which permit :
  - To create a currency and control its monetary mass.
  - To exchange money in this currency between individuals.
- - To apply Universal monetary Dividend to the individuals that accept to use the currency.
-And all of that with best efforts on security and anonymity preservation.
+ - To apply Universal monetary Dividend to the individuals that accept
+  to use the currency.
+And all of that with best efforts on security and anonymity
+preservation.
 
-About Universal monetary Dividend, please read the Theory of Money Relativity from Stephane Laborde
-(in french: http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html) or at
-least other studies about Social Credit  (http://en.wikipedia.org/wiki/Social_Credit).
+ About Universal monetary Dividend, please read the Theory of Money
+Relativity from Stephane Laborde (in french:
+http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html)
+or at least other studies about Social Credit.
 
+ ludd http engine is based on thttpd
+(tiny/turbo/throttling HTTP server), version 2.25b of 29dec2003.
+
+Check the web page (http://www.openudc.org) for updates, or add
+yourself to the mailing list open-udc@googlegroups.com
 
 Copyright (c) 2010 The open-udc.org team.
 

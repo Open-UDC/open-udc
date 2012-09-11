@@ -83,6 +83,7 @@ typedef struct {
 /* A connection. */
 typedef struct {
 	int initialized;
+	int hmask;
 	httpd_server* hs;
 	httpd_sockaddr client_addr;
 	char* read_buf;
@@ -103,8 +104,8 @@ typedef struct {
 	char* referer;
 	char* useragent;
 	char* accept;
-	char* accepte;
-	char* acceptl;
+	char* accepte; /* Accept-Encoding header */
+	char* acceptl; /* Accept-Language header */
 	char* cookie;
 	char* contenttype;
 	char* reqhost;
@@ -123,15 +124,18 @@ typedef struct {
 	char* hostname;		/* not malloc()ed */
 	int mime_flag;
 	int one_one;		/* HTTP/1.1 or better */
-	int got_range;
+	char * range; 
 	int tildemapped;		/* this connection got tilde-mapped */
 	off_t first_byte_index, last_byte_index;
-	int keep_alive;
-	int should_linger;
 	struct stat sb;
 	int conn_fd;
 	char* file_address;
 	} httpd_conn;
+
+#define HC_GOT_RANGE (1<<1)  /* if match "d-d" or "d-" , which only supported of no multipart/signed in Accept */
+#define HC_KEEP_ALIVE (1<<2)
+#define HC_SHOULD_LINGER (1<<3)
+#define HC_DETACH_SIGN (1<<4)
 
 /* Methods. */
 #define METHOD_UNKNOWN 0
