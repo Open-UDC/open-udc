@@ -48,7 +48,6 @@ int hkp_lookup( httpd_conn* hc ) {
 	char * search=(char *)0;
 	char * searchdec=(char *)0;
 	char * exact=(char *)0;
-	int exact_is_on; /* by default exact is "on" for op=get and "off" for op=search */
 
 	gpgme_ctx_t gpglctx;
 	gpgme_key_t gpgkey;
@@ -143,9 +142,10 @@ int hkp_lookup( httpd_conn* hc ) {
 
 	if (exact) {
 		if (!strcmp(exact,"off")) {
-			exact_is_on=0;
+			exact=(char *) 0; /* off is default */
 		} else if (!strcmp(exact,"on")) {
-			exact_is_on=1;
+			httpd_send_err(hc, 501, err501title, "", err501form, "exact=on" );
+			exit(1);
 		} else {
 			httpd_send_err(hc, 400, httpd_err400title, "", "\"exact\" parameter only take \"on\" or \"off\" as argument.", "" );
 			exit(0);
@@ -197,23 +197,8 @@ int hkp_lookup( httpd_conn* hc ) {
 		gpgerr = gpgme_data_new(&gpgdata);
 		if (gpgerr == GPG_ERR_NO_ERROR) {
 			gpgerr = gpgme_data_set_encoding(gpgdata,GPGME_DATA_ENCODING_ARMOR);
-			if (gpgerr == GPG_ERR_NO_ERROR) {
-				if ( exact && ! exact_is_on )
-					gpgerr = gpgme_op_export(gpglctx,searchdec,0,gpgdata);
-				else { /* default, should be faster but not mesured yet, wait for big keyring to re-bench (and maybe remove that code) */  
-					gpgme_key_t gpgkeys[2];
-					gpgkeys[1]=NULL;
-					gpgerr = gpgme_get_key (gpglctx,searchdec,&gpgkeys[0],0);
-					if (gpgerr == GPG_ERR_NO_ERROR) {
-						if (gpgkeys[0] != NULL ) 
-							gpgerr = gpgme_op_export_keys(gpglctx, gpgkeys,0,gpgdata);
-						else {
-							httpd_send_err(hc, 404, err404title, "", "Get: %.80s : No key found ! :-(", search );
-							exit(0);
-						}
-					}
-				}
-			}
+			if (gpgerr == GPG_ERR_NO_ERROR)
+				gpgerr = gpgme_op_export(gpglctx,searchdec,0,gpgdata);
 		}
 
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
@@ -244,12 +229,6 @@ int hkp_lookup( httpd_conn* hc ) {
 		char begin=0;
 		gpgme_user_id_t gpguid;
 
-
-		/* exact=on is not supported for search */
-		if (exact && exact_is_on ) {
-			httpd_send_err(hc, 501, err501title, "", err501form, "exact=on" );
-			exit(1);
-		}
 		/* check for the searched key(s) */
 		gpgerr = gpgme_op_keylist_start(gpglctx, searchdec, 0);
 		//gpgerr = gpgme_op_keylist_start(gpglctx, NULL, 0);

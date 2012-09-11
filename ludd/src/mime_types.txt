@@ -134,6 +134,7 @@ smil	application/smil
 snd	audio/basic
 so	application/octet-stream
 spl	application/x-futuresplash
+sig application/pgp-signature
 src	application/x-wais-source
 stc	application/vnd.sun.xml.calc.template
 std	application/vnd.sun.xml.draw.template
