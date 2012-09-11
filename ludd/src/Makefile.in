@@ -107,6 +107,7 @@ uninstall:	uninstallthis uninstall-man uninstallsubdirs
 
 uninstallthis:
 	rm -f $(DESTDIR)$(BINDIR)/ludd
+	rm -f $(DESTDIR)$(BINDIR)/ludd_init.sh
 
 uninstall-man:
 	rm -f $(DESTDIR)$(MANDIR)/man8/ludd.8
@@ -124,7 +125,7 @@ clean:		cleansubdirs
 	rm -f $(CLEANFILES)
 
 distclean:	distcleansubdirs
-	rm -f $(CLEANFILES) Makefile 
+	rm -f $(CLEANFILES) Makefile ludd_init.sh
 
 cleansubdirs:
 	for i in $(SUBDIRS) ; do ( \

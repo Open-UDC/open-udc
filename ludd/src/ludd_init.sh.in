@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 helpmsg='Usage: '"${0##*/}"' [options]
 Options:
 	-d, --dir	directory (default: $HOME of .ludd user if root, or $HOME/.ludd if not).
@@ -66,7 +65,6 @@ function ludd_genbotkey {
 $mname
 $email
 udbot1;$myudid;
-o
 
 
 EOF
@@ -74,9 +72,9 @@ EOF
 return $?
 }
 
-USERLUDD=$(uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd)
+LUDDUSER="@ludduser@"
 
-refdir=$(grep "^"$USERLUDD":" /etc/passwd | cut -d ":" -f 6)
+refdir=$(grep "^"$LUDDUSER":" /etc/passwd | cut -d ":" -f 6)
 
 if [[ ! "$refdir" ]] ; then
 	echo "${0##*/}: Error: Missing ref dir (HOME of .ludd system user)"
