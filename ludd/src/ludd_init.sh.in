@@ -65,7 +65,6 @@ function ludd_genbotkey {
 $mname
 $email
 udbot1;$myudid;
-o
 
 
 EOF

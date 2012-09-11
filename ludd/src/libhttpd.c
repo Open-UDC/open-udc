@@ -3183,6 +3183,11 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 		return -1;
 		}
 
+	/* Embedded action(s) on specific url */
+	if ( ( *(hc->decodedurl+11) == '\0' || *(hc->decodedurl+11) == '?' )
+			&& !strncmp(hc->decodedurl,"/pks/lookup",11) )
+		return hkp_lookup(hc);
+
 	/* Stat the file. */
 	if ( stat( hc->expnfilename, &hc->sb ) < 0 )
 		{
@@ -3215,14 +3220,10 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 		if ( hc->pathinfo[0] != '\0' ) {
 			/*syslog(
 				LOG_INFO,
-				"%.80s is non-existent, check if it as to be managed dynamicaly (%.80s) ",
+				"%.80s is non-existent (%.80s) ",
 				hc->pathinfo , hc->decodedurl );*/
-			if ( ( *(hc->decodedurl+11) == '\0' || *(hc->decodedurl+11) == '?' ) && !strncmp(hc->decodedurl,"/pks/lookup",11) ) {
-				return hkp_lookup(hc);
-			} else {
-				httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
-				return -1;
-			}
+			httpd_send_err( hc, 404, err404title, "", err404form, hc->encodedurl );
+			return -1;
 		}
 
 		/* Special handling for directory URLs that don't end in a slash.
