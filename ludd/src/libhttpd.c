@@ -537,7 +537,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 
 	hc->status = status;
 	hc->bytes_to_send = length;
-	if ( hc->mime_flag )
+	if ( hc->http_version > 9 )
 		{
 		if ( status == 200 && (hc->hmask & HC_GOT_RANGE) &&
 			 ( hc->last_byte_index >= hc->first_byte_index ) &&
@@ -1380,8 +1380,7 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->contentlength = -1;
 	hc->type = "";
 	hc->hostname = (char*) 0;
-	hc->mime_flag = 1;
-	hc->one_one = 0;
+	hc->http_version=10;
 	hc->tildemapped = 0;
 	hc->first_byte_index = 0;
 	hc->last_byte_index = -1;
@@ -1585,7 +1584,7 @@ httpd_parse_request( httpd_conn* hc )
 	if ( protocol == (char*) 0 )
 		{
 		protocol = "HTTP/0.9";
-		hc->mime_flag = 0;
+		hc->http_version = 9;
 		}
 	else
 		{
@@ -1597,7 +1596,7 @@ httpd_parse_request( httpd_conn* hc )
 			if ( eol != (char*) 0 )
 				*eol = '\0';
 			if ( strcasecmp( protocol, "HTTP/1.0" ) != 0 )
-				hc->one_one = 1;
+				hc->http_version = 11;
 			}
 		}
 	hc->protocol = protocol;
@@ -1605,7 +1604,7 @@ httpd_parse_request( httpd_conn* hc )
 	/* Check for HTTP/1.1 absolute URL. */
 	if ( strncasecmp( url, "http://", 7 ) == 0 )
 		{
-		if ( ! hc->one_one )
+		if ( hc->http_version < 11 )
 			{
 			httpd_send_err( hc, 400, httpd_err400title, "", httpd_err400form, "" );
 			return -1;
@@ -1680,7 +1679,7 @@ httpd_parse_request( httpd_conn* hc )
 		return -1;
 		}
 
-	if ( hc->mime_flag )
+	if ( hc->http_version > 9 )
 		{
 		/* Read the MIME headers. */
 		while ( ( buf = bufgets( hc ) ) != (char*) 0 )
@@ -1879,7 +1878,7 @@ httpd_parse_request( httpd_conn* hc )
 			}
 		}
 
-	if ( hc->one_one )
+	if ( hc->http_version > 10 )
 		{
 		/* Check that HTTP/1.1 requests specify a host, as required. */
 		if ( hc->reqhost[0] == '\0' && hc->hdrhost[0] == '\0' )
@@ -3007,7 +3006,7 @@ cgi_child( httpd_conn* hc )
 	/* Set up stdout/stderr.  If we're doing CGI header parsing,
 	** we need an output interposer too.
 	*/
-	if ( strncmp( argp[0], "nph-", 4 ) != 0 && hc->mime_flag )
+	if ( strncmp( argp[0], "nph-", 4 ) != 0 && ( hc->http_version > 9 ) )
 		{
 		int p[2];
 

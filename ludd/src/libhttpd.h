@@ -122,8 +122,7 @@ typedef struct {
 	size_t contentlength;
 	char* type;				/* not malloc()ed */
 	char* hostname;		/* not malloc()ed */
-	int mime_flag;
-	int one_one;		/* HTTP/1.1 or better */
+	int http_version;   /* default: 10 for HTTP/1.0, 11 means HTTP/1.1 or better */ 
 	char * range; 
 	int tildemapped;		/* this connection got tilde-mapped */
 	off_t first_byte_index, last_byte_index;
@@ -132,7 +131,7 @@ typedef struct {
 	char* file_address;
 	} httpd_conn;
 
-#define HC_GOT_RANGE (1<<1)  /* if match "d-d" or "d-" , which only supported of no multipart/signed in Accept */
+#define HC_GOT_RANGE (1<<1)  /* if match "d-d" or "d-" , which is only supported (when not replying multipart/signed) */
 #define HC_KEEP_ALIVE (1<<2)
 #define HC_SHOULD_LINGER (1<<3)
 #define HC_DETACH_SIGN (1<<4)
