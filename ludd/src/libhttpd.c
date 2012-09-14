@@ -54,6 +54,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <gpgme.h>
 
 #ifdef HAVE_DIRENT_H
 # include <dirent.h>
@@ -75,6 +76,12 @@
 #ifndef MAXPATHLEN
 #define MAXPATHLEN 4096
 #endif
+
+#ifndef BUFSIZE
+#define BUFSIZE 2048
+#endif
+
+extern char* argv0;
 
 #ifdef AUTH_FILE
 extern char* crypt( const char* key, const char* setting );
@@ -155,6 +162,8 @@ static char** make_envp( httpd_conn* hc );
 static char** make_argp( httpd_conn* hc );
 static void cgi_interpose_input( httpd_conn* hc, int wfd );
 static void post_post_garbage_hack( httpd_conn* hc );
+static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buffer, size_t size);
+static void gpg_data_release_cb(void *handle);
 static void cgi_interpose_output( httpd_conn* hc, int rfd );
 static void cgi_child( httpd_conn* hc );
 static int cgi( httpd_conn* hc );
@@ -606,6 +615,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 static int str_alloc_count = 0;
 static size_t str_alloc_size = 0;
 
+/* Note: this function kills its calling process (exit) if realloc fail */
 void
 httpd_realloc_str( char** strP, size_t* maxsizeP, size_t size )
 	{
@@ -1897,6 +1907,10 @@ httpd_parse_request( httpd_conn* hc )
 			hc->hmask |= HC_SHOULD_LINGER;
 		}
 
+	/* Detach sign asked, response inspired from rfc3156 (which is for emails) */
+	if ( strstr(hc->accept,"multipart/signed"))
+			hc->hmask |= HC_DETACH_SIGN;
+
 	/* Ok, the request has been parsed.  Now we resolve stuff that
 	** may require the entire request.
 	*/
@@ -2740,7 +2754,7 @@ cgi_interpose_input( httpd_conn* hc, int wfd )
 	{
 	size_t c;
 	ssize_t r;
-	char buf[1024];
+	char buf[BUFSIZE];
 
 	c = hc->read_idx - hc->checked_idx;
 	if ( c > 0 )
@@ -2789,6 +2803,31 @@ post_post_garbage_hack( httpd_conn* hc )
 	}
 
 
+/* callback to get data from a FILE stream and duplicate it to and fd output */
+static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buffer, size_t size)
+{
+	size_t result;
+
+	if ( !size || size>SSIZE_MAX )
+		return(-1); /* should not happen */
+
+	result = fread(buffer,1,size,handle->fpin);
+	if (!result) {
+		if (feof(handle->fpin))
+			return(0);
+		else
+			return(-1);
+	}
+	httpd_write_fully( handle->fdout, buffer, result );
+	return(result);
+}
+
+/* dummy function for callback based gpgme data objects */
+static void gpg_data_release_cb(void *handle)
+{
+	    /* must just be present... bug or feature?!? */
+}
+
 /* This routine is used for parsed-header CGIs.  The idea here is that the
 ** CGI can return special headers such as "Status:" and "Location:" which
 ** change the return status of the response.  Since the return status has to
@@ -2799,14 +2838,16 @@ post_post_garbage_hack( httpd_conn* hc )
 static void
 cgi_interpose_output( httpd_conn* hc, int rfd )
 	{
-	int r;
-	char buf[1024];
-	size_t headers_size, headers_len;
-	char* headers;
-	char* br;
-	int status;
+	ssize_t r;
+	char * buf= NULL;
+	size_t headers_size=0, headers_len=0, buflen=0,fr;
+	char* headers=NULL;
+	int status=200,do_sign=0;
 	char* title;
 	char* cp;
+	FILE * fp;
+	char * ctype = NULL ; //"application/octet-stream"; /* default ctype */
+	char * clen = NULL;
 
 	/* Make sure the connection is in blocking mode.  It should already
 	** be blocking, but we might as well be sure.
@@ -2814,58 +2855,96 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 	httpd_clear_ndelay( hc->conn_fd );
 
 	/* Slurp in all headers. */
-	headers_size = 0;
 	httpd_realloc_str( &headers, &headers_size, 500 );
-	headers_len = 0;
-	for (;;)
-		{
-		r = read( rfd, buf, sizeof(buf) );
-		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
-			{
-			sleep( 1 );
-			continue;
-			}
-		if ( r <= 0 )
-			{
-			br = &(headers[headers_len]);
-			break;
-			}
-		httpd_realloc_str( &headers, &headers_size, headers_len + r );
-		(void) memmove( &(headers[headers_len]), buf, r );
-		headers_len += r;
-		headers[headers_len] = '\0';
-		if ( ( br = strstr( headers, "\015\012\015\012" ) ) != (char*) 0 ||
-			 ( br = strstr( headers, "\012\012" ) ) != (char*) 0 )
-			break;
-		}
+	headers[0] = '\0';
 
-	/* If there were no headers, bail. */
-	if ( headers[0] == '\0' )
+	/* use a file descriptor for getline (which is POSIX since 2008, glibc >= 2.10 )*/
+	if ( !(fp=fdopen(rfd,"r")) ) {
+		syslog( LOG_ERR, "fdopen - %m", hc->expnfilename );
+		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 		return;
+	}
 
 	/* Figure out the status.  Look for a Status: or Location: header;
 	** else if there's an HTTP header line, get it from there; else
 	** default to 200.
 	*/
-	status = 200;
-	if ( strncmp( headers, "HTTP/", 5 ) == 0 )
-		{
-		cp = headers;
+
+	for (;;) {
+		r=getline(&buf,&buflen,fp);
+		if ( r < 0 ) {
+		   	if ( errno == EINTR || errno == EAGAIN ) { /* should no more happen since not using read */
+				sleep( 1 );
+				continue;
+			} else if ( feof(fp) ) {
+				break;
+			} else {	/* unmanaged error (mem,... ) */
+				syslog( LOG_ERR, "getline - %m");
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				exit(EXIT_FAILURE);
+			}
+		} else if (r<=2) /* end of headers reached */
+			break;
+
+		if ( !strncasecmp( buf, "Status:", 7 ) ) {
+			cp = buf+7;
+			cp += strspn( cp, " \t" );
+			status = atoi( cp );
+		} else if ( !strncasecmp( buf, "Content-type:",13 ) ) {
+			free(ctype);
+			if (! (ctype=strdup(buf)) ) {
+				syslog( LOG_ERR, "strdup - %m");
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				exit(EXIT_FAILURE);
+			}
+			cp = buf+13;
+			cp += strspn( cp, " \t" );
+			if ( (hc->hmask & HC_DETACH_SIGN) && strncmp(cp,"multipart/signed",sizeof("multipart/signed")-1) )
+				/* if cgi output is not signed while it was asked, we will do it */
+				do_sign=1;
+			continue;
+		} else if ( !strncasecmp( buf, "Content-lenght:",15 ) ) {
+			free(clen);
+			if (! (clen=strdup(buf)) ) {
+				syslog( LOG_ERR, "strdup - %m");
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				exit(EXIT_FAILURE);
+			}
+			continue;
+		} else if ( !strncasecmp( buf, "Location:",9 ) )
+			status = 302;
+
+		httpd_realloc_str( &headers, &headers_size, headers_len + r );
+		(void) memcpy( &(headers[headers_len]), buf, r );
+		headers_len += r;
+		headers[headers_len] = '\0';
+	}
+	
+	/* If there were no headers, bail. */
+	/*if ( headers[0] == '\0' )
+		return;*/
+
+	/* generate Content-type if not specified (yes, that is very kind...) */
+	if (!ctype) {
+#define CTYPE_AOS_LSIZE (sizeof("Content-type: application/octet-stream")+2)
+		if ( !(ctype=malloc(CTYPE_AOS_LSIZE)) ) {
+			syslog( LOG_ERR, "strdup - %m");
+			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+			exit(EXIT_FAILURE);
+		}
+		my_snprintf(ctype,CTYPE_AOS_LSIZE, "%s %s\015\012","Content-type:","application/octet-stream");
+		if (hc->hmask & HC_DETACH_SIGN)
+			do_sign=1;
+	}
+
+	//if ( (hc->hmask & HC_DETACH_SIGN) 
+	cp = headers;
+	if ( strncmp( cp, "HTTP/", 5 ) == 0 ) {
 		cp += strcspn( cp, " \t" );
 		status = atoi( cp );
-		}
-	if ( ( cp = strstr( headers, "Status:" ) ) != (char*) 0 &&
-		 cp < br &&
-		 ( cp == headers || *(cp-1) == '\012' ) )
-		{
-		cp += 7;
-		cp += strspn( cp, " \t" );
-		status = atoi( cp );
-		}
-	else if ( ( cp = strstr( headers, "Location:" ) ) != (char*) 0 &&
-		 cp < br &&
-		 ( cp == headers || *(cp-1) == '\012' ) )
-		status = 302;
+		cp=strchr(cp,'\012');
+		cp=cp?cp+1:headers;
+	}
 
 	/* Write the status line. */
 	switch ( status )
@@ -2885,28 +2964,69 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 		case 503: title = httpd_err503title; break;
 		default: title = "Something"; break;
 		}
-	(void) my_snprintf( buf, sizeof(buf), "HTTP/1.0 %d %s\015\012", status, title );
+	buf=realloc(buf,BUFSIZE);
+	(void) my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
 	(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
 
 	/* Write the saved headers. */
-	(void) httpd_write_fully( hc->conn_fd, headers, headers_len );
+	(void) httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
 
-	/* Echo the rest of the output. */
-	for (;;)
-		{
-		r = read( rfd, buf, sizeof(buf) );
-		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
-			{
-			sleep( 1 );
-			continue;
+	if (do_sign && status>=200 && status<300) {
+		char * bound=random_boundary(8);
+		gpgme_data_t gpgdata;
+		struct gpgme_data_cbs gpgcbs = {
+			(gpgme_data_read_cb_t) fp2fd_gpg_data_rd_cb,	/* read method */
+			NULL,									/* write method */
+			NULL,									/* seek method */
+			gpg_data_release_cb						/* release method */
+		};
+		fp2fd_gpg_data_handle_t cb_handle = {
+			fp,				/* fp in */
+			hc->conn_fd     /* fd out */
+		};
+
+		if (!bound)
+			bound="boundary"; /* default boundary ... :'-( :-p */
+
+		//gpgerr= gpgme_data_new_from_cbs(&gpgdata, &gpgcbs,&cb_handle);
+		//...
+
+#define CTYPE_MS_LSIZE (sizeof("Content-type: multipart/signed; boundary=")-1 + 8 + 3)
+		buf=realloc(buf,BUFSIZE );
+		r=my_snprintf(buf,BUFSIZE, "%s %s; %s=%s\015\012\015\012--%s\015\012%s","Content-type:","multipart/signed","boundary",bound,bound,ctype);
+		httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
+		if (clen) 
+			httpd_write_fully( hc->conn_fd, clen,strlen(clen) );
+		httpd_write_fully( hc->conn_fd, "\015\012",2 );
+		/* contrary to RFC 3156, no headers are signed, only the content */
+
+	} else {
+		httpd_write_fully( hc->conn_fd, ctype,strlen(ctype) );
+		if (clen) 
+			httpd_write_fully( hc->conn_fd, clen,strlen(clen) );
+		httpd_write_fully( hc->conn_fd, "\015\012",2 );
+		/* Echo the rest of the output. */
+		for (;;) {
+			fr = fread(buf,sizeof(char), BUFSIZE,fp );
+			if ( fr < 0 ) {
+				if ( errno == EINTR || errno == EAGAIN ) { /* should no more happen since using fread */
+					sleep( 1 );
+					continue;
+				} else if ( feof(fp) ) {
+					break;
+				} else {	/* unmanaged error (mem,... ) */
+					syslog( LOG_ERR, "fread - %m");
+					httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+					exit(EXIT_FAILURE);
+				}
 			}
-		if ( r <= 0 )
-			break;
-		if ( httpd_write_fully( hc->conn_fd, buf, r ) != r )
-			break;
+			if ( httpd_write_fully( hc->conn_fd, buf, fr ) != fr )
+				break;
 		}
-	shutdown( hc->conn_fd, SHUT_WR );
 	}
+
+	shutdown( hc->conn_fd, SHUT_WR );
+}
 
 
 /* CGI child process. */
@@ -2928,27 +3048,19 @@ cgi_child( httpd_conn* hc )
 	*/
 	(void) fcntl( hc->conn_fd, F_SETFD, 0 );
 
-	/* Close the syslog descriptor so that the CGI program can't
-	** mess with it.  All other open descriptors should be either
-	** the listen socket(s), sockets from accept(), or the file-logging
-	** fd, and all of those are set to close-on-exec, so we don't
-	** have to close anything else.
-	*/
-	closelog();
-
 	/* If the socket happens to be using one of the stdin/stdout/stderr
 	** descriptors, move it to another descriptor so that the dup2 calls
-	** below don't screw things up.  We arbitrarily pick fd 3 - if there
-	** was already something on it, we clobber it, but that doesn't matter
+	** below don't screw things up.  Jef did arbitrarily pick fd 3 - if there
+	** was already something on it, he clobber it, but that doesn't matter
 	** since at this point the only fd of interest is the connection.
 	** All others will be closed on exec.
 	*/
 	if ( hc->conn_fd == STDIN_FILENO || hc->conn_fd == STDOUT_FILENO || hc->conn_fd == STDERR_FILENO )
 		{
-		int newfd = dup2( hc->conn_fd, STDERR_FILENO + 1 );
+		int newfd = dup( hc->conn_fd);
 		if ( newfd >= 0 )
 			hc->conn_fd = newfd;
-		/* If the dup2 fails, shrug.  We'll just take our chances.
+		/* If the dup fails, shrug.  We'll just take our chances.
 		** Shouldn't happen though.
 		*/
 		}
@@ -3007,6 +3119,7 @@ cgi_child( httpd_conn* hc )
 	** we need an output interposer too.
 	*/
 	if ( strncmp( argp[0], "nph-", 4 ) != 0 && ( hc->http_version > 9 ) )
+		/* Note: argp[0] is the script name and nph means "Not Parse Header" */
 		{
 		int p[2];
 
@@ -3093,10 +3206,19 @@ cgi_child( httpd_conn* hc )
 	(void) signal( SIGPIPE, SIG_DFL );
 #endif /* HAVE_SIGSET */
 
+	/* Close the syslog descriptor so that the CGI program can't
+	** mess with it.  All other open descriptors should be either
+	** the listen socket(s), sockets from accept(), or the file-logging
+	** fd, and all of those are set to close-on-exec, so we don't
+	** have to close anything else.
+	*/
+	closelog();
+
 	/* Run the program. */
 	(void) execve( binary, argp, envp );
 
 	/* Something went wrong. */
+	openlog( argv0, LOG_NDELAY|LOG_PID, LOG_FACILITY );
 	syslog( LOG_ERR, "execve %.80s - %m", hc->expnfilename );
 	httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 	exit( 1 );
@@ -3720,3 +3842,26 @@ httpd_logstats( long secs )
 			str_alloc_count, (unsigned long) str_alloc_size,
 			(float) str_alloc_size / str_alloc_count );
 	}
+
+/* Allocate and generate a random string of size len from charset [G-Vg-v] */
+char *random_boundary(unsigned short len) {
+
+    char *p,*q;
+	static int srand_called=0;
+
+	if ( !(p=malloc(len+1)) )
+		return p;
+	p[len]='\0';
+
+	/* call srand exactly one time to save bit cpu */
+	if(!srand_called) {
+		srandom(time((time_t *)0));
+		srand_called=1;
+	}
+	for(q=p; len; len--, q++) {
+		*q=(char) (rand()%2?rand()%16+103:rand()%16+71) ;
+		//*q=(char) (rand()%2?(rand()+(unsigned int)p)%16+103:rand()%16+71) ;
+	}
+	return p;
+}
+

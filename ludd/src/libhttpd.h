@@ -136,6 +136,17 @@ typedef struct {
 #define HC_SHOULD_LINGER (1<<3)
 #define HC_DETACH_SIGN (1<<4)
 
+/* Useless macros. BTW: if u really think it improves readability, u may use them */
+#define HC_SET(hc,mask) { (hc)->hmask |= (mask); }
+#define HC_UNSET(hc,mask) { (hc)->hmask &= ~(mask); }
+#define HC_IS_SET(hc,mask) ( (hc)->hmask & (mask) )
+
+/* struct passed to callbacks for gpgme data buffers */
+typedef struct {
+	FILE * fpin;
+	int fdout;
+} fp2fd_gpg_data_handle_t; 
+
 /* Methods. */
 #define METHOD_UNKNOWN 0
 #define METHOD_GET 1
@@ -300,4 +311,6 @@ extern int httpd_write_fully( int fd, const void* buf, size_t nbytes );
 /* Generate debugging statistics syslog message. */
 extern void httpd_logstats( long secs );
 
+/* Allocate and generate a random string of size len (from charset [G-Vg-v]) */
+extern char *random_boundary(unsigned short len);
 #endif /* _LIBHTTPD_H_ */

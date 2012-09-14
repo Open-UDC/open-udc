@@ -59,17 +59,17 @@ int hkp_lookup( httpd_conn* hc ) {
 		send_mime(
 			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
 			hc->sb.st_mtime );
-		return 0;
+		return(0);
 	} else if ( hc->method =! METHOD_GET ) {
 		httpd_send_err(
 			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
-		return -1;
+		return(-1);
 	}
 
 	pchar=hc->query;
 	if (! pchar || *pchar == '\0' ) {
 		httpd_send_err(hc, 400, httpd_err400title, "", "Error handling request: there is no query string", "" );
-		return 1;
+		return(-1);
 	}
 
 	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
@@ -77,13 +77,13 @@ int hkp_lookup( httpd_conn* hc ) {
 		httpd_send_err(
 			hc, 503, httpd_err503title, "", httpd_err503form,
 			hc->encodedurl );
-		return -1;
+		return(-1);
 		}
 	++hc->hs->cgi_count;
 	r = fork( );
 	if ( r < 0 ) {
 		httpd_send_err(hc, 500, err500title, "", err500form, "f" );
-		return -1;
+		return(-1);
 	}
 	if ( r > 0 ) {
 		/* Parent process. */
@@ -101,7 +101,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
 		hc->hmask &= ~HC_SHOULD_LINGER;
-		return 0;
+		return(0);
 	}
 	/* Child process. */
 	sub_process = 1;

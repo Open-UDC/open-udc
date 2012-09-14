@@ -81,7 +81,7 @@ typedef long long int64_t;
 #define MAXPATHLEN 4096
 #endif
 
-static char* argv0;
+char* argv0;
 static int debug;
 static unsigned short port;
 static char* dir;
