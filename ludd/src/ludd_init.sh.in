@@ -93,8 +93,7 @@ udcVersion="ludd_init.sh 0.1"
 
 for ((i=0;$#;)) ; do
 	case "$1" in
-		-d|--dir*) shift; dir="$1" ;;
-		-h|--h*) echo "$helpmsg" ; $lud_exit ;;
+
 		-V|--vers*) echo $udcVersion ; $lud_exit ;;
 		*) echo "Error: Unrecognized option $1"; echo "$helpmsg" ; exit 2 ;;
 	esac
@@ -136,7 +135,8 @@ cd "$dir"
 echo "${mybotkeys[$bki]}" > pub/self/fpr
 
 if ((isroot)) ; then
-	gpg --export "${mybotkeys[$bki]}" | gpg --import --homedir "$refdir/.gnupg"
+	#gpg --export "${mybotkeys[$bki]}" | gpg --import --homedir "$refdir/.gnupg" 2>/dev/null
+	gpg  --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$refdir/.gnupg"
 	chown -R .ludd "$refdir/.gnupg"
 fi
 

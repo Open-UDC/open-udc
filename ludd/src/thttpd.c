@@ -141,8 +141,8 @@ int stats_simultaneous;
 
 static volatile int got_hup, got_usr1, got_bus, watchdog_flag;
 
-/* bot's key (to sign some request) */
-gpgme_key_t mygpgkey;
+/* main context (used for signing) */
+gpgme_ctx_t main_gpgctx;
 
 /* Forwards. */
 static void parse_args( int argc, char** argv );
@@ -389,7 +389,9 @@ main( int argc, char** argv )
 	struct stat stf;
 
 	char fpr[41];
-	gpgme_ctx_t gpgctx;
+	/* bot's key (to sign some request) */
+	gpgme_key_t mygpgkey;
+
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
 
@@ -649,58 +651,6 @@ main( int argc, char** argv )
 	stats_bytes = 0;
 	stats_simultaneous = 0;
 
-	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
-	setlocale(LC_ALL, "");
-	if ( ! gpgme_check_version(GPGME_VERSION_MIN) ) {
-		syslog( LOG_WARNING,"gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN); 
-		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
-	}
-	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
-#ifdef LC_MESSAGES
-	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
-#endif
-	/* check for OpenPGP support */
-	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
-
-	/* for header dates: to be compatible with RFC 2822 */
-	setlocale(LC_TIME,"C");
-
-	/* create context */
-	gpgerr=gpgme_new(&gpgctx);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"can't create gpg context :-( (%d)", gpgerr);
-
-	/*gpgerr = gpgme_get_engine_info(&enginfo);
-	gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);*/
-
-	/* get the bot  key */
-	fp=fopen("self/fpr","r");
-	if ( fp == (FILE*) 0 ) 
-		DIE( 1, "self/fpr: %m - forget ludd_init.sh ?");
-	fgets(fpr, sizeof(fpr),fp);
-
-	gpgerr = gpgme_get_key (gpgctx,fpr,&mygpgkey,1);
-	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
-		DIE(1,"gpgme_get_key :-( (%d)", gpgerr);
-	} else if ( mygpgkey->revoked ) {
-		DIE(1,"key %s is revoked",mygpgkey->uids->uid);
-	} else if ( mygpgkey->expired ) {
-		DIE(1,"key %s is expired",mygpgkey->uids->uid);
-	} else if ( mygpgkey->disabled ) {
-		DIE(1,"key %s is disabled",mygpgkey->uids->uid);
-	} else if ( mygpgkey->invalid ) {
-		DIE(1,"key %s is invalid",mygpgkey->uids->uid);
-	} else if (! mygpgkey->can_sign ) {
-		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
-	}
-
-	/* release context (but keep the key in a global variable) */
-	gpgme_release (gpgctx);
-
 	/* If we're root, try to become someone else. */
 	if ( getuid() == 0 )
 		{
@@ -721,12 +671,83 @@ main( int argc, char** argv )
 		/* Setenv(HOME) (for gpgme) . */
 		if ( setenv("HOME",pwd->pw_dir,1) < 0 )
 			DIE(1, "setenv - %m" );
+
 		/* Check for unnecessary security exposure. */
 		if ( ! do_chroot )
 			syslog(
 				LOG_WARNING,
 				"started as root without requesting chroot(), warning only" );
 		}
+
+	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
+	setlocale(LC_ALL, "");
+	if ( ! gpgme_check_version(GPGME_VERSION_MIN) ) {
+		syslog( LOG_WARNING,"gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN); 
+		warnx("gpgme library (%s) is older than required (%s), bug may settle...",gpgme_check_version(0),GPGME_VERSION_MIN);
+	}
+	gpgme_set_locale (NULL, LC_CTYPE, setlocale (LC_CTYPE, NULL));
+#ifdef LC_MESSAGES
+	gpgme_set_locale (NULL, LC_MESSAGES, setlocale (LC_MESSAGES, NULL));
+#endif
+	/* check for OpenPGP support */
+	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		DIE(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
+
+	/* for header dates: to be compatible with RFC 2822 */
+	setlocale(LC_TIME,"C");
+
+	/* create context */
+	gpgerr=gpgme_new(&main_gpgctx);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		DIE(1,"can't create gpg context :-( (%d)", gpgerr);
+
+	/*gpgerr = gpgme_get_engine_info(&enginfo);
+	gpgerr = gpgme_ctx_set_engine_info(main_gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);*/
+
+	/* get the bot  key */
+	fp=fopen("self/fpr","r");
+	if ( fp == (FILE*) 0 ) 
+		DIE( 1, "self/fpr: %m - forget ludd_init.sh ?");
+	fgets(fpr, sizeof(fpr),fp);
+
+	gpgerr = gpgme_get_key (main_gpgctx,fpr,&mygpgkey,1);
+	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+		DIE(1,"gpgme_get_key :-( (%d)", gpgerr);
+	} else if ( mygpgkey->revoked ) {
+		DIE(1,"key %s is revoked",mygpgkey->uids->uid);
+	} else if ( mygpgkey->expired ) {
+		DIE(1,"key %s is expired",mygpgkey->uids->uid);
+	} else if ( mygpgkey->disabled ) {
+		DIE(1,"key %s is disabled",mygpgkey->uids->uid);
+	} else if ( mygpgkey->invalid ) {
+		DIE(1,"key %s is invalid",mygpgkey->uids->uid);
+	} else if (! mygpgkey->can_sign ) {
+		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
+	}
+
+	/* put the key in the main context to sign */
+	gpgerr = gpgme_signers_add (main_gpgctx, mygpgkey);
+	
+	/*{
+		gpgme_data_t gpgdata,gpgsig;
+		char buff[1024];
+		ssize_t read_bytes;
+		FILE * fs=fopen("bon.sig","w");
+		
+		gpgerr = gpgme_data_new(&gpgsig);
+		warn("\n 1- %d",gpgerr);
+		gpgerr = gpgme_data_new_from_file (&gpgdata,"bonjour",1);
+		warn("\n 2- %d",gpgerr);
+		gpgerr = gpgme_op_sign (main_gpgctx, gpgdata,gpgsig,GPGME_SIG_MODE_DETACH);
+		warn("%d",gpgerr);
+		gpgme_data_seek (gpgsig, 0, SEEK_SET);	
+		while ( (read_bytes = gpgme_data_read (gpgsig, buff, 1024)) > 0 )
+			fwrite(buff, sizeof(char),read_bytes,fs);
+		fclose(fs);
+	}*/
 
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );

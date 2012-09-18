@@ -12,10 +12,6 @@
 #include "libhttpd.h"
 
 /*! hkp_add permit to add a new public key on the validation node.
- * ludd first checks if keys in certificates don't already exist in its keyrings,
- * then it checks that the udid is sufficiently signed by recent keys,
- * then it checks there is a key fingerprint with udid is in a creation list,
- * then it cleans the certificate to remove all unknow key (not in creation sheet) and all unknows signatures (from unknows keys).
  * \return 0 (always fork)
  */
 int hkp_add( httpd_conn* hc );

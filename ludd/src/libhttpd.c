@@ -81,7 +81,9 @@
 #define BUFSIZE 2048
 #endif
 
+/* extern golbal variable */
 extern char* argv0;
+extern gpgme_ctx_t main_gpgctx;
 
 #ifdef AUTH_FILE
 extern char* crypt( const char* key, const char* setting );
@@ -1790,7 +1792,7 @@ httpd_parse_request( httpd_conn* hc )
 			else if ( strncasecmp( buf, "Range:", 6 ) == 0 )
 				{
 				/* Only support %d- and %d-%d, not %d-%d,%d-%d or -%d. */
-				/* Except if "multipart/signed" is found in HTTP Accept , where embeded action will handle response and parse Range */
+				/* Except if "multipart/msigned" is found in HTTP Accept , where embeded action will handle response and parse Range */
 				cp = &buf[6];
 				cp += strspn( cp, " \t" );
 				hc->range = cp;
@@ -1908,7 +1910,7 @@ httpd_parse_request( httpd_conn* hc )
 		}
 
 	/* Detach sign asked, response inspired from rfc3156 (which is for emails) */
-	if ( strstr(hc->accept,"multipart/signed"))
+	if ( strcasestr(hc->accept,"multipart/msigned"))
 			hc->hmask |= HC_DETACH_SIGN;
 
 	/* Ok, the request has been parsed.  Now we resolve stuff that
@@ -2808,8 +2810,13 @@ static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buff
 {
 	size_t result;
 
-	if ( !size || size>SSIZE_MAX )
-		return(-1); /* should not happen */
+	/*char buf[BUFSIZE];
+	(void) my_snprintf( buf,BUFSIZE-1, "fp2fd %d %m \015\012",size );
+	(void) httpd_write_fully( handle->fdout, buf, strlen( buf ) ); */
+
+	/* should not happen */
+	/*if ( !size || size>SSIZE_MAX )
+		return(-1); */
 
 	result = fread(buffer,1,size,handle->fpin);
 	if (!result) {
@@ -2899,7 +2906,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			}
 			cp = buf+13;
 			cp += strspn( cp, " \t" );
-			if ( (hc->hmask & HC_DETACH_SIGN) && strncmp(cp,"multipart/signed",sizeof("multipart/signed")-1) )
+			if ( (hc->hmask & HC_DETACH_SIGN) && strncmp(cp,"multipart/msigned",sizeof("multipart/msigned")-1) )
 				/* if cgi output is not signed while it was asked, we will do it */
 				do_sign=1;
 			continue;
@@ -2937,7 +2944,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			do_sign=1;
 	}
 
-	//if ( (hc->hmask & HC_DETACH_SIGN) 
+	/* Check if cgi did answer "HTTP/ ... " , if yes : get the status and discard that line */
 	cp = headers;
 	if ( strncmp( cp, "HTTP/", 5 ) == 0 ) {
 		cp += strcspn( cp, " \t" );
@@ -2965,15 +2972,11 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 		default: title = "Something"; break;
 		}
 	buf=realloc(buf,BUFSIZE);
-	(void) my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
-	(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
-
-	/* Write the saved headers. */
-	(void) httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
 
 	if (do_sign && status>=200 && status<300) {
 		char * bound=random_boundary(8);
-		gpgme_data_t gpgdata;
+		gpgme_error_t gpgerr;
+		gpgme_data_t gpgdata,gpgsig;
 		struct gpgme_data_cbs gpgcbs = {
 			(gpgme_data_read_cb_t) fp2fd_gpg_data_rd_cb,	/* read method */
 			NULL,									/* write method */
@@ -2988,27 +2991,56 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 		if (!bound)
 			bound="boundary"; /* default boundary ... :'-( :-p */
 
-		//gpgerr= gpgme_data_new_from_cbs(&gpgdata, &gpgcbs,&cb_handle);
-		//...
+		gpgerr = gpgme_data_new_from_cbs(&gpgdata, &gpgcbs,&cb_handle);
+		if (gpgerr == GPG_ERR_NO_ERROR) 
+			gpgerr = gpgme_data_new(&gpgsig);
 
-#define CTYPE_MS_LSIZE (sizeof("Content-type: multipart/signed; boundary=")-1 + 8 + 3)
+		if ( gpgerr != GPG_ERR_NO_ERROR) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "g10" );
+			exit(EXIT_FAILURE);
+		}
+
+		(void) my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
+		(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
+		/* Write the saved headers. */
+		(void) httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
+
+#define CTYPE_MS_LSIZE (sizeof("Content-type: multipart/msigned; boundary=")-1 + 8 + 3)
 		buf=realloc(buf,BUFSIZE );
-		r=my_snprintf(buf,BUFSIZE, "%s %s; %s=%s\015\012\015\012--%s\015\012%s","Content-type:","multipart/signed","boundary",bound,bound,ctype);
+		r=my_snprintf(buf,BUFSIZE, "%s %s; %s=%s\015\012\015\012--%s\015\012%s","Content-type:","multipart/msigned","boundary",bound,bound,ctype);
 		httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
 		if (clen) 
 			httpd_write_fully( hc->conn_fd, clen,strlen(clen) );
 		httpd_write_fully( hc->conn_fd, "\015\012",2 );
 		/* contrary to RFC 3156, no headers are signed, only the content */
+		gpgerr = gpgme_op_sign (main_gpgctx, gpgdata,gpgsig,GPGME_SIG_MODE_DETACH);
+		if ( gpgerr != GPG_ERR_NO_ERROR) {
+			r=my_snprintf(buf,BUFSIZE, "\015\012--%s\015\012%s %s\015\012\015\012",bound,"Content-type:","application/pgp-signature");
+			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
+			//gpgme_data_seek (gpgsig, 0, SEEK_SET);	
+		    //while r=gpgme_data_read (gpgsig, buf, BUFSIZE);
+			//...
+			r=my_snprintf(buf,BUFSIZE, "\015\012--%s--\015\012",bound);
+			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
+		} else {
+			(void) my_snprintf( buf,BUFSIZE-1, "%d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
+			(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
+		}
 
 	} else {
+		(void) my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
+		(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
+		/* Write the saved headers. */
+		(void) httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
+
 		httpd_write_fully( hc->conn_fd, ctype,strlen(ctype) );
 		if (clen) 
 			httpd_write_fully( hc->conn_fd, clen,strlen(clen) );
 		httpd_write_fully( hc->conn_fd, "\015\012",2 );
 		/* Echo the rest of the output. */
 		for (;;) {
-			fr = fread(buf,sizeof(char), BUFSIZE,fp );
-			if ( fr < 0 ) {
+			fr = fread(buf,sizeof(char), BUFSIZE-1,fp );
+			if ( fr <= 0 ) {
 				if ( errno == EINTR || errno == EAGAIN ) { /* should no more happen since using fread */
 					sleep( 1 );
 					continue;
@@ -3024,7 +3056,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 				break;
 		}
 	}
-
+	fclose(fp);
 	shutdown( hc->conn_fd, SHUT_WR );
 }
 

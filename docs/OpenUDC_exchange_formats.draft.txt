@@ -80,7 +80,6 @@ Request for Comments:                                      Open-UDC Team
 
 http[s]://Node[:port]/[Root/]...
 |-- in/
-|   |-- authent
 |   |-- creation
 |   |-- transaction
 |   `-- sign
@@ -222,4 +221,112 @@ MIME types for other applications (like mail client) :
 
 
 https://grepular.com/FireGPG_on_Firefox_5
+
+
+X.  HTTP (multi-)signed data
+
+   HTTP (multi-)signed messages are denoted by the "multipart/msigned"
+   content type, with an optional "nsigs" parameter.
+   This content type is inspired by the "multipart/signed" defined in
+   the [RFC3156] and dedicated for sending signed email.
+
+   The multipart/msigned body MUST consist of at least two parts. One
+   part contains the signed data in MIME canonical format, including a
+   set of appropriate content headers describing the data.
+
+   Other parts MUST contain each one a digital signature. For OpenPGP
+   signatures, it MUST be labeled with a content type of
+   "application/pgp-signature".
+
+   If present, the "nsigs" parameter MUST contain a signed integer.
+   The "nsigs" parameter indicated the number of detached
+   signatures, as well as there position inside the "multipart/msigned"
+   stream:
+    - integer value indicate the number of signatures. The absolute
+    value MUST be equal to the effective number of signatures in the
+    stream.
+    - a positive value indicate that the signatures will be placed
+    after the data.
+	- a negative value indicate that the signatures will be placed
+    before the data. Thus permit to verify the data in one-pass as the
+    digest (also know as MIC: Message Integrity Check) used to sign are
+    indicated in each signature (or in their content header for others
+    signature than OpenPGP).
+    - The absence of the "nsigs" parameter MUST be treated as it have
+    had a value of "1".
+
+     Notes:
+    - The "nsigs" parameter should not have a value of "0".
+    Reading implementations may return an error in this case.
+    - OpenPGP signatures may be ASCII armored or not.
+     
+
+
+    Example:
+
+         Content-Type: multipart/signed; boundary=bar; nsigs=1
+
+         --bar
+        Content-Type: text/plain; charset=iso-8859-1
+        Content-Transfer-Encoding: quoted-printable
+      
+      & =A1Hola!
+      &
+      & Did you know that talking to yourself is a sign of senility?
+      &
+      & It's generally a good idea to encode lines that begin with
+      & From=20because some mail transport agents will insert a greater-
+      & than (>) sign, thus invalidating the signature.
+      &
+      & Also, in some cases it might be desirable to encode any   =20
+      & trailing whitespace that occurs on lines in order to ensure  =20
+      & that the message signature is not invalidated when passing =20
+      & a gateway that modifies such whitespace (like BITNET). =20
+      &
+      & me
+
+      --bar
+
+      Content-Type: application/pgp-signature
+
+      -----BEGIN PGP MESSAGE-----
+      Version: 2.6.2
+
+      iQCVAwUBMJrRF2N9oWBghPDJAQE9UQQAtl7LuRVndBjrk4EqYBIb3h5QXIX/LC//
+      jJV5bNvkZIGPIcEmI5iFd9boEgvpirHtIREEqLQRkYNoBActFBZmh9GC3C041WGq
+      uMbrbxc+nIs1TIKlA08rVi9ig/2Yh7LFrK5Ein57U/W72vgSxLhe/zhdfolT9Brn
+      HOxEa44b+EI=
+      =ndaj
+      -----END PGP MESSAGE-----
+
+      --bar--
+
+   The "&"s in the previous example indicate the portion of the data
+   over which the signature was calculated.
+
+References
+
+   [1]   Callas, J., Donnerhacke, L., Finney, H. and R. Thayer, "OpenPGP
+         Message Format", RFC 2440, November 1998.
+
+   [2]   Galvin, J., Murphy, G., Crocker, S. and N. Freed, "Security
+         Multiparts for MIME: Multipart/Signed and Multipart/Encrypted",
+         RFC 1847, October 1995.
+
+   [3]   Freed, N. and N. Borenstein, "Multipurpose Internet Mail
+         Extensions (MIME) Part Two: Media Types", RFC 2046, November
+         1996.
+
+   [4]   Galvin, J., Murphy, G., Crocker, S. and N. Freed, "MIME Object
+         Security Services", RFC 1848, October 1995.
+
+   [5]   Atkins, D., Stallings, W. and P. Zimmermann, "PGP Message
+         Exchange Formats", RFC 1991, August 1996.
+
+   [6]   Elkins, M., "MIME Security with Pretty Good Privacy (PGP)", RFC
+         2015, October 1996.
+
+   [7]   Freed, N., "Gateways and MIME Security Multiparts", RFC 2480,
+         January 1999.
+
 

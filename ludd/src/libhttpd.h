@@ -131,7 +131,7 @@ typedef struct {
 	char* file_address;
 	} httpd_conn;
 
-#define HC_GOT_RANGE (1<<1)  /* if match "d-d" or "d-" , which is only supported (when not replying multipart/signed) */
+#define HC_GOT_RANGE (1<<1)  /* if match "d-d" or "d-" , which is only supported (except when asked multipart/msigned on a local file) */
 #define HC_KEEP_ALIVE (1<<2)
 #define HC_SHOULD_LINGER (1<<3)
 #define HC_DETACH_SIGN (1<<4)
