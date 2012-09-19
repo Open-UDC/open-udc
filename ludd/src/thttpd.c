@@ -692,7 +692,7 @@ main( int argc, char** argv )
 	/* check for OpenPGP support */
 	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"%s - %s","gpgme_engine_check_version",gpgme_strerror(gpgerr));
+		DIE(1,"gpgme_engine_check_version - %s",gpgme_strerror(gpgerr));
 
 	/* for header dates: to be compatible with RFC 2822 */
 	setlocale(LC_TIME,"C");
@@ -700,7 +700,7 @@ main( int argc, char** argv )
 	/* create context */
 	gpgerr=gpgme_new(&main_gpgctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"%s - %s","gpgme_new",gpgme_strerror(gpgerr));
+		DIE(1,"gpgme_new - %s",gpgme_strerror(gpgerr));
 
 	/*gpgerr = gpgme_get_engine_info(&enginfo);
 	gpgerr = gpgme_ctx_set_engine_info(main_gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
@@ -710,12 +710,12 @@ main( int argc, char** argv )
 	/* get the bot  key */
 	fp=fopen("self/fpr","r");
 	if ( fp == (FILE*) 0 ) 
-		DIE( 1, "self/fpr: %m - forget ludd_init.sh ?");
+		DIE( 1, "%s: %m - forget ludd_init.sh ?","self/fpr");
 	fgets(fpr, sizeof(fpr),fp);
 
 	gpgerr = gpgme_get_key (main_gpgctx,fpr,&mygpgkey,1);
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
-		DIE(1,"%s - %s","gpgme_get_key",gpgme_strerror(gpgerr));
+		DIE(1,"gpgme_get_key - %s",gpgme_strerror(gpgerr));
 	} else if ( mygpgkey->revoked ) {
 		DIE(1,"key %s is revoked",mygpgkey->uids->uid);
 	} else if ( mygpgkey->expired ) {
@@ -732,26 +732,8 @@ main( int argc, char** argv )
 	gpgme_set_armor(main_gpgctx,1);
 	gpgerr = gpgme_signers_add(main_gpgctx, mygpgkey);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"%s - %s","gpgme_signers_add",gpgme_strerror(gpgerr));
+		DIE(1,"gpgme_signers_add - %s",gpgme_strerror(gpgerr));
 	
-	/*{
-		gpgme_data_t gpgdata,gpgsig;
-		char buff[1024];
-		ssize_t read_bytes;
-		FILE * fs=fopen("bon.sig","w");
-		
-		gpgerr = gpgme_data_new(&gpgsig);
-		warn("\n 1- %d",gpgerr);
-		gpgerr = gpgme_data_new_from_file (&gpgdata,"bonjour",1);
-		warn("\n 2- %d",gpgerr);
-		gpgerr = gpgme_op_sign (main_gpgctx, gpgdata,gpgsig,GPGME_SIG_MODE_DETACH);
-		warn("%d",gpgerr);
-		gpgme_data_seek (gpgsig, 0, SEEK_SET);	
-		while ( (read_bytes = gpgme_data_read (gpgsig, buff, 1024)) > 0 )
-			fwrite(buff, sizeof(char),read_bytes,fs);
-		fclose(fs);
-	}*/
-
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
 	if ( connects == (connecttab*) 0 )

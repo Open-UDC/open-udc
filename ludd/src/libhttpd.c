@@ -597,7 +597,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 			(void) my_snprintf( buf, sizeof(buf),
 				"Content-Range: bytes %lld-%lld/%lld\015\012%s %lld\015\012",
 				(int64_t) hc->first_byte_index, (int64_t) hc->last_byte_index,
-				"Content-Length:", (int64_t) length,
+				(int64_t) length, "Content-Length:",
 				(int64_t) ( hc->last_byte_index - hc->first_byte_index + 1 ) );
 			add_response( hc, buf );
 			}
