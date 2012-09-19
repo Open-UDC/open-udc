@@ -269,7 +269,8 @@ X.  HTTP (multi-)signed data
          --bar
         Content-Type: text/plain; charset=iso-8859-1
         Content-Transfer-Encoding: quoted-printable
-      
+     
+      & 
       & =A1Hola!
       &
       & Did you know that talking to yourself is a sign of senility?
@@ -284,22 +285,22 @@ X.  HTTP (multi-)signed data
       & a gateway that modifies such whitespace (like BITNET). =20
       &
       & me
+      &
 
-      --bar
+        --bar
+        Content-Type: application/pgp-signature
 
-      Content-Type: application/pgp-signature
+        -----BEGIN PGP MESSAGE-----
+        Version: 2.6.2
 
-      -----BEGIN PGP MESSAGE-----
-      Version: 2.6.2
+        iQCVAwUBMJrRF2N9oWBghPDJAQE9UQQAtl7LuRVndBjrk4EqYBIb3h5QXIX/LC//
+        jJV5bNvkZIGPIcEmI5iFd9boEgvpirHtIREEqLQRkYNoBActFBZmh9GC3C041WGq
+        uMbrbxc+nIs1TIKlA08rVi9ig/2Yh7LFrK5Ein57U/W72vgSxLhe/zhdfolT9Brn
+        HOxEa44b+EI=
+        =ndaj
+        -----END PGP MESSAGE-----
 
-      iQCVAwUBMJrRF2N9oWBghPDJAQE9UQQAtl7LuRVndBjrk4EqYBIb3h5QXIX/LC//
-      jJV5bNvkZIGPIcEmI5iFd9boEgvpirHtIREEqLQRkYNoBActFBZmh9GC3C041WGq
-      uMbrbxc+nIs1TIKlA08rVi9ig/2Yh7LFrK5Ein57U/W72vgSxLhe/zhdfolT9Brn
-      HOxEa44b+EI=
-      =ndaj
-      -----END PGP MESSAGE-----
-
-      --bar--
+        --bar--
 
    The "&"s in the previous example indicate the portion of the data
    over which the signature was calculated.

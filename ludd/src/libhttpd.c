@@ -550,7 +550,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 	hc->bytes_to_send = length;
 	if ( hc->http_version > 9 )
 		{
-		if ( status == 200 && (hc->hmask & HC_GOT_RANGE) &&
+		if ( status == 200 && (hc->bfield & HC_GOT_RANGE) &&
 			 ( hc->last_byte_index >= hc->first_byte_index ) &&
 			 ( ( hc->last_byte_index != length - 1 ) ||
 			   ( hc->first_byte_index != 0 ) ) &&
@@ -564,7 +564,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 		else
 			{
 			partial_content = 0;
-			hc->hmask &= ~HC_GOT_RANGE;
+			hc->bfield &= ~HC_GOT_RANGE;
 			}
 
 		now = time( (time_t*) 0 );
@@ -747,7 +747,7 @@ send_authenticate( httpd_conn* hc, char* realm )
 	** so we need to do a lingering close.
 	*/
 	if ( hc->method == METHOD_POST )
-		hc->hmask |= HC_SHOULD_LINGER;
+		hc->bfield |= HC_SHOULD_LINGER;
 	}
 
 
@@ -1396,7 +1396,7 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->tildemapped = 0;
 	hc->first_byte_index = 0;
 	hc->last_byte_index = -1;
-	hc->hmask=0;
+	hc->bfield=0;
 	hc->file_address = (char*) 0;
 	return GC_OK;
 	}
@@ -1807,7 +1807,7 @@ httpd_parse_request( httpd_conn* hc )
 						if ( cp_dash != (char*) 0 && cp_dash != cp + 1 )
 							{
 							*cp_dash = '\0';
-							hc->hmask |= HC_GOT_RANGE;
+							hc->bfield |= HC_GOT_RANGE;
 							hc->first_byte_index = atoll( cp + 1 );
 							if ( hc->first_byte_index < 0 )
 								hc->first_byte_index = 0;
@@ -1851,7 +1851,7 @@ httpd_parse_request( httpd_conn* hc )
 				cp = &buf[11];
 				cp += strspn( cp, " \t" );
 				if ( strcasecmp( cp, "keep-alive" ) == 0 )
-					hc->hmask |= HC_KEEP_ALIVE;
+					hc->bfield |= HC_KEEP_ALIVE;
 				}
 #ifdef LOG_UNKNOWN_HEADERS
 			else if ( strncasecmp( buf, "Accept-Charset:", 15 ) == 0 ||
@@ -1905,13 +1905,13 @@ httpd_parse_request( httpd_conn* hc )
 		** might be unread pipelined requests waiting.  So, we have to
 		** do a lingering close.
 		*/
-		if ( hc->hmask & HC_KEEP_ALIVE )
-			hc->hmask |= HC_SHOULD_LINGER;
+		if ( hc->bfield & HC_KEEP_ALIVE )
+			hc->bfield |= HC_SHOULD_LINGER;
 		}
 
 	/* Detach sign asked, response inspired from rfc3156 (which is for emails) */
 	if ( strcasestr(hc->accept,"multipart/msigned"))
-			hc->hmask |= HC_DETACH_SIGN;
+			hc->bfield |= HC_DETACH_SIGN;
 
 	/* Ok, the request has been parsed.  Now we resolve stuff that
 	** may require the entire request.
@@ -2568,7 +2568,7 @@ mode  links  bytes  last-changed  name\n\
 #endif /* CGI_TIMELIMIT */
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->hmask &= ~HC_SHOULD_LINGER;
+		hc->bfield &= ~HC_SHOULD_LINGER;
 		}
 	else
 		{
@@ -2906,7 +2906,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			}
 			cp = buf+13;
 			cp += strspn( cp, " \t" );
-			if ( (hc->hmask & HC_DETACH_SIGN) && strncmp(cp,"multipart/msigned",sizeof("multipart/msigned")-1) )
+			if ( (hc->bfield & HC_DETACH_SIGN) && strncmp(cp,"multipart/msigned",sizeof("multipart/msigned")-1) )
 				/* if cgi output is not signed while it was asked, we will do it */
 				do_sign=1;
 			continue;
@@ -2940,7 +2940,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			exit(EXIT_FAILURE);
 		}
 		my_snprintf(ctype,CTYPE_AOS_LSIZE, "%s %s\015\012","Content-type:","application/octet-stream");
-		if (hc->hmask & HC_DETACH_SIGN)
+		if (hc->bfield & HC_DETACH_SIGN)
 			do_sign=1;
 	}
 
@@ -3303,7 +3303,7 @@ cgi( httpd_conn* hc )
 #endif /* CGI_TIMELIMIT */
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->hmask &= ~HC_SHOULD_LINGER;
+		hc->bfield &= ~HC_SHOULD_LINGER;
 		}
 	else
 		{
@@ -3584,7 +3584,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 		}
 
 	/* Fill in last_byte_index, if necessary. */
-	if ( (hc->hmask & HC_GOT_RANGE) &&
+	if ( (hc->bfield & HC_GOT_RANGE) &&
 		 ( hc->last_byte_index == -1 || hc->last_byte_index >= hc->sb.st_size ) )
 		hc->last_byte_index = hc->sb.st_size - 1;
 

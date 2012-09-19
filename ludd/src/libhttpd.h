@@ -83,7 +83,7 @@ typedef struct {
 /* A connection. */
 typedef struct {
 	int initialized;
-	int hmask;
+	int bfield;
 	httpd_server* hs;
 	httpd_sockaddr client_addr;
 	char* read_buf;
@@ -137,9 +137,9 @@ typedef struct {
 #define HC_DETACH_SIGN (1<<4)
 
 /* Useless macros. BTW: if u really think it improves readability, u may use them */
-#define HC_SET(hc,mask) { (hc)->hmask |= (mask); }
-#define HC_UNSET(hc,mask) { (hc)->hmask &= ~(mask); }
-#define HC_IS_SET(hc,mask) ( (hc)->hmask & (mask) )
+#define HC_SET(hc,mask) { (hc)->bfield |= (mask); }
+#define HC_UNSET(hc,mask) { (hc)->bfield &= ~(mask); }
+#define HC_IS_SET(hc,mask) ( (hc)->bfield & (mask) )
 
 /* struct passed to callbacks for gpgme data buffers */
 typedef struct {

@@ -1593,7 +1593,7 @@ handle_read( connecttab* c, struct timeval* tvP )
 		}
 
 	/* Fill in end_byte_index. */
-	if ( hc->hmask & HC_GOT_RANGE )
+	if ( hc->bfield & HC_GOT_RANGE )
 		{
 		c->next_byte_index = hc->first_byte_index;
 		c->end_byte_index = hc->last_byte_index + 1;
@@ -1947,9 +1947,9 @@ clear_connection( connecttab* c, struct timeval* tvP )
 		/* If we were already lingering, shut down for real. */
 		tmr_cancel( c->linger_timer );
 		c->linger_timer = (Timer*) 0;
-		c->hc->hmask &= ~HC_SHOULD_LINGER;
+		c->hc->bfield &= ~HC_SHOULD_LINGER;
 		}
-	if ( c->hc->hmask & HC_SHOULD_LINGER )
+	if ( c->hc->bfield & HC_SHOULD_LINGER )
 		{
 		if ( c->conn_state != CNST_PAUSING )
 			fdwatch_del_fd( c->hc->conn_fd );

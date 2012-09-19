@@ -100,7 +100,7 @@ int hkp_lookup( httpd_conn* hc ) {
 #endif /* CGI_TIMELIMIT */
 		hc->status = 200;
 		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->hmask &= ~HC_SHOULD_LINGER;
+		hc->bfield &= ~HC_SHOULD_LINGER;
 		return(0);
 	}
 	/* Child process. */
