@@ -604,6 +604,7 @@ ac_subst_vars='LTLIBOBJS
 V_NETLIBS
 V_STATICFLAG
 V_CCOPT
+luddversion
 ludduser
 INSTALL_DATA
 INSTALL_SCRIPT
@@ -4709,6 +4710,8 @@ cat >>confdefs.h <<_ACEOF
 #define DEFAULT_USER "${ludduser}"
 _ACEOF
 
+
+luddversion=`grep -o 'ludd/[^"]\+' src/version.h`
 
 
 

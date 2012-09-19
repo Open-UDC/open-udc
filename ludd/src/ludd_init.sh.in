@@ -88,13 +88,11 @@ else
 	dir="$refdir"
 fi
 
-lud_exit="exit"
-udcVersion="ludd_init.sh 0.1"
-
 for ((i=0;$#;)) ; do
 	case "$1" in
-
-		-V|--vers*) echo $udcVersion ; $lud_exit ;;
+		-d|--dir*) shift; dir="$1" ;;
+		-h|--h*) echo "$helpmsg" ; exit 2 ;;
+		-V|--vers*) echo "@luddversion@" ; exit 2 ;;
 		*) echo "Error: Unrecognized option $1"; echo "$helpmsg" ; exit 2 ;;
 	esac
 	shift

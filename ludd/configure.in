@@ -123,6 +123,9 @@ AC_PROG_INSTALL
 ludduser=`uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
 AC_DEFINE_UNQUOTED(DEFAULT_USER, "${ludduser}")
 AC_SUBST(ludduser)
+dnl luddversion=`sed -n ' s,.*"\(ludd/[[^"]]\+\)"$,\1,p ' src/version.h`
+luddversion=`grep -o 'ludd/[[^"]]\+' src/version.h`
+AC_SUBST(luddversion)
 AC_SUBST(DEFS)
 AC_SUBST(V_CCOPT)
 AC_SUBST(V_STATICFLAG)
