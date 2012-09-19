@@ -24,7 +24,7 @@ fi
 
 cat << EOF
 Server: ludd/0.1.0
-Content-type: text/plain
+Content-Type: text/plain
 Expires: $(date -u '+%a, %d %b %Y %H:%M:%S %Z')
 
 EOF

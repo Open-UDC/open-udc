@@ -595,16 +595,16 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 		if ( partial_content )
 			{
 			(void) my_snprintf( buf, sizeof(buf),
-				"Content-Range: bytes %lld-%lld/%lld\015\012Content-Length: %lld\015\012",
+				"Content-Range: bytes %lld-%lld/%lld\015\012%s %lld\015\012",
 				(int64_t) hc->first_byte_index, (int64_t) hc->last_byte_index,
-				(int64_t) length,
+				"Content-Length:", (int64_t) length,
 				(int64_t) ( hc->last_byte_index - hc->first_byte_index + 1 ) );
 			add_response( hc, buf );
 			}
 		else if ( length >= 0 )
 			{
 			(void) my_snprintf( buf, sizeof(buf),
-				"Content-Length: %lld\015\012", (int64_t) length );
+				"%s %lld\015\012","Content-Length:", (int64_t) length );
 			add_response( hc, buf );
 			}
 		if ( extraheads[0] != '\0' )
@@ -2867,9 +2867,9 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 
 	/* use a file descriptor for getline (which is POSIX since 2008, glibc >= 2.10 )*/
 	if ( !(fp=fdopen(rfd,"r")) ) {
-		syslog( LOG_ERR, "fdopen - %m", hc->expnfilename );
+		syslog( LOG_ERR, "fdopen - %m");
 		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-		return;
+		exit(EXIT_FAILURE);
 	}
 
 	/* Figure out the status.  Look for a Status: or Location: header;
@@ -2897,7 +2897,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			cp = buf+7;
 			cp += strspn( cp, " \t" );
 			status = atoi( cp );
-		} else if ( !strncasecmp( buf, "Content-type:",13 ) ) {
+		} else if ( !strncasecmp( buf, "Content-Type:",13 ) ) {
 			free(ctype);
 			if (! (ctype=strdup(buf)) ) {
 				syslog( LOG_ERR, "strdup - %m");
@@ -2910,7 +2910,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 				/* if cgi output is not signed while it was asked, we will do it */
 				do_sign=1;
 			continue;
-		} else if ( !strncasecmp( buf, "Content-lenght:",15 ) ) {
+		} else if ( !strncasecmp( buf, "Content-Lenght:",15 ) ) {
 			free(clen);
 			if (! (clen=strdup(buf)) ) {
 				syslog( LOG_ERR, "strdup - %m");
@@ -2928,18 +2928,20 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 	}
 	
 	/* If there were no headers, bail. */
-	/*if ( headers[0] == '\0' )
-		return;*/
+	/*if ( headers[0] == '\0' ) {
+		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+		exit(EXIT_FAILURE);
+	}*/
 
-	/* generate Content-type if not specified (yes, that is very kind...) */
+	/* generate Content-Type if not specified (yes, that is very kind...) */
 	if (!ctype) {
-#define CTYPE_AOS_LSIZE (sizeof("Content-type: application/octet-stream")+2)
+#define CTYPE_AOS_LSIZE (sizeof("Content-Type: application/octet-stream")+2)
 		if ( !(ctype=malloc(CTYPE_AOS_LSIZE)) ) {
 			syslog( LOG_ERR, "strdup - %m");
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			exit(EXIT_FAILURE);
 		}
-		my_snprintf(ctype,CTYPE_AOS_LSIZE, "%s %s\015\012","Content-type:","application/octet-stream");
+		my_snprintf(ctype,CTYPE_AOS_LSIZE, "%s %s\015\012","Content-Type:","application/octet-stream");
 		if (hc->bfield & HC_DETACH_SIGN)
 			do_sign=1;
 	}
@@ -3000,26 +3002,30 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			exit(EXIT_FAILURE);
 		}
 
-		(void) my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
-		(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
+		r=my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
+		r=MIN(r,BUFSIZE);
+		if (httpd_write_fully( hc->conn_fd, buf,r) !=r )
+			exit(EXIT_FAILURE);
 		/* Write the saved headers. */
-		(void) httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
+		httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
 
-#define CTYPE_MS_LSIZE (sizeof("Content-type: multipart/msigned; boundary=")-1 + 8 + 3)
+#define CTYPE_MS_LSIZE (sizeof("Content-Type: multipart/msigned; boundary=")-1 + 8 + 3)
 		buf=realloc(buf,BUFSIZE );
-		r=my_snprintf(buf,BUFSIZE, "%s %s; %s=%s\015\012\015\012--%s\015\012%s","Content-type:","multipart/msigned","boundary",bound,bound,ctype);
+		r=my_snprintf(buf,BUFSIZE, "%s %s; %s=%s\015\012\015\012--%s\015\012%s","Content-Type:","multipart/msigned","boundary",bound,bound,ctype);
 		httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
 		if (clen) 
 			httpd_write_fully( hc->conn_fd, clen,strlen(clen) );
 		httpd_write_fully( hc->conn_fd, "\015\012",2 );
 		/* contrary to RFC 3156, no headers are signed, only the content */
 		gpgerr = gpgme_op_sign (main_gpgctx, gpgdata,gpgsig,GPGME_SIG_MODE_DETACH);
-		if ( gpgerr != GPG_ERR_NO_ERROR) {
-			r=my_snprintf(buf,BUFSIZE, "\015\012--%s\015\012%s %s\015\012\015\012",bound,"Content-type:","application/pgp-signature");
+		if ( gpgerr == GPG_ERR_NO_ERROR) {
+			off_t siglen;
+			siglen=gpgme_data_seek (gpgsig, 0, SEEK_END);
+			gpgme_data_seek(gpgsig, 0, SEEK_SET);	
+			r=my_snprintf(buf,BUFSIZE, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",siglen);
 			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
-			//gpgme_data_seek (gpgsig, 0, SEEK_SET);	
-		    //while r=gpgme_data_read (gpgsig, buf, BUFSIZE);
-			//...
+		    while (r=gpgme_data_read(gpgsig, buf, BUFSIZE))
+				httpd_write_fully( hc->conn_fd, buf,r);
 			r=my_snprintf(buf,BUFSIZE, "\015\012--%s--\015\012",bound);
 			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
 		} else {
@@ -3028,15 +3034,18 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 		}
 
 	} else {
-		(void) my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
-		(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
+		r=my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
+		r=MIN(r,BUFSIZE);
+		if (httpd_write_fully( hc->conn_fd, buf,r) !=r )
+			exit(EXIT_FAILURE);
+		
 		/* Write the saved headers. */
-		(void) httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
-
+		httpd_write_fully( hc->conn_fd, cp, headers_len-(cp-headers) );
 		httpd_write_fully( hc->conn_fd, ctype,strlen(ctype) );
 		if (clen) 
 			httpd_write_fully( hc->conn_fd, clen,strlen(clen) );
 		httpd_write_fully( hc->conn_fd, "\015\012",2 );
+		
 		/* Echo the rest of the output. */
 		for (;;) {
 			fr = fread(buf,sizeof(char), BUFSIZE-1,fp );
@@ -3065,7 +3074,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 static void
 cgi_child( httpd_conn* hc )
 	{
-	int r;
+	pid_t ipid;
 	char** argp;
 	char** envp;
 	char* binary;
@@ -3117,16 +3126,16 @@ cgi_child( httpd_conn* hc )
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			exit( 1 );
 			}
-		r = fork( );
-		if ( r < 0 )
+		ipid = fork( );
+		if ( ipid < 0 )
 			{
 			syslog( LOG_ERR, "fork - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			exit( 1 );
 			}
-		if ( r == 0 )
+		if ( ipid == 0 )
 			{
-			/* Interposer process. */
+			/* Child Interposer process. */
 			sub_process = 1;
 			(void) close( p[0] );
 			cgi_interpose_input( hc, p[1] );
@@ -3161,22 +3170,22 @@ cgi_child( httpd_conn* hc )
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			exit( 1 );
 			}
-		r = fork( );
-		if ( r < 0 )
+		ipid = fork( );
+		if ( ipid < 0 )
 			{
 			syslog( LOG_ERR, "fork - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			exit( 1 );
 			}
-		if ( r == 0 )
+		if ( ipid == 0 )
 			{
-			/* Interposer process. */
+			/* Child Interposer process. */
 			sub_process = 1;
 			(void) close( p[1] );
 			cgi_interpose_output( hc, p[0] );
 			exit( 0 );
 			}
-		/* Need to schedule a kill for process r; but in the main process! */
+		/* Need to schedule a kill for process ipid; but in the main process! */
 		(void) close( p[0] );
 		if ( p[1] != STDOUT_FILENO )
 			(void) dup2( p[1], STDOUT_FILENO );
@@ -3253,6 +3262,7 @@ cgi_child( httpd_conn* hc )
 	openlog( argv0, LOG_NDELAY|LOG_PID, LOG_FACILITY );
 	syslog( LOG_ERR, "execve %.80s - %m", hc->expnfilename );
 	httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+	shutdown( hc->conn_fd, SHUT_WR );
 	exit( 1 );
 	}
 
@@ -3837,32 +3847,28 @@ httpd_read_fully( int fd, void* buf, size_t nbytes )
 
 
 /* Write the requested buffer completely, accounting for interruptions. */
-int
-httpd_write_fully( int fd, const void* buf, size_t nbytes )
-	{
-	int nwritten;
+ssize_t httpd_write_fully( int fd, const void* buf, size_t nbytes ) {
+	ssize_t nwritten=0;
 
-	nwritten = 0;
-	while ( nwritten < nbytes )
-		{
+	while ( nwritten < nbytes ) {
 		int r;
 
 		r = write( fd, (char*) buf + nwritten, nbytes - nwritten );
-		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
-			{
+		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) ) {
 			sleep( 1 );
 			continue;
-			}
-		if ( r < 0 )
+		}
+		if ( r < 0 ) {
+			syslog( LOG_ERR, "httpd_write_fully - %d - %m", r );
 			return r;
+		}
 		if ( r == 0 )
 			break;
 		nwritten += r;
-		}
-
-	return nwritten;
 	}
 
+	return nwritten;
+}
 
 /* Generate debugging statistics syslog message. */
 void

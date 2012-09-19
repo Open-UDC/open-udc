@@ -34,7 +34,7 @@
 static void http_header(int code,const char * ctype)
 {
 	printf("HTTP/1.0 %d OK\n",code);
-	printf("Server: %s\nContent-type: %s\n\n",SERVER_SOFTWARE,(ctype?ctype:CTYPE_HTML_STR));
+	printf("Server: %s\nContent-Type: %s\n\n",SERVER_SOFTWARE,(ctype?ctype:CTYPE_HTML_STR));
 }
 
 static int hexit( char c ) {

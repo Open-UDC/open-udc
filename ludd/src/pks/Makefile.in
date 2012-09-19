@@ -42,7 +42,7 @@ CLEANFILES =	*.o cgi-lookup cgi-add
 	@rm -f $@
 	$(CC) $(CFLAGS) -c $*.c
 
-all:	add lookup
+all:	add
 
 lookup:	cgi-lookup.o
 	$(CC) $(LDFLAGS) cgi-lookup.o $(LIBS) -o cgi-lookup

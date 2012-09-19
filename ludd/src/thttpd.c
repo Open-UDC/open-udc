@@ -692,7 +692,7 @@ main( int argc, char** argv )
 	/* check for OpenPGP support */
 	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"gpgme library has been compiled  without OpenPGP support :-( (%d) ", gpgerr);
+		DIE(1,"%s - %s","gpgme_engine_check_version",gpgme_strerror(gpgerr));
 
 	/* for header dates: to be compatible with RFC 2822 */
 	setlocale(LC_TIME,"C");
@@ -700,7 +700,7 @@ main( int argc, char** argv )
 	/* create context */
 	gpgerr=gpgme_new(&main_gpgctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		DIE(1,"can't create gpg context :-( (%d)", gpgerr);
+		DIE(1,"%s - %s","gpgme_new",gpgme_strerror(gpgerr));
 
 	/*gpgerr = gpgme_get_engine_info(&enginfo);
 	gpgerr = gpgme_ctx_set_engine_info(main_gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
@@ -715,7 +715,7 @@ main( int argc, char** argv )
 
 	gpgerr = gpgme_get_key (main_gpgctx,fpr,&mygpgkey,1);
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
-		DIE(1,"gpgme_get_key :-( (%d)", gpgerr);
+		DIE(1,"%s - %s","gpgme_get_key",gpgme_strerror(gpgerr));
 	} else if ( mygpgkey->revoked ) {
 		DIE(1,"key %s is revoked",mygpgkey->uids->uid);
 	} else if ( mygpgkey->expired ) {
@@ -728,8 +728,11 @@ main( int argc, char** argv )
 		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
 	}
 
-	/* put the key in the main context to sign */
-	gpgerr = gpgme_signers_add (main_gpgctx, mygpgkey);
+	/* The main context is for signing, put the key in and set armor */
+	gpgme_set_armor(main_gpgctx,1);
+	gpgerr = gpgme_signers_add(main_gpgctx, mygpgkey);
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		DIE(1,"%s - %s","gpgme_signers_add",gpgme_strerror(gpgerr));
 	
 	/*{
 		gpgme_data_t gpgdata,gpgsig;

@@ -33,7 +33,7 @@ static void http_header(int code)
 	printf("HTTP/1.0 %d OK\n",code);
 	if (code == 202)
 		printf("X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\n");
-	printf("Server: %s\nContent-type: text/html\n\n",SERVER_SOFTWARE);
+	printf("Server: %s\nContent-Type: text/html\n\n",SERVER_SOFTWARE);
 
 }
 

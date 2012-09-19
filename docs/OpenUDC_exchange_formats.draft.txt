@@ -258,49 +258,57 @@ X.  HTTP (multi-)signed data
      Notes:
     - The "nsigs" parameter should not have a value of "0".
     Reading implementations may return an error in this case.
-    - OpenPGP signatures may be ASCII armored or not.
+    - OpenPGP signatures SHOULD be ASCII armored.
      
 
+    Example of an HTTP request with signed response:
 
-    Example:
+      > GET /in/example HTTP/1.1
+      > Accept: multipart/msigned 
+      >
 
-         Content-Type: multipart/signed; boundary=bar; nsigs=1
-
-         --bar
-        Content-Type: text/plain; charset=iso-8859-1
-        Content-Transfer-Encoding: quoted-printable
-     
-      & 
-      & =A1Hola!
-      &
-      & Did you know that talking to yourself is a sign of senility?
-      &
-      & It's generally a good idea to encode lines that begin with
-      & From=20because some mail transport agents will insert a greater-
-      & than (>) sign, thus invalidating the signature.
-      &
-      & Also, in some cases it might be desirable to encode any   =20
-      & trailing whitespace that occurs on lines in order to ensure  =20
-      & that the message signature is not invalidated when passing =20
-      & a gateway that modifies such whitespace (like BITNET). =20
-      &
-      & me
-      &
-
-        --bar
-        Content-Type: application/pgp-signature
-
-        -----BEGIN PGP MESSAGE-----
-        Version: 2.6.2
-
-        iQCVAwUBMJrRF2N9oWBghPDJAQE9UQQAtl7LuRVndBjrk4EqYBIb3h5QXIX/LC//
-        jJV5bNvkZIGPIcEmI5iFd9boEgvpirHtIREEqLQRkYNoBActFBZmh9GC3C041WGq
-        uMbrbxc+nIs1TIKlA08rVi9ig/2Yh7LFrK5Ein57U/W72vgSxLhe/zhdfolT9Brn
-        HOxEa44b+EI=
-        =ndaj
-        -----END PGP MESSAGE-----
-
-        --bar--
+      < HTTP/1.0 200 OK
+      < Content-Type: multipart/msigned; boundary=HRuNvorp; nsigs=1
+      <  
+      < --HRuNvorp
+      < Content-Type: application/octet-stream
+      <
+     &<
+     &< The use "<CR><LF>" (on some system...) instead of just
+     &< "<LF>" was really a bad idea.
+     &<
+     &< It is then incrusted inside the HTTP protocol :-(.
+     &<
+     &< Take care than the signed message so: 
+     &<  - starts after the "<CR><LF><CR><LF>" characters which
+     &<  should terminating the header.
+     &<  - ends before the "<CR><LF>" characters preceding the
+     &<  dash-boundary (eg: "--boudary").
+     &<
+     &< And so does the signature.
+     &<
+     &< As such tricks may easily produce implementation errors,
+     &< it is recommend to use ASCII armored signatures, which
+     &< are more ... armored ! ;-)
+     &<
+      <
+      < --HRuNvorp
+      < Content-Type: application/pgp-signature
+      < Content-Length: 490
+      <
+      < -----BEGIN PGP SIGNATURE-----
+      < Version: GnuPG v1.4.12 (GNU/Linux)
+      <
+      < iQEcBAABCAAGBQJQWaIQAAoJEEIpCDWL9j3OmsYH/0rA0PEDRYwiBiKZD7o/tR9n
+      < g7/Nubwd++Oea0RKyRrmUi6FEjpdYn2cqbGlKKtvLc3rd4Fz9nz7B16SYuU8dubv
+      < QVLju/Czf+1VRhhB86sCvWbjQO6Z2SUGBcPUqtEkDZWdkxoeTdLq7aMxj0YbP2zR
+      < fJoeFgC+4vywOp90NKXcDi22cS7y4zSyrrYkZEyDAmcrIbRzHPqpqpCmFBkTSMI2
+      < D2BBC/jDS1ZpzCISjJ0Q4dYMo5HB2d0xiTTcF9BB0sYwnC5RElOOXTPY0y3gwcc/
+      < NWNFJBkGXHI23fKjGth2sBmSvTsz5aPIkonwkSk/QRk6j5hXLTG+1VkTEikpfZk=
+      < =paY0
+      < -----END PGP SIGNATURE-----
+      <
+      < --HRuNvorp--
 
    The "&"s in the previous example indicate the portion of the data
    over which the signature was calculated.
