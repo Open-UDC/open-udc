@@ -203,6 +203,7 @@ mmc_map( char* filename, struct stat* sbP, struct timeval* nowP )
 	else
 		{
 		size_t size_size = (size_t) m->size;		/* loses on files >2GB */
+		/* TODO: Maybe fix that 2 GB limitation  */
 #ifdef HAVE_MMAP
 		/* Map the file into memory. */
 		m->addr = mmap( 0, size_size, PROT_READ, MAP_PRIVATE, fd, 0 );

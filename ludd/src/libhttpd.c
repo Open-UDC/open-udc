@@ -2014,7 +2014,7 @@ bufgets( httpd_conn* hc )
 	return (char*) 0;
 	}
 
-
+/*! de_dotdot delete (clean) all useless '/' and '.' in a filename */
 static void
 de_dotdot( char* file )
 	{
@@ -3818,16 +3818,20 @@ atoll( const char* str )
 #endif /* HAVE_ATOLL */
 
 
-/* Read the requested buffer completely, accounting for interruptions. */
-int
+/*! httpd_read_fully read the requested buffer completely, accounting for interruptions.
+ * \return the effective number of bytes read.
+ */
+ssize_t
 httpd_read_fully( int fd, void* buf, size_t nbytes )
 	{
-	int nread;
+	ssize_t nread=0;
 
-	nread = 0;
+	/*if (nbytes>SSIZE_MAX)
+		nbytes=SSIZE_MAX;*/
+
 	while ( nread < nbytes )
 		{
-		int r;
+		ssize_t r;
 
 		r = read( fd, (char*) buf + nread, nbytes - nread );
 		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
@@ -3835,8 +3839,11 @@ httpd_read_fully( int fd, void* buf, size_t nbytes )
 			sleep( 1 );
 			continue;
 			}
-		if ( r < 0 )
+		if ( r < 0 ) 
+			{
+			syslog( LOG_ERR, "httpd_read_fully - %d - %m", r );
 			return r;
+			}
 		if ( r == 0 )
 			break;
 		nread += r;
@@ -3846,12 +3853,14 @@ httpd_read_fully( int fd, void* buf, size_t nbytes )
 	}
 
 
-/* Write the requested buffer completely, accounting for interruptions. */
+/*! httpd_write_fully write the requested buffer completely, accounting for interruptions.
+ * \return the effective number of bytes written.
+ */
 ssize_t httpd_write_fully( int fd, const void* buf, size_t nbytes ) {
 	ssize_t nwritten=0;
 
 	while ( nwritten < nbytes ) {
-		int r;
+		ssize_t r;
 
 		r = write( fd, (char*) buf + nwritten, nbytes - nwritten );
 		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) ) {

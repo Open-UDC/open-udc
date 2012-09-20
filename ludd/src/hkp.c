@@ -59,7 +59,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		send_mime(
 			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
 			hc->sb.st_mtime );
-		return(0);
+		return(-1);
 	} else if ( hc->method =! METHOD_GET ) {
 		httpd_send_err(
 			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
@@ -72,6 +72,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		return(-1);
 	}
 
+	/* To much forks already running */
 	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
 		{
 		httpd_send_err(

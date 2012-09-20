@@ -303,7 +303,7 @@ extern void httpd_set_ndelay( int fd );
 extern void httpd_clear_ndelay( int fd );
 
 /* Read the requested buffer completely, accounting for interruptions. */
-extern int httpd_read_fully( int fd, void* buf, size_t nbytes );
+extern ssize_t httpd_read_fully( int fd, void* buf, size_t nbytes );
 
 /* Write the requested buffer completely, accounting for interruptions. */
 extern ssize_t httpd_write_fully( int fd, const void* buf, size_t nbytes );
