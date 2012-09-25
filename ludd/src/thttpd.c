@@ -697,15 +697,17 @@ main( int argc, char** argv )
 	/* for header dates: to be compatible with RFC 2822 */
 	setlocale(LC_TIME,"C");
 
+	/* set homedir of gpg engine */
+	gpgerr = gpgme_get_engine_info(&enginfo);
+	if ( gpgerr  == GPG_ERR_NO_ERROR )
+		gpgerr = gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"../gpgme");
+	if ( gpgerr  != GPG_ERR_NO_ERROR )
+		DIE(1,"gpgme_..._engine_info :-( %s",gpgme_strerror(gpgerr));
+
 	/* create context */
 	gpgerr=gpgme_new(&main_gpgctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
 		DIE(1,"gpgme_new - %s",gpgme_strerror(gpgerr));
-
-	/*gpgerr = gpgme_get_engine_info(&enginfo);
-	gpgerr = gpgme_ctx_set_engine_info(main_gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"????");
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
-		errx(1,"gpgme_ctx_set_engine_info :-( (%d)", gpgerr);*/
 
 	/* get the bot  key */
 	fp=fopen("self/fpr","r");

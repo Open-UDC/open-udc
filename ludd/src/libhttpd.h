@@ -252,7 +252,7 @@ extern void httpd_destroy_conn( httpd_conn* hc );
 
 /* Send an error message back to the client. */
 extern void httpd_send_err(
-	httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg );
+	httpd_conn* hc, int status, char* title, char* extraheads, const char* form, const char* arg );
 
 /* Some error messages. */
 extern char* httpd_err400title;
@@ -268,6 +268,9 @@ extern char* ok206title;
 extern char* err302title;
 extern char* err302form;
 extern char* err304title;
+extern char* err411title;
+extern char* err413title;
+
 
 #ifdef AUTH_FILE
 extern char* err401title;
@@ -310,6 +313,10 @@ extern ssize_t httpd_write_fully( int fd, const void* buf, size_t nbytes );
 
 /* Generate debugging statistics syslog message. */
 extern void httpd_logstats( long secs );
+
+/* This function exist for historical reason: snprintf was not on all systems before */
+extern int my_snprintf( char* str, size_t size, const char* format, ... );
+/* TODO: Maybe remove that function to use the C99 snprintf */
 
 /* Allocate and generate a random string of size len (from charset [G-Vg-v]) */
 extern char *random_boundary(unsigned short len);

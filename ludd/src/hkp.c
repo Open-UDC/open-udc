@@ -32,10 +32,269 @@ extern int sub_process;
 
 #define QSTRING_MAX 1024
 #define BUFFSIZE 2048
+#define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
 
-/* TODO: move pks/add from cgi script to here to increase perf */
+/* return this first comment starting with ud found in uids (or NULL if non found) */
+static char * get_starting_comment(char * ud, gpgme_key_t gkey) {
+	gpgme_user_id_t gpguids;
+	size_t n;
+
+	if (! ud)
+		return((char *) 0);
+
+	n=strlen(ud);
+	gpguids=gkey->uids;
+	while (gpguids) {
+		if (!strncmp(gpguids->comment,ud,n)) 
+			return gpguids->comment;
+		gpguids=gpguids->next;
+	}
+	return((char *) 0);
+}
+
 int hkp_add( httpd_conn* hc ) {
-   return(-1);
+	size_t c;
+	ssize_t r;
+	ClientData client_data;
+
+
+	gpgme_ctx_t gpglctx;
+	gpgme_error_t gpgerr;
+	gpgme_data_t gpgdata;
+	gpgme_import_result_t gpgimport;
+	gpgme_import_status_t gpgikey;
+	gpgme_key_t gpgkey;
+
+	char * buff;
+	int buffsize, rcode=200;
+
+	if ( hc->method == METHOD_HEAD ) {
+		send_mime(
+			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
+			hc->sb.st_mtime );
+		return(-1);
+	} else if ( hc->method != METHOD_POST ) {
+		httpd_send_err(
+			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
+		return(-1);
+	}
+
+
+	if (hc->contentlength < 9) {
+		httpd_send_err(hc, 411, err411title, "", "Content-Length is absent or to short (%.80s)", "9");
+		return(-1);
+	}
+	if ( hc->contentlength >= INPUT_MAX ) {
+		httpd_send_err(hc, 413, err413title, "", "your POST is too big", "");
+		return(-1);
+	}
+
+	/* To much forks already running */
+	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
+		{
+		httpd_send_err(
+			hc, 503, httpd_err503title, "", httpd_err503form,
+			hc->encodedurl );
+		return(-1);
+		}
+	++hc->hs->cgi_count;
+	r = fork( );
+	if ( r < 0 ) {
+		httpd_send_err(hc, 500, err500title, "", err500form, "f" );
+		return(-1);
+	}
+	if ( r > 0 ) {
+		/* Parent process. */
+		syslog( LOG_INFO, "spawned lookup process %d for '%.200s'", r, hc->encodedurl );
+#ifdef CGI_TIMELIMIT
+		/* Schedule a kill for the child process, in case it runs too long */
+		client_data.i = r;
+		if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
+			{
+			syslog( LOG_CRIT, "tmr_create(cgi_kill lookup) failed" );
+			/* TODO : It kills the daemon, so maybe kill the Child and return instead of exit */
+			exit(EXIT_FAILURE);
+			}
+#endif /* CGI_TIMELIMIT */
+		hc->status = 200;
+		hc->bytes_sent = CGI_BYTECOUNT;
+		hc->bfield &= ~HC_SHOULD_LINGER;
+		return(0);
+	}
+	/* Child process. */
+	sub_process = 1;
+	httpd_unlisten( hc->hs );
+#ifdef CGI_NICE
+	/* Set priority. */
+	(void) nice( CGI_NICE );
+#endif /* CGI_NICE */
+
+	buffsize=hc->contentlength;
+	buff=malloc(buffsize+1);
+	if (buff)
+		buff[buffsize]='\0'; /*security for strdecode */
+	else {
+		httpd_send_err(hc, 500, err500title, "", err500form, "m" );
+		exit(EXIT_FAILURE);
+	}
+
+	c = hc->read_idx - hc->checked_idx;
+	if ( c > 0 )
+		memcpy(buff,&(hc->read_buf[hc->checked_idx]), c);
+	while ( c < hc->contentlength ) {
+		r = read( hc->conn_fd, buff+c, hc->contentlength - c );
+		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
+			{
+			struct timespec tim={0, 300000000}; /* 300 ms */
+			nanosleep(&tim, NULL);
+			//sleep( 1 );
+			continue;
+			}
+		if ( r <= 0 ) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "read error" );
+			exit(EXIT_FAILURE);
+		}
+		c += r;
+	}
+
+	/* create context */
+	gpgerr=gpgme_new(&gpglctx);
+	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+		httpd_send_err(hc, 500, err500title, "", err500form, gpgme_strerror(gpgerr) );
+		exit(EXIT_FAILURE);
+	}
+
+	if (!strncmp(buff,"keytext=",8)) {
+		int r;
+		r=strdecode(buff,buff+8);
+		//gpgme_set_armor(gpglctx,1);
+		gpgerr = gpgme_data_new_from_mem(&gpgdata,buff,r,0);
+	} else {
+		gpgerr = gpgme_data_new_from_mem(&gpgdata,buff,buffsize,0); /* yes: that feature is not in HKP draft */
+	}
+
+	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
+		httpd_send_err(hc, 500, err500title, "", err500form, gpgme_strerror(gpgerr) );
+		exit(EXIT_FAILURE);
+	}
+
+	if ( (gpgerr=gpgme_op_import (gpglctx, gpgdata)) != GPG_ERR_NO_ERROR ) {
+		httpd_send_err(hc, 400, httpd_err400title, "", err500form, gpgme_strerror(gpgerr) );
+		exit(EXIT_FAILURE);
+	}
+
+	if ((gpgimport= gpgme_op_import_result(gpglctx)) == NULL )  {
+		httpd_send_err(hc, 500, err500title, "", err500form, "" );
+		exit(EXIT_FAILURE);
+	}
+
+	if ( gpgimport->considered == 0 ) {
+		httpd_send_err(hc, 400, httpd_err400title, "", httpd_err400form, "" );
+		exit(EXIT_FAILURE);
+	}
+
+	/* Check (and eventually delete) imported keys */
+	gpgikey=gpgimport->imports;
+	while (gpgikey) {
+
+		if ( (gpgikey->result != GPG_ERR_NO_ERROR) || (! (gpgikey->status & GPGME_IMPORT_NEW)) ) {
+			/* erronous or known key */
+			gpgikey=gpgikey->next;
+			continue;
+		}
+
+		/* key is new, check that it match our policy. */
+		if ( (gpgerr=gpgme_get_key (gpglctx,gpgikey->fpr,&gpgkey,0)) != GPG_ERR_NO_ERROR ) {
+			/* should not happen */
+			httpd_send_err(hc, 500, err500title, "", err500form, "" );
+			exit(EXIT_FAILURE);
+		}
+
+		/* Check that it does expire and an uid comment start with "udid2;c;" or "udbot1;" */
+		if (!( gpgkey->subkeys->expires > 0
+				&& (get_starting_comment("udid2;c;",gpgkey)
+					|| get_starting_comment("udbot1;",gpgkey)) )) {
+			rcode=202;
+			gpgme_op_delete (gpglctx,gpgkey,1);
+		}
+		gpgikey=gpgikey->next;
+	}
+
+	if (rcode==202)
+		send_mime(hc, 202, ok200title, "", "X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+	else
+		send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+	httpd_write_response(hc);
+	r=my_snprintf(buff,buffsize,"<html><head><title>%d keys sended </title></head><body><h2>Total: %d<br>imported: %d<br>unchanged: %d<br>no_user_id: %d<br>new_user_ids: %d<br>new_sub_keys: %d<br>new_signatures: %d<br>new_revocations: %d<br>secret_read: %d<br>not_imported: %d</h2></body></html>", gpgimport->considered, gpgimport->considered, gpgimport->imported, gpgimport->unchanged, gpgimport->no_user_id, gpgimport->new_user_ids, gpgimport->new_sub_keys, gpgimport->new_signatures, gpgimport->new_revocations, gpgimport->secret_read, gpgimport->not_imported);
+	httpd_write_fully( hc->conn_fd, buff,MIN(r,buffsize));
+
+	exit(EXIT_SUCCESS);
+
+	/* TODO:
+	 *  Note in memory the fpr in gpgme_import_status_t of all keys imported to :
+	 *  - clean them (remove previous or useless signatures).  
+	 *  - revoke the one with with an usable secret key.
+	 *  - propagate them to other ludd key server.
+	 * DONE:
+	 *  - check if they correspond to our policy (expire less than 20 years after, udid2 must be present ...)
+	 */
+
+}
+
+int hkp_repost( httpd_conn* hc ) {
+	size_t c;
+	ssize_t r;
+	FILE* fp;
+	ClientData client_data;
+
+	char * op=(char *)0;
+	char * search=(char *)0;
+	char * searchdec=(char *)0;
+	char * exact=(char *)0;
+
+	gpgme_ctx_t gpglctx;
+	gpgme_key_t gpgkey;
+	gpgme_error_t gpgerr;
+
+	char * qstring, * pchar;
+	char buf[BUFFSIZE];
+
+	if ( hc->method == METHOD_HEAD ) {
+		send_mime(
+			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
+			hc->sb.st_mtime );
+		return(-1);
+	} else if ( hc->method != METHOD_POST ) {
+		httpd_send_err(
+			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
+		return(-1);
+	}
+
+			send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
+			httpd_write_response(hc);
+	c = hc->read_idx - hc->checked_idx;
+	if ( c > 0 )
+		{
+		if ( httpd_write_fully( hc->conn_fd, &(hc->read_buf[hc->checked_idx]), c ) != c )
+			return;
+		}
+	while ( c < hc->contentlength )
+		{
+		r = read( hc->conn_fd, buf, MIN( sizeof(buf), hc->contentlength - c ) );
+		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
+			{
+			sleep( 1 );
+			continue;
+			}
+		if ( r <= 0 )
+			return;
+		if ( httpd_write_fully(hc->conn_fd, buf, r ) != r )
+			return;
+		c += r;
+		}
+			httpd_write_response(hc);
+
+	return(-1);
 }
 
 int hkp_lookup( httpd_conn* hc ) {
@@ -60,7 +319,7 @@ int hkp_lookup( httpd_conn* hc ) {
 			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
 			hc->sb.st_mtime );
 		return(-1);
-	} else if ( hc->method =! METHOD_GET ) {
+	} else if ( hc->method != METHOD_GET ) {
 		httpd_send_err(
 			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
 		return(-1);
@@ -176,7 +435,6 @@ int hkp_lookup( httpd_conn* hc ) {
 		exit(1);
 	}
 	
-
 	/* Open a stdio stream so that we can use fprintf, which is more
 	** efficient than a bunch of separate write()s.  We don't have
 	** to worry about double closes or file descriptor leaks cause

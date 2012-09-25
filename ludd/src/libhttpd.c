@@ -136,7 +136,7 @@ static int initialize_listen_socket( httpd_sockaddr* saP );
 static void add_response( httpd_conn* hc, char* str );
 void send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod );
 static void send_response_tail( httpd_conn* hc );
-static void defang( char* str, char* dfstr, int dfsize );
+static void defang(const char* str, char* dfstr, int dfsize );
 #ifdef AUTH_FILE
 static void send_authenticate( httpd_conn* hc, char* realm );
 static int b64_decode( const char* str, unsigned char* space, int size );
@@ -172,7 +172,6 @@ static int cgi( httpd_conn* hc );
 static void make_log_entry( httpd_conn* hc, struct timeval* nowP );
 static int sockaddr_check( httpd_sockaddr* saP );
 static size_t sockaddr_len( httpd_sockaddr* saP );
-static int my_snprintf( char* str, size_t size, const char* format, ... );
 #ifndef HAVE_ATOLL
 static long long atoll( const char* str );
 #endif /* HAVE_ATOLL */
@@ -461,6 +460,9 @@ char* httpd_err408title = "Request Timeout";
 char* httpd_err408form =
 	"No request appeared within a reasonable time period.\n";
 
+char * err411title = "Length Required";
+char * err413title = "Request Entity Too Large";
+
 char* err500title = "Internal Error";
 char* err500form =
 	"There was an unusual problem serving the requested URL (%.80s).\n";
@@ -662,16 +664,16 @@ send_response_tail( httpd_conn* hc )
 
 
 static void
-defang( char* str, char* dfstr, int dfsize )
+defang( const char* str, char* dfstr, int dfsize )
 	{
-	char* cp1;
+	int i;
 	char* cp2;
 
-	for ( cp1 = str, cp2 = dfstr;
-		  *cp1 != '\0' && cp2 - dfstr < dfsize - 5;
-		  ++cp1, ++cp2 )
+	for ( i = 0, cp2 = dfstr;
+		  str[i] != '\0' && cp2 - dfstr < dfsize - 5;
+		  ++i, ++cp2 )
 		{
-		switch ( *cp1 )
+		switch ( str[i] )
 			{
 			case '<':
 			*cp2++ = '&';
@@ -686,7 +688,7 @@ defang( char* str, char* dfstr, int dfsize )
 			*cp2 = ';';
 			break;
 			default:
-			*cp2 = *cp1;
+			*cp2 = str[i];
 			break;
 			}
 		}
@@ -695,7 +697,7 @@ defang( char* str, char* dfstr, int dfsize )
 
 
 void
-httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, char* form, char* arg )
+httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, const char* form, const char* arg )
 	{
 	char defanged_arg[1000], buf[2000];
 
@@ -3026,12 +3028,12 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
 		    while (r=gpgme_data_read(gpgsig, buf, BUFSIZE))
 				httpd_write_fully( hc->conn_fd, buf,r);
-			r=my_snprintf(buf,BUFSIZE, "\015\012--%s--\015\012",bound);
-			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
 		} else {
-			(void) my_snprintf( buf,BUFSIZE-1, "%d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
-			(void) httpd_write_fully( hc->conn_fd, buf, strlen( buf ) );
+			r=my_snprintf( buf,BUFSIZE-1, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
+			(void) httpd_write_fully( hc->conn_fd, buf, MIN(r,BUFSIZE) );
 		}
+		r=my_snprintf(buf,BUFSIZE, "\015\012--%s--\015\012",bound);
+		httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
 
 	} else {
 		r=my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );
@@ -3354,6 +3356,9 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 	if ( ( *(hc->decodedurl+11) == '\0' || *(hc->decodedurl+11) == '?' )
 			&& !strncmp(hc->decodedurl,"/pks/lookup",11) )
 		return hkp_lookup(hc);
+	if ( ( *(hc->decodedurl+8) == '\0' || *(hc->decodedurl+8) == '?' )
+			&& !strncmp(hc->decodedurl,"/pks/add",8) )
+		return hkp_add(hc);
 
 	/* Stat the file. */
 	if ( stat( hc->expnfilename, &hc->sb ) < 0 )
@@ -3775,8 +3780,7 @@ sockaddr_len( httpd_sockaddr* saP )
 ** vsnprintf(), it is probably vulnerable to buffer overruns.
 ** Upgrade!
 */
-static int
-my_snprintf( char* str, size_t size, const char* format, ... )
+int my_snprintf( char* str, size_t size, const char* format, ... )
 	{
 	va_list ap;
 	int r;

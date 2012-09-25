@@ -73,6 +73,7 @@ return $?
 }
 
 LUDDUSER="@ludduser@"
+LUDDVERSION="@luddversion@"
 
 refdir=$(grep "^"$LUDDUSER":" /etc/passwd | cut -d ":" -f 6)
 
@@ -92,13 +93,13 @@ for ((i=0;$#;)) ; do
 	case "$1" in
 		-d|--dir*) shift; dir="$1" ;;
 		-h|--h*) echo "$helpmsg" ; exit 2 ;;
-		-V|--vers*) echo "@luddversion@" ; exit 2 ;;
+		-V|--vers*) echo "$LUDDVERSION" ; exit 2 ;;
 		*) echo "Error: Unrecognized option $1"; echo "$helpmsg" ; exit 2 ;;
 	esac
 	shift
 done
 
-mkdir -p "$dir/pub/self" "$dir/pub/d" "$dir/pub/k"
+mkdir -p  "$dir/gpgme" "$dir/pub/self" "$dir/pub/d" "$dir/pub/k"
 if ((isroot)) ; then
 	chown .ludd "$dir/pub/self" "$dir/pub/d" "$dir/pub/k"
 fi
@@ -131,10 +132,15 @@ esac
 
 cd "$dir"
 echo "${mybotkeys[$bki]}" > pub/self/fpr
+gpg  --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$dir/gpgme"
 
-if ((isroot)) ; then
-	#gpg --export "${mybotkeys[$bki]}" | gpg --import --homedir "$refdir/.gnupg" 2>/dev/null
-	gpg  --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$refdir/.gnupg"
-	chown -R .ludd "$refdir/.gnupg"
+if ! grep '^[^#]*\<import-options\>.\+\<import-clean\>' "$dir/gpgme/gpg.conf" > /dev/null ; then
+	cat >> "$dir/gpgme/gpg.conf" <<EOF
+### following import-option line has been added $(date -R) by ${0##*/} - $LUDDVERSION ###
+import-options import-clean
+EOF
 fi
 
+if ((isroot)) ; then
+	chown -R .ludd "$dir/gpgme"
+fi
