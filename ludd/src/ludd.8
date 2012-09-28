@@ -18,10 +18,14 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR throttles ]
 .RB [ -H
 .IR host ]
+.RB [ -e
+.IR host ]
 .RB [ -l
 .IR logfile ]
 .RB [ -i
 .IR pidfile ]
+.RB [ -f
+.IR fpr ]
 .RB [ -V ]
 .RB [ -D ]
 .SH DESCRIPTION
@@ -80,9 +84,14 @@ See below for details.
 The config-file option name for this flag is "throttles".
 .TP
 .B -H
-Specifies a hostname to bind to, for multihoming.
+Specifies a host name or address (and so interface) to bind to.
 The default is to bind to all hostnames supported on the local machine.
 The config-file option name for this flag is "host".
+.TP
+.B -e
+Specifies the external host name or adress to be reach by other peers.
+The default to try first hostname (/etc/hostname).
+The config-file option name for this flag is "ehost".
 .TP
 .B -l
 Specifies a file for logging.
@@ -96,6 +105,14 @@ If no file is specified, no process-id is written.
 You can use this file to send signals to ludd.
 See below for details.
 The config-file option name for this flag is "pidfile".
+.TP
+.B -f
+Specifies the fingerprint of the OpenPGP key to use.
+This parameter is mandatory. The secret part of the key must be available
+in the gpgme homedir. It must be a valid udbot key.
+To be accepted by other peers, the udbot key must also being signed by
+its owner, and the owner accepted in a creation sheet.
+The config-file option name for this flag is "fpr".
 .TP
 .B -V
 Shows the current version info and exit.

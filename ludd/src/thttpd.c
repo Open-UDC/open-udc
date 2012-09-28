@@ -68,6 +68,7 @@
 #include "mmc.h"
 #include "timers.h"
 #include "match.h"
+#include "peers.h"
 
 #ifndef SHUT_WR
 #define SHUT_WR 1
@@ -83,7 +84,6 @@ typedef long long int64_t;
 
 char* argv0;
 static int debug;
-static unsigned short port;
 static char* dir;
 static int do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
@@ -144,10 +144,13 @@ static volatile int got_hup, got_usr1, got_bus, watchdog_flag;
 /* main context (used for signing) */
 gpgme_ctx_t main_gpgctx;
 
+/* myself (peer) */
+peer_t myself;
+
 /* Forwards. */
 static void parse_args( int argc, char** argv );
 static void usage( void );
-static void read_config( char* filename );
+static int read_config( char* filename );
 static void value_required( char* name, char* value );
 static void no_value_required( char* name, char* value );
 static char* e_strdup( char* oldstr );
@@ -388,7 +391,6 @@ main( int argc, char** argv )
 	struct timeval tv;
 	struct stat stf;
 
-	char fpr[41];
 	/* bot's key (to sign some request) */
 	gpgme_key_t mygpgkey;
 
@@ -482,6 +484,10 @@ main( int argc, char** argv )
 
 	if ( chdir( dir ) < 0 )
 		DIE(1, "chdir %s - %m",dir );
+
+	if (read_config(DEFAULT_CFILE) < 2)
+		/* if read_config does something: re-parse args which override it */
+		parse_args( argc, argv );
 	
 	/* if we are root make sure that directory is owned by the specified user */
 	if ( getuid() == 0 ) {
@@ -624,7 +630,7 @@ main( int argc, char** argv )
 	hs = httpd_initialize(
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
+		myself.port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
 	if ( hs == (httpd_server*) 0 )
 		DIE(1,"Could not perform httpd initialization (%m). Exiting");
 
@@ -710,12 +716,10 @@ main( int argc, char** argv )
 		DIE(1,"gpgme_new - %s",gpgme_strerror(gpgerr));
 
 	/* get the bot  key */
-	fp=fopen("self/fpr","r");
-	if ( fp == (FILE*) 0 ) 
-		DIE( 1, "%s: %m - forget ludd_init.sh ?","self/fpr");
-	fgets(fpr, sizeof(fpr),fp);
+	if ( ! myself.fpr || strlen(myself.fpr) != 40 ) 
+		DIE( 1, "Invalid fingerprint (fpr) - forget ludd_init.sh ?");
 
-	gpgerr = gpgme_get_key (main_gpgctx,fpr,&mygpgkey,1);
+	gpgerr = gpgme_get_key (main_gpgctx,myself.fpr,&mygpgkey,1);
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 		DIE(1,"gpgme_get_key - %s",gpgme_strerror(gpgerr));
 	} else if ( mygpgkey->revoked ) {
@@ -868,7 +872,7 @@ parse_args( int argc, char** argv )
 	int argn;
 
 	debug = 0;
-	port = DEFAULT_PORT;
+	myself.port = DEFAULT_PORT;
 	dir = (char*) 0;
 #ifdef ALWAYS_CHROOT
 	do_chroot = 1;
@@ -903,12 +907,13 @@ parse_args( int argc, char** argv )
 		else if ( strcmp( argv[argn], "-C" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
-			read_config( argv[argn] );
+			if (read_config(argv[argn]) > 1 )
+				warnx("Config file has already been read");
 			}
 		else if ( strcmp( argv[argn], "-p" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
-			port = (unsigned short) atoi( argv[argn] );
+			myself.port = (unsigned short) atoi( argv[argn] );
 			}
 		else if ( strcmp( argv[argn], "-d" ) == 0 && argn + 1 < argc )
 			{
@@ -945,6 +950,16 @@ parse_args( int argc, char** argv )
 			++argn;
 			hostname = argv[argn];
 			}
+		else if ( strcmp( argv[argn], "-e" ) == 0 && argn + 1 < argc )
+			{
+			++argn;
+			myself.ehost = argv[argn];
+			}
+		else if ( strcmp( argv[argn], "-f" ) == 0 && argn + 1 < argc )
+			{
+			++argn;
+			myself.fpr = argv[argn];
+			}
 		else if ( strcmp( argv[argn], "-l" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
@@ -972,7 +987,7 @@ usage( void )
 	    (void) fprintf( stderr,
 			    "Usage: %s [options]\n" \
 			    "Options:\n" \
-			    "	-C FILE     config file to use (default: none)\n" \
+			    "	-C FILE     config file to use (default: "DEFAULT_CFILE" in running directory)\n" \
 			    "	-p PORT     listenning port (default: %d)\n" \
 			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/.ludd/)\n" \
 			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
@@ -980,8 +995,10 @@ usage( void )
 			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
 			    "	-t FILE     file of throttle settings (default: no throtlling)\n" \
 			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
+			    "	-e HOST     external host name or IP adress (default: default hostname)\n" \
 			    "	-l LOGFILE  file for logging (default: via syslog())\n" \
 			    "	-i PIDFILE  file to write the process-id to\n" \
+			    "	-f FPR      Fingerprint of the ludd's OpenPGP key (no default, MANDATORY)\n" \
 			    "	-V          show version and exit\n" \
 			    "	-D          stay in foreground\n"
 			    , argv0, DEFAULT_PORT );
@@ -989,8 +1006,11 @@ usage( void )
 	}
 
 
-static void
-read_config( char* filename )
+/*! read_config read once a configuration file
+ * This function doesn't nothing after being called once
+ *\return the number it has been called.
+*/
+static int read_config( char* filename )
 	{
 	FILE* fp;
 	char line[10000];
@@ -998,10 +1018,14 @@ read_config( char* filename )
 	char* cp2;
 	char* name;
 	char* value;
+	static int nbcalls=0;
+
+	if (nbcalls>0)
+		return(++nbcalls);
 
 	fp = fopen( filename, "r" );
 	if ( fp == (FILE*) 0 )
-		err(1,filename );
+		DIE(1,"%s: %m :-( (forget ludd_init.sh ?)",filename);
 
 	while ( fgets( line, sizeof(line), fp ) != (char*) 0 )
 		{
@@ -1035,7 +1059,7 @@ read_config( char* filename )
 			else if ( strcasecmp( name, "port" ) == 0 )
 				{
 				value_required( name, value );
-				port = (unsigned short) atoi( value );
+				myself.port = (unsigned short) atoi( value );
 				}
 			else if ( strcasecmp( name, "dir" ) == 0 )
 				{
@@ -1089,6 +1113,14 @@ read_config( char* filename )
 				value_required( name, value );
 				pidfile = e_strdup( value );
 				}
+			else if ( strcasecmp( name, "fpr" ) == 0 ) {
+				value_required( name, value );
+				myself.fpr = e_strdup( value );
+			}
+			else if ( strcasecmp( name, "ehost" ) == 0 ) {
+				value_required( name, value );
+				myself.ehost = e_strdup( value );
+			}
 			else
 				{
 				(void) fprintf(
@@ -1103,6 +1135,7 @@ read_config( char* filename )
 		}
 
 	(void) fclose( fp );
+	return(++nbcalls);
 	}
 
 
@@ -1138,11 +1171,7 @@ e_strdup( char* oldstr )
 
 	newstr = strdup( oldstr );
 	if ( newstr == (char*) 0 )
-		{
-		syslog( LOG_CRIT, "out of memory copying a string" );
-		(void) fprintf( stderr, "%s: out of memory copying a string\n", argv0 );
-		exit( 1 );
-		}
+		DIE(1,"strdup %s :-( %m",oldstr);
 	return newstr;
 	}
 
@@ -1164,7 +1193,7 @@ lookup_hostname( httpd_sockaddr* sa4P, size_t sa4_len, int* gotv4P, httpd_sockad
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_socktype = SOCK_STREAM;
-	(void) snprintf( portstr, sizeof(portstr), "%d", (int) port );
+	(void) snprintf( portstr, sizeof(portstr), "%d", (int) myself.port );
 	if ( (gaierr = getaddrinfo( hostname, portstr, &hints, &ai )) != 0 )
 		{
 		syslog(
@@ -1274,7 +1303,7 @@ lookup_hostname( httpd_sockaddr* sa4P, size_t sa4_len, int* gotv4P, httpd_sockad
 				&sa4P->sa_in.sin_addr.s_addr, he->h_addr, he->h_length );
 			}
 		}
-	sa4P->sa_in.sin_port = htons( port );
+	sa4P->sa_in.sin_port = htons( myself.port );
 	*gotv4P = 1;
 
 #endif /* USE_IPV6 */

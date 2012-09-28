@@ -130,8 +130,79 @@ case $bki in
 		((bki-=2))
 esac
 
+myudid="$(gpg --list-secret-keys --with-colons ${mybotkeys[$bki]} | sed -n ' s/^sec:.*(udbot1;\(udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+\).*/\1/p ' )"
+if [ -z "$myudid" ] ; then 
+	echo "key ${mybotkeys[$bki]} is not a valid bot key" >&2
+	exit 3
+fi
+
+while true ; do 
+	read -p "Host name or addr [$(hostname)] ? " myhost
+	[ "$myhost" ] || myhost="$(hostname)"
+	host "$myhost" && break
+done
+
+while true ; do 
+	read -p "port number [11371] ? " myport
+	[ "$myport" ] || myport=11371
+	((myport)) && break
+done
+
 cd "$dir"
-echo "${mybotkeys[$bki]}" > pub/self/fpr
+[ -f "ludd.conf" ] && cp -v ludd.conf ludd.conf.save
+
+cat << EOF > ludd.conf
+# ludd.conf: ludd configuration file
+
+# Commentaries are based on the ludd(8) manpage.
+# ludd read the configuration file only once. So the dfault config file is not
+# read if an other config file is passed, with "-C", as an argument to ludd.
+
+# Specifies an alternate homedir for ludd.
+# Note: this is ignored for the default config file, which is found in the homedir ! :-D
+#dir=/var/ludd
+
+# Specifie the fingerprint of the (secret) key to use for signing.
+fpr=${mybotkeys[$bki]}
+
+# Specifies an alternate port number to listen on.
+port=$myport
+
+# Specifie the external host name (or host adress) to reach us.
+ehost=$myhost
+
+# Specifies a hostname (and so interface) to bind to. The default is to bind to
+# all hostnames supported on the local machine. See ludd(8) for details.
+#host=
+
+# Do a chroot() at initialization time, restricting file access to the program's
+# current directory. If chroot is the compiled-in default, then nochroot disables
+# it. See ludd(8) for details.
+#nochroot
+#chroot
+
+# Specifies what user to switch to after initialization when started as root.
+#user=ludd
+
+# Specifies a wildcard pattern for CGI programs, for instance "**.cgi" or
+# "/cgi-bin/*". See ludd(8) for details.
+#cgipat=""
+
+# Specifies a file of throttle settings. This feature may be removed in the futur.
+# See ludd(8) for details.
+#throttles=/etc/thttpd/throttle.conf
+
+# Specifies a file for logging. If no logfile option is specified, ludd logs
+# via syslog(). If logfile=/dev/null is specified, ludd doesn't log at all.
+#logfile=/var/log/ludd.log
+
+# Specifies a file to write the process-id to. If no file is specified, no
+# process-id is written. You can use this file to send signals to ludd. See
+# ludd(8) for details.
+#pidfile=
+
+EOF
+
 gpg  --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$dir/gpgme"
 
 if ! grep '^[^#]*\<import-options\>.\+\<import-clean\>' "$dir/gpgme/gpg.conf" > /dev/null ; then
@@ -144,3 +215,4 @@ fi
 if ((isroot)) ; then
 	chown -R .ludd "$dir/gpgme"
 fi
+

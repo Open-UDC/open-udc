@@ -150,6 +150,10 @@
 #define DEFAULT_USER ".ludd"
 #endif
 
+/* CONFIGURE: Default configuration file to search in ludd's homedir
+ */
+#define DEFAULT_CFILE "ludd.conf"
+
 /* CONFIGURE: data directory (inside the one which should be chrooted)	
  * which contain all public data. It should also be defined in Makefiles
  * because there are things (like cgi programs) to install in it.

@@ -84,14 +84,17 @@ http[s]://Node[:port]/[Root/]...
 |   |-- transaction
 |   `-- sign
 |-- udid2/
-|   `-- geolist_FRA.txt.asc
+|   |-- geolist_FRA.txt.asc
+|   |-- geolist_ITA.txt.asc
+|   |(...)
+|   `-- index.html
 |-- pks/
 |   |-- add
+|   |-- padd
 |   `-- lookup
-|-- self/
-|   |-- status
-|   |-- fpr
-|   `-- peers.list
+|-- peers/
+|   |-- self
+|   `-- list
 |-- c/
 |   `-- [CREATION_SHEET_NUM]/
 |       |-- [CREATION_SHEET_NUM].env
