@@ -20,7 +20,7 @@ typedef struct {
 	time_t lastatime; /* last active time */
 	peer_status_t status;
 	char * ehost; /* external adress or name */
-	unsigned short port;
+	unsigned short eport; /* external port */
 	unsigned short udcversion; /* should be 1 */
 } peer_t;
 

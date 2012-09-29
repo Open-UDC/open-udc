@@ -7,6 +7,8 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR configfile ]
 .RB [ -p
 .IR port ]
+.RB [ -e
+.IR port ]
 .RB [ -d
 .IR dir ]
 .RB [ -r | -nor ]
@@ -18,7 +20,7 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR throttles ]
 .RB [ -H
 .IR host ]
-.RB [ -e
+.RB [ -E
 .IR host ]
 .RB [ -l
 .IR logfile ]
@@ -49,6 +51,11 @@ Specifies an alternate port number to listen on.
 The default is 11371.
 The config-file option name for this flag is "port",
 and the config.h option is DEFAULT_PORT.
+.TP
+.B -e
+Specifies the external port to be reach by other peers.
+The default to try listenning port.
+The config-file option name for this flag is "eport".
 .TP
 .B -d
 Specifies a directory to chdir() to at startup.
@@ -88,7 +95,7 @@ Specifies a host name or address (and so interface) to bind to.
 The default is to bind to all hostnames supported on the local machine.
 The config-file option name for this flag is "host".
 .TP
-.B -e
+.B -E
 Specifies the external host name or adress to be reach by other peers.
 The default to try first hostname (/etc/hostname).
 The config-file option name for this flag is "ehost".

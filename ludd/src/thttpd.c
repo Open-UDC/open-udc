@@ -84,6 +84,7 @@ typedef long long int64_t;
 
 char* argv0;
 static int debug;
+static unsigned short port;
 static char* dir;
 static int do_chroot, no_log, no_symlink_check;
 static char* cgi_pattern;
@@ -630,7 +631,7 @@ main( int argc, char** argv )
 	hs = httpd_initialize(
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		myself.port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
+		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
 	if ( hs == (httpd_server*) 0 )
 		DIE(1,"Could not perform httpd initialization (%m). Exiting");
 
@@ -872,7 +873,7 @@ parse_args( int argc, char** argv )
 	int argn;
 
 	debug = 0;
-	myself.port = DEFAULT_PORT;
+	port = DEFAULT_PORT;
 	dir = (char*) 0;
 #ifdef ALWAYS_CHROOT
 	do_chroot = 1;
@@ -913,7 +914,7 @@ parse_args( int argc, char** argv )
 		else if ( strcmp( argv[argn], "-p" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
-			myself.port = (unsigned short) atoi( argv[argn] );
+			port = (unsigned short) atoi( argv[argn] );
 			}
 		else if ( strcmp( argv[argn], "-d" ) == 0 && argn + 1 < argc )
 			{
@@ -950,10 +951,15 @@ parse_args( int argc, char** argv )
 			++argn;
 			hostname = argv[argn];
 			}
-		else if ( strcmp( argv[argn], "-e" ) == 0 && argn + 1 < argc )
+		else if ( strcmp( argv[argn], "-E" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
 			myself.ehost = argv[argn];
+			}
+		else if ( strcmp( argv[argn], "-e" ) == 0 && argn + 1 < argc )
+			{
+			++argn;
+			myself.eport = (unsigned short) atoi( argv[argn] );
 			}
 		else if ( strcmp( argv[argn], "-f" ) == 0 && argn + 1 < argc )
 			{
@@ -989,13 +995,14 @@ usage( void )
 			    "Options:\n" \
 			    "	-C FILE     config file to use (default: "DEFAULT_CFILE" in running directory)\n" \
 			    "	-p PORT     listenning port (default: %d)\n" \
+			    "	-e PORT     external port (to be reach by peers, default: listenning port)\n" \
 			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/.ludd/)\n" \
 			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
 			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n" \
 			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
 			    "	-t FILE     file of throttle settings (default: no throtlling)\n" \
 			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
-			    "	-e HOST     external host name or IP adress (default: default hostname)\n" \
+			    "	-E HOST     external host name or IP adress (default: default hostname)\n" \
 			    "	-l LOGFILE  file for logging (default: via syslog())\n" \
 			    "	-i PIDFILE  file to write the process-id to\n" \
 			    "	-f FPR      Fingerprint of the ludd's OpenPGP key (no default, MANDATORY)\n" \
@@ -1059,7 +1066,7 @@ static int read_config( char* filename )
 			else if ( strcasecmp( name, "port" ) == 0 )
 				{
 				value_required( name, value );
-				myself.port = (unsigned short) atoi( value );
+				port = (unsigned short) atoi( value );
 				}
 			else if ( strcasecmp( name, "dir" ) == 0 )
 				{
@@ -1120,6 +1127,10 @@ static int read_config( char* filename )
 			else if ( strcasecmp( name, "ehost" ) == 0 ) {
 				value_required( name, value );
 				myself.ehost = e_strdup( value );
+			}
+			else if ( strcasecmp( name, "eport" ) == 0 ) {
+				value_required( name, value );
+				myself.eport = (unsigned short) atoi( value );
 			}
 			else
 				{
@@ -1193,7 +1204,7 @@ lookup_hostname( httpd_sockaddr* sa4P, size_t sa4_len, int* gotv4P, httpd_sockad
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_flags = AI_PASSIVE;
 	hints.ai_socktype = SOCK_STREAM;
-	(void) snprintf( portstr, sizeof(portstr), "%d", (int) myself.port );
+	(void) snprintf( portstr, sizeof(portstr), "%d", (int) port );
 	if ( (gaierr = getaddrinfo( hostname, portstr, &hints, &ai )) != 0 )
 		{
 		syslog(
@@ -1303,7 +1314,7 @@ lookup_hostname( httpd_sockaddr* sa4P, size_t sa4_len, int* gotv4P, httpd_sockad
 				&sa4P->sa_in.sin_addr.s_addr, he->h_addr, he->h_length );
 			}
 		}
-	sa4P->sa_in.sin_port = htons( myself.port );
+	sa4P->sa_in.sin_port = htons( port );
 	*gotv4P = 1;
 
 #endif /* USE_IPV6 */

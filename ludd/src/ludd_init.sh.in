@@ -137,13 +137,13 @@ if [ -z "$myudid" ] ; then
 fi
 
 while true ; do 
-	read -p "Host name or addr [$(hostname)] ? " myhost
+	read -p "External host name or addr [$(hostname)] ? " myhost
 	[ "$myhost" ] || myhost="$(hostname)"
 	host "$myhost" && break
 done
 
 while true ; do 
-	read -p "port number [11371] ? " myport
+	read -p "external port number [11371] ? " myport
 	[ "$myport" ] || myport=11371
 	((myport)) && break
 done
@@ -166,7 +166,7 @@ cat << EOF > ludd.conf
 fpr=${mybotkeys[$bki]}
 
 # Specifies an alternate port number to listen on.
-port=$myport
+eport=$myport
 
 # Specifie the external host name (or host adress) to reach us.
 ehost=$myhost
