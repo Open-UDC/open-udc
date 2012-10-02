@@ -134,7 +134,6 @@ typedef int socklen_t;
 static void free_httpd_server( httpd_server* hs );
 static int initialize_listen_socket( httpd_sockaddr* saP );
 static void add_response( httpd_conn* hc, char* str );
-void send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod );
 static void send_response_tail( httpd_conn* hc );
 static void defang(const char* str, char* dfstr, int dfsize );
 #ifdef AUTH_FILE
@@ -154,7 +153,7 @@ static void init_mime( void );
 static void figure_mime( httpd_conn* hc );
 #ifdef CGI_TIMELIMIT
 static void cgi_kill2( ClientData client_data, struct timeval* nowP );
-void cgi_kill( ClientData client_data, struct timeval* nowP );
+static void cgi_kill( ClientData client_data, struct timeval* nowP );
 #endif /* CGI_TIMELIMIT */
 #ifdef GENERATE_INDEXES
 static int ls( httpd_conn* hc );
@@ -538,11 +537,10 @@ httpd_clear_ndelay( int fd )
 void
 send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod )
 	{
-	time_t now, expires;
+	time_t now;
 	const char* rfc1123fmt = "%a, %d %b %Y %T GMT";
 	char nowbuf[100];
 	char modbuf[100];
-	char expbuf[100];
 	char fixed_type[500];
 	char buf[1000];
 	int partial_content;
@@ -1951,6 +1949,8 @@ httpd_parse_request( httpd_conn* hc )
 	(void) strcpy( hc->pathinfo, pi );
 
 	/* Remove pathinfo stuff from the original filename too. */
+	/* Jbar: I don't see any reason to do so, and I need origfilename with such stuff for embedded action ...
+	//syslog(LOG_INFO, "filename %s - %s ", hc->origfilename, hc->expnfilename );
 	if ( hc->pathinfo[0] != '\0' )
 		{
 		int i;
@@ -1960,7 +1960,8 @@ httpd_parse_request( httpd_conn* hc )
 			if ( i == 0 ) hc->origfilename[0] = '\0';
 			else hc->origfilename[i - 1] = '\0';
 			}
-		}
+		}*/
+	//syslog(LOG_INFO, "filename %s - %s ", hc->origfilename, hc->pathinfo );
 
 	/* If the expanded filename is an absolute path, check that it's still
 	** within the current directory or the alternate directory.
@@ -2264,7 +2265,7 @@ cgi_kill2( ClientData client_data, struct timeval* nowP )
 		syslog( LOG_ERR, "hard-killed CGI process %d", pid );
 	}
 
-void
+static void
 cgi_kill( ClientData client_data, struct timeval* nowP )
 	{
 	pid_t pid;
@@ -2295,6 +2296,25 @@ name_compare( a, b )
 	return strcmp( *a, *b );
 	}
 
+void drop_child(const char * type,pid_t pid,httpd_conn* hc) {
+	ClientData client_data;
+
+	//syslog( LOG_INFO, "spawned %s process %d for '%.200s'", type, pid, hc->encodedurl );
+	syslog( LOG_INFO, "spawned %s process %d for '%.200s'", type, pid, hc->expnfilename );
+#ifdef CGI_TIMELIMIT
+	/* Schedule a kill for the child process, in case it runs too long */
+	client_data.i = pid;
+	if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
+		{
+		syslog( LOG_CRIT, "tmr_create(cgi_kill lookup) failed" );
+		/* TODO : It kills the daemon, so maybe kill the Child and return instead of exit */
+		exit(EXIT_FAILURE);
+		}
+#endif /* CGI_TIMELIMIT */
+	hc->status = 200;
+	hc->bytes_sent = CGI_BYTECOUNT;
+	hc->bfield &= ~HC_SHOULD_LINGER;
+}
 
 static int
 ls( httpd_conn* hc )
@@ -2323,7 +2343,6 @@ ls( httpd_conn* hc )
 	char* fileclass;
 	time_t now;
 	char* timestr;
-	ClientData client_data;
 
 	dirp = opendir( hc->expnfilename );
 	if ( dirp == (DIR*) 0 )
@@ -2558,19 +2577,7 @@ mode  links  bytes  last-changed  name\n\
 
 		/* Parent process. */
 		closedir( dirp );
-		syslog( LOG_INFO, "spawned indexing process %d for directory '%.200s'", r, hc->expnfilename );
-#ifdef CGI_TIMELIMIT
-		/* Schedule a kill for the child process, in case it runs too long */
-		client_data.i = r;
-		if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
-			{
-			syslog( LOG_CRIT, "tmr_create(cgi_kill ls) failed" );
-			exit( 1 );
-			}
-#endif /* CGI_TIMELIMIT */
-		hc->status = 200;
-		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->bfield &= ~HC_SHOULD_LINGER;
+		drop_child("indexing",r,hc);
 		}
 	else
 		{
@@ -3026,7 +3033,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			gpgme_data_seek(gpgsig, 0, SEEK_SET);	
 			r=my_snprintf(buf,BUFSIZE, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",siglen);
 			httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
-		    while (r=gpgme_data_read(gpgsig, buf, BUFSIZE))
+		    while ( (r=gpgme_data_read(gpgsig, buf, BUFSIZE)) )
 				httpd_write_fully( hc->conn_fd, buf,r);
 		} else {
 			r=my_snprintf( buf,BUFSIZE-1, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
@@ -3273,7 +3280,6 @@ static int
 cgi( httpd_conn* hc )
 	{
 	int r;
-	ClientData client_data;
 
 	if ( hc->method == METHOD_GET || hc->method == METHOD_POST )
 		{
@@ -3303,19 +3309,7 @@ cgi( httpd_conn* hc )
 			}
 
 		/* Parent process. */
-		syslog( LOG_INFO, "spawned CGI process %d for file '%.200s'", r, hc->expnfilename );
-#ifdef CGI_TIMELIMIT
-		/* Schedule a kill for the child process, in case it runs too long */
-		client_data.i = r;
-		if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
-			{
-			syslog( LOG_CRIT, "tmr_create(cgi_kill child) failed" );
-			exit( 1 );
-			}
-#endif /* CGI_TIMELIMIT */
-		hc->status = 200;
-		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->bfield &= ~HC_SHOULD_LINGER;
+		drop_child("CGI",r,hc);
 		}
 	else
 		{
@@ -3353,11 +3347,9 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 		}
 
 	/* Embedded action(s) on specific url */
-	if ( ( *(hc->decodedurl+11) == '\0' || *(hc->decodedurl+11) == '?' )
-			&& !strncmp(hc->decodedurl,"/pks/lookup",11) )
+	if ( !strcmp(hc->origfilename,"pks/lookup") )
 		return hkp_lookup(hc);
-	if ( ( *(hc->decodedurl+8) == '\0' || *(hc->decodedurl+8) == '?' )
-			&& !strncmp(hc->decodedurl,"/pks/add",8) )
+	if ( !strcmp(hc->origfilename,"pks/add") )
 		return hkp_add(hc);
 
 	/* Stat the file. */

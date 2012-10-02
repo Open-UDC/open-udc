@@ -1,4 +1,4 @@
-/* hkp.h - header file for hkp management
+/* hkp.c - hkp management
 *
 * about HKP please check following urls:
 * - http://tools.ietf.org/html/draft-shaw-openpgp-hkp-00
@@ -8,17 +8,13 @@
 #include <stdlib.h>
 #include <syslog.h>
 #include <string.h>
+#include <unistd.h>
 #include <errno.h>   /* errno             */
-#include <locale.h>  /* locale support    */
 #include <gpgme.h>
 
 #include "hkp.h"
 #include "timers.h"
 #include "libhttpd.h"
-
-#ifdef CGI_TIMELIMIT
-extern void cgi_kill(ClientData client_data, struct timeval* nowP );
-#endif /* CGI_TIMELIMIT */
 
 /* This global keeps track of whether we are in the main process or a
 ** sub-process.  The reason is that httpd_write_response() can get called
@@ -55,8 +51,6 @@ static char * get_starting_comment(char * ud, gpgme_key_t gkey) {
 int hkp_add( httpd_conn* hc ) {
 	size_t c;
 	ssize_t r;
-	ClientData client_data;
-
 
 	gpgme_ctx_t gpglctx;
 	gpgme_error_t gpgerr;
@@ -105,20 +99,7 @@ int hkp_add( httpd_conn* hc ) {
 	}
 	if ( r > 0 ) {
 		/* Parent process. */
-		syslog( LOG_INFO, "spawned lookup process %d for '%.200s'", r, hc->encodedurl );
-#ifdef CGI_TIMELIMIT
-		/* Schedule a kill for the child process, in case it runs too long */
-		client_data.i = r;
-		if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
-			{
-			syslog( LOG_CRIT, "tmr_create(cgi_kill lookup) failed" );
-			/* TODO : It kills the daemon, so maybe kill the Child and return instead of exit */
-			exit(EXIT_FAILURE);
-			}
-#endif /* CGI_TIMELIMIT */
-		hc->status = 200;
-		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->bfield &= ~HC_SHOULD_LINGER;
+		drop_child("hkp",r,hc);
 		return(0);
 	}
 	/* Child process. */
@@ -241,67 +222,10 @@ int hkp_add( httpd_conn* hc ) {
 
 }
 
-int hkp_repost( httpd_conn* hc ) {
-	size_t c;
-	ssize_t r;
-	FILE* fp;
-	ClientData client_data;
-
-	char * op=(char *)0;
-	char * search=(char *)0;
-	char * searchdec=(char *)0;
-	char * exact=(char *)0;
-
-	gpgme_ctx_t gpglctx;
-	gpgme_key_t gpgkey;
-	gpgme_error_t gpgerr;
-
-	char * qstring, * pchar;
-	char buf[BUFFSIZE];
-
-	if ( hc->method == METHOD_HEAD ) {
-		send_mime(
-			hc, 200, ok200title, "", "", "text/html; charset=%s", (off_t) -1,
-			hc->sb.st_mtime );
-		return(-1);
-	} else if ( hc->method != METHOD_POST ) {
-		httpd_send_err(
-			hc, 501, err501title, "", err501form, httpd_method_str( hc->method ) );
-		return(-1);
-	}
-
-			send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
-			httpd_write_response(hc);
-	c = hc->read_idx - hc->checked_idx;
-	if ( c > 0 )
-		{
-		if ( httpd_write_fully( hc->conn_fd, &(hc->read_buf[hc->checked_idx]), c ) != c )
-			return;
-		}
-	while ( c < hc->contentlength )
-		{
-		r = read( hc->conn_fd, buf, MIN( sizeof(buf), hc->contentlength - c ) );
-		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
-			{
-			sleep( 1 );
-			continue;
-			}
-		if ( r <= 0 )
-			return;
-		if ( httpd_write_fully(hc->conn_fd, buf, r ) != r )
-			return;
-		c += r;
-		}
-			httpd_write_response(hc);
-
-	return(-1);
-}
-
 int hkp_lookup( httpd_conn* hc ) {
 
 	int r;
 	FILE* fp;
-	ClientData client_data;
 
 	char * op=(char *)0;
 	char * search=(char *)0;
@@ -347,20 +271,7 @@ int hkp_lookup( httpd_conn* hc ) {
 	}
 	if ( r > 0 ) {
 		/* Parent process. */
-		syslog( LOG_INFO, "spawned lookup process %d for '%.200s'", r, hc->query );
-#ifdef CGI_TIMELIMIT
-		/* Schedule a kill for the child process, in case it runs too long */
-		client_data.i = r;
-		if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
-			{
-			syslog( LOG_CRIT, "tmr_create(cgi_kill lookup) failed" );
-			/* TODO : It kills the daemon, so maybe kill the Child and return instead of exit */
-			exit( 1 );
-			}
-#endif /* CGI_TIMELIMIT */
-		hc->status = 200;
-		hc->bytes_sent = CGI_BYTECOUNT;
-		hc->bfield &= ~HC_SHOULD_LINGER;
+		drop_child("hkp",r,hc);
 		return(0);
 	}
 	/* Child process. */
@@ -417,7 +328,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		httpd_send_err(hc, 400, httpd_err400title, "", "Missing \"search\" parameter in \"%.80s\".</h1></body></html>", hc->query );
 		exit(0);
 	} else {
-		if (searchdec=malloc(strlen(search)*sizeof(char)+1)) 
+		if ( (searchdec=malloc(strlen(search)*sizeof(char)+1)) ) 
 			strdecode(searchdec,search);
 		else {
 			httpd_send_err(hc, 500, err500title, "", err500form, "m" );
@@ -484,7 +395,6 @@ int hkp_lookup( httpd_conn* hc ) {
 			exit(0);
 		}
 	} else if (!strcmp(op, "index")) {
-		char uidenc[BUFFSIZE];
 		char begin=0;
 		gpgme_user_id_t gpguid;
 
@@ -505,7 +415,7 @@ int hkp_lookup( httpd_conn* hc ) {
 				/* Luckily: info "header" is optionnal, see draft-shaw-openpgp-hkp-00.txt */
 			}
 			/* first subkey is the main key */
-			fprintf(fp,"pub:%s:%d:%d:%d:%d\n",gpgkey->subkeys->fpr,gpgkey->subkeys->pubkey_algo,gpgkey->subkeys->length,gpgkey->subkeys->timestamp,(gpgkey->subkeys->expires?gpgkey->subkeys->expires:-1));
+			fprintf(fp,"pub:%s:%d:%d:%ld:%ld\n",gpgkey->subkeys->fpr,gpgkey->subkeys->pubkey_algo,gpgkey->subkeys->length,gpgkey->subkeys->timestamp,(gpgkey->subkeys->expires?gpgkey->subkeys->expires:-1));
 			gpguid=gpgkey->uids;
 			while (gpguid) {
 				fprintf(fp,"uid:%s (%s) <%s>:\n",gpguid->name,gpguid->comment,gpguid->email);

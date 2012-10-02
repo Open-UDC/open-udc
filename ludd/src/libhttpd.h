@@ -225,6 +225,11 @@ extern int httpd_got_request( httpd_conn* hc );
 */
 extern int httpd_parse_request( httpd_conn* hc );
 
+
+/*! send_mime write HTTP header inside the hc's response buffer
+ */
+extern void send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extraheads, char* type, off_t length, time_t mod );
+
 /* Starts sending data back to the client.  In some cases (directories,
 ** CGI programs), finishes sending by itself - in those cases, hc->file_fd
 ** is <0.  If there is more data to be sent, then hc->file_fd is a file
@@ -250,6 +255,8 @@ extern void httpd_close_conn( httpd_conn* hc, struct timeval* nowP );
 */
 extern void httpd_destroy_conn( httpd_conn* hc );
 
+/* Call this for the parent process when a child will handle the request */
+void drop_child(const char * type,pid_t pid,httpd_conn* hc);
 
 /* Send an error message back to the client. */
 extern void httpd_send_err(
