@@ -224,12 +224,13 @@ int hkp_add( httpd_conn* hc ) {
 
 int hkp_lookup( httpd_conn* hc ) {
 
-	int r;
+	int r,i,nsearchs=0;
 	FILE* fp;
 
+#define HKP_MAX_SEARCHS 32
 	char * op=(char *)0;
-	char * search=(char *)0;
-	char * searchdec=(char *)0;
+	char * search[HKP_MAX_SEARCHS+1]={(char *)0};
+	char * searchdec[HKP_MAX_SEARCHS+1]={(char *)0};
 	char * exact=(char *)0;
 
 	gpgme_ctx_t gpglctx;
@@ -291,7 +292,8 @@ int hkp_lookup( httpd_conn* hc ) {
 			op=pchar;
 		} else if (!strncmp(pchar,"search=",7)) {
 			pchar+=7;
-			search=pchar;
+			search[nsearchs]=pchar;
+			nsearchs=MIN(HKP_MAX_SEARCHS,nsearchs+1);
 		} else if (!strncmp(pchar,"options=",8)) {
 			/*this parameter is useless now, as today we only support "mr" option and always enable it (machine readable) */
 			pchar+=8;
@@ -304,6 +306,7 @@ int hkp_lookup( httpd_conn* hc ) {
 			pchar+=6;
 			exact=pchar;
 		} /*else: Other parameter not in hkp draft are quietly ignored */
+		/* replace the '&' char by EOS */
 		pchar=strchr(pchar,'&');
 		if (pchar) {
 			*pchar='\0';
@@ -323,16 +326,18 @@ int hkp_lookup( httpd_conn* hc ) {
 		}
 	}
 
-	if ( ! search ) { 
+	if ( ! search[0] ) { 
 		/* (mandatory parameter) */
 		httpd_send_err(hc, 400, httpd_err400title, "", "Missing \"search\" parameter in \"%.80s\".</h1></body></html>", hc->query );
 		exit(0);
 	} else {
-		if ( (searchdec=malloc(strlen(search)*sizeof(char)+1)) ) 
-			strdecode(searchdec,search);
-		else {
-			httpd_send_err(hc, 500, err500title, "", err500form, "m" );
-			exit(1);
+		for (i=0;i<nsearchs;i++) {
+			if ( (searchdec[i]=malloc(strlen(search[i])*sizeof(char)+1)) ) 
+				strdecode(searchdec[i],search[i]);
+			else {
+				httpd_send_err(hc, 500, err500title, "", err500form, "m" );
+				exit(1);
+			}
 		}
 	}
 
@@ -368,7 +373,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		if (gpgerr == GPG_ERR_NO_ERROR) {
 			gpgerr = gpgme_data_set_encoding(gpgdata,GPGME_DATA_ENCODING_ARMOR);
 			if (gpgerr == GPG_ERR_NO_ERROR)
-				gpgerr = gpgme_op_export(gpglctx,searchdec,0,gpgdata);
+				gpgerr = gpgme_op_export_ext(gpglctx,(const char **)searchdec,0,gpgdata);
 		}
 
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
@@ -381,12 +386,12 @@ int hkp_lookup( httpd_conn* hc ) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g11" );
 			exit(1);
 		} else if ( read_bytes <= 0 ) {
-			httpd_send_err(hc, 404, err404title, "", "Get: %.80s : No key found ! :-(", search );
+			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
 			exit(0);
 		} else {
 			send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
 			httpd_write_response(hc);
-			fprintf(fp,"<html><head><title>ludd Public Key Server -- Get: %s</title></head><body><h1>Public Key Server -- Get: %s</h1><pre>\n",search,search);
+			fprintf(fp,"<html><head><title>ludd Public Key Server -- Get: %.80s (%d+)</title></head><body><h1>Public Key Server -- Get: %.80s (%d+)</h1><pre>\n",search[0],nsearchs-1,search[0],nsearchs-1);
 			fwrite(buff, sizeof(char),read_bytes,fp); /* Now it's too late to test fwrite return value ;-) */ 
 			while ( (read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE)) > 0 )
 				fwrite(buff, sizeof(char),read_bytes,fp);
@@ -399,7 +404,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		gpgme_user_id_t gpguid;
 
 		/* check for the searched key(s) */
-		gpgerr = gpgme_op_keylist_start(gpglctx, searchdec, 0);
+		gpgerr = gpgme_op_keylist_ext_start(gpglctx,(const char **)searchdec, 0, 0);
 		//gpgerr = gpgme_op_keylist_start(gpglctx, NULL, 0);
 		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g20" );
@@ -426,7 +431,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		}
 			gpgme_key_unref(gpgkey); /* ... because i don't know how "gpgme_op_keylist_next" behave when not returning GPG_ERR_NO_ERROR */
 		if (!begin) {
-			httpd_send_err(hc, 404, err404title, "", "Get: %.80s : No key found ! :-(", search );
+			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
 			exit(0);
 		}
 		(void) fclose( fp );
