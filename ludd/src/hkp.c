@@ -30,6 +30,15 @@ extern int sub_process;
 #define BUFFSIZE 2048
 #define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
 
+/* struct passed to gpgdata4export_cb */
+struct gpgdata4export_handle {
+	httpd_conn* hc;
+	int nsearchs;
+	char ** searchs;
+}; 
+
+static int export_start=0; /* set to 1 once by gpgdata4export_cb(...) */
+
 /* return this first comment starting with ud found in uids (or NULL if non found) */
 static char * get_starting_comment(char * ud, gpgme_key_t gkey) {
 	gpgme_user_id_t gpguids;
@@ -222,19 +231,35 @@ int hkp_add( httpd_conn* hc ) {
 
 }
 
+/* callback for gpgme_op_export_ext to write directly the response */
+static ssize_t gpgdata4export_cb(struct gpgdata4export_handle * h, void *buffer, size_t size)
+{
+	if (!export_start) {
+		send_mime(h->hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, h->hc->sb.st_mtime );
+		httpd_write_response(h->hc);
+		/* dprintf is Posix since 2008 */
+		dprintf(h->hc->conn_fd,"<html><head><title>ludd Public Key Server -- Get: %.80s (%d+)</title></head><body><h1>Public Key Server -- Get: %.80s (%d+)</h1><pre>\n",h->searchs[0],h->nsearchs-1,h->searchs[0],h->nsearchs-1);
+		export_start=1;
+	}
+
+	return write(h->hc->conn_fd,buffer,size);
+}
+/* dummy function for callback based gpgme data objects */
+static void gpg_data_release_cb(void *handle)
+{
+	    /* must just be present... bug or feature?!? */
+}
+
 int hkp_lookup( httpd_conn* hc ) {
 
-	int r,i,nsearchs=0;
-	FILE* fp;
-
 #define HKP_MAX_SEARCHS 32
+	int r,i,nsearchs=0;
 	char * op=(char *)0;
 	char * search[HKP_MAX_SEARCHS+1]={(char *)0};
 	char * searchdec[HKP_MAX_SEARCHS+1]={(char *)0};
 	char * exact=(char *)0;
 
 	gpgme_ctx_t gpglctx;
-	gpgme_key_t gpgkey;
 	gpgme_error_t gpgerr;
 
 	char * qstring, * pchar;
@@ -293,7 +318,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		} else if (!strncmp(pchar,"search=",7)) {
 			pchar+=7;
 			search[nsearchs]=pchar;
-			nsearchs=MIN(HKP_MAX_SEARCHS,nsearchs+1);
+			nsearchs=MIN(HKP_MAX_SEARCHS-1,nsearchs+1);
 		} else if (!strncmp(pchar,"options=",8)) {
 			/*this parameter is useless now, as today we only support "mr" option and always enable it (machine readable) */
 			pchar+=8;
@@ -351,57 +376,56 @@ int hkp_lookup( httpd_conn* hc ) {
 		exit(1);
 	}
 	
-	/* Open a stdio stream so that we can use fprintf, which is more
-	** efficient than a bunch of separate write()s.  We don't have
-	** to worry about double closes or file descriptor leaks cause
-	** we're in a subprocess.
-	*/
-	fp = fdopen( hc->conn_fd, "w" );
-	if ( fp == (FILE*) 0 )
-		{
-		httpd_send_err(hc, 500, err500title, "", err500form, "fd" );
-		exit(1);
-		}
-
 	if (!strcmp(op, "get")) {
 		gpgme_data_t gpgdata;
-		char buff[BUFFSIZE];
-		ssize_t read_bytes;
-
+		struct gpgme_data_cbs gpgcbs = {
+			NULL,									/* read method */
+			(gpgme_data_write_cb_t) gpgdata4export_cb,	/* write method */
+			NULL,									/* seek method */
+			gpg_data_release_cb						/* release method */
+		};
+		struct gpgdata4export_handle cb_handle = {
+			hc,
+			nsearchs,
+			search
+		};
 		gpgme_set_armor(gpglctx,1);
-		gpgerr = gpgme_data_new(&gpgdata);
+		gpgerr = gpgme_data_new_from_cbs(&gpgdata, &gpgcbs,&cb_handle);
 		if (gpgerr == GPG_ERR_NO_ERROR) {
 			gpgerr = gpgme_data_set_encoding(gpgdata,GPGME_DATA_ENCODING_ARMOR);
-			if (gpgerr == GPG_ERR_NO_ERROR)
-				gpgerr = gpgme_op_export_ext(gpglctx,(const char **)searchdec,0,gpgdata);
 		}
-
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g10" );
 			exit(1);
 		}
-		gpgme_data_seek (gpgdata, 0, SEEK_SET);
-		read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE);
-		if ( read_bytes == -1 ) {
+		export_start=0;
+
+		gpgerr = gpgme_op_export_ext(gpglctx,(const char **)searchdec,0,gpgdata);
+		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g11" );
 			exit(1);
-		} else if ( read_bytes <= 0 ) {
-			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
-			exit(0);
+		} else if (export_start) {
+			write(hc->conn_fd,"\n</pre></body></html>",sizeof("\n</pre></body></html>")-1);
 		} else {
-			send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
-			httpd_write_response(hc);
-			fprintf(fp,"<html><head><title>ludd Public Key Server -- Get: %.80s (%d+)</title></head><body><h1>Public Key Server -- Get: %.80s (%d+)</h1><pre>\n",search[0],nsearchs-1,search[0],nsearchs-1);
-			fwrite(buff, sizeof(char),read_bytes,fp); /* Now it's too late to test fwrite return value ;-) */ 
-			while ( (read_bytes = gpgme_data_read (gpgdata, buff, BUFFSIZE)) > 0 )
-				fwrite(buff, sizeof(char),read_bytes,fp);
-			fprintf(fp,"\n</pre></body></html>");
-			(void) fclose( fp );
-			exit(0);
+			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
 		}
+		exit(EXIT_SUCCESS);
 	} else if (!strcmp(op, "index")) {
+		FILE* fp;
 		char begin=0;
+		gpgme_key_t gpgkey;
 		gpgme_user_id_t gpguid;
+
+		/* Open a stdio stream so that we can use fprintf, which is more
+		** efficient than a bunch of separate write()s.  We don't have
+		** to worry about double closes or file descriptor leaks cause
+		** we're in a subprocess.
+		*/
+		fp = fdopen( hc->conn_fd, "w" );
+		if ( fp == (FILE*) 0 ) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "fd" );
+			exit(1);
+		}
 
 		/* check for the searched key(s) */
 		gpgerr = gpgme_op_keylist_ext_start(gpglctx,(const char **)searchdec, 0, 0);
