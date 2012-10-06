@@ -257,6 +257,8 @@ extern void httpd_destroy_conn( httpd_conn* hc );
 
 /* Call this for the parent process when a child will handle the request */
 void drop_child(const char * type,pid_t pid,httpd_conn* hc);
+/* Call this early(first) in the child process which will handle the request */
+void child_r_start(httpd_conn* hc);
 
 /* Send an error message back to the client. */
 extern void httpd_send_err(

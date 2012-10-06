@@ -85,10 +85,7 @@
 ** no limit (and you'd better have a lot of memory).  This can also be
 ** set in the runtime config file.
 */
-#ifdef notdef
-#define CGI_LIMIT 50
-#endif
-#define CGI_LIMIT 100
+#define CGI_LIMIT 200
 
 /* CONFIGURE: How many seconds to allow for reading the initial request
 ** on a new connection.
@@ -173,7 +170,7 @@
 /* CONFIGURE: nice(2) value to use for CGI programs.  If this is undefined,
 ** CGI programs run at normal priority.
 */
-#define CGI_NICE 10
+//#define CGI_NICE 10
 
 /* CONFIGURE: $PATH to use for CGI programs.
 */

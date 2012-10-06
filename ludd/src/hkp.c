@@ -16,16 +16,6 @@
 #include "timers.h"
 #include "libhttpd.h"
 
-/* This global keeps track of whether we are in the main process or a
-** sub-process.  The reason is that httpd_write_response() can get called
-** in either context; when it is called from the main process it must use
-** non-blocking I/O to avoid stalling the server, but when it is called
-** from a sub-process it wants to use blocking I/O so that the whole
-** response definitely gets written.  So, it checks this variable.  A bit
-** of a hack but it seems to do the right thing.
-*/
-extern int sub_process;
-
 #define QSTRING_MAX 1024
 #define BUFFSIZE 2048
 #define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
@@ -93,14 +83,10 @@ int hkp_add( httpd_conn* hc ) {
 	}
 
 	/* To much forks already running */
-	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
-		{
-		httpd_send_err(
-			hc, 503, httpd_err503title, "", httpd_err503form,
-			hc->encodedurl );
+	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit ) {
+		httpd_send_err(hc, 503, httpd_err503title, "", httpd_err503form,hc->encodedurl );
 		return(-1);
-		}
-	++hc->hs->cgi_count;
+	}
 	r = fork( );
 	if ( r < 0 ) {
 		httpd_send_err(hc, 500, err500title, "", err500form, "f" );
@@ -112,12 +98,7 @@ int hkp_add( httpd_conn* hc ) {
 		return(0);
 	}
 	/* Child process. */
-	sub_process = 1;
-	httpd_unlisten( hc->hs );
-#ifdef CGI_NICE
-	/* Set priority. */
-	(void) nice( CGI_NICE );
-#endif /* CGI_NICE */
+	child_r_start(hc);
 
 	buffsize=hc->contentlength;
 	buff=malloc(buffsize+1);
@@ -282,14 +263,10 @@ int hkp_lookup( httpd_conn* hc ) {
 	}
 
 	/* To much forks already running */
-	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit )
-		{
-		httpd_send_err(
-			hc, 503, httpd_err503title, "", httpd_err503form,
-			hc->encodedurl );
+	if ( hc->hs->cgi_limit != 0 && hc->hs->cgi_count >= hc->hs->cgi_limit ) {
+		httpd_send_err(hc, 503, httpd_err503title, "", httpd_err503form,hc->encodedurl );
 		return(-1);
-		}
-	++hc->hs->cgi_count;
+	}
 	r = fork( );
 	if ( r < 0 ) {
 		httpd_send_err(hc, 500, err500title, "", err500form, "f" );
@@ -301,12 +278,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		return(0);
 	}
 	/* Child process. */
-	sub_process = 1;
-	httpd_unlisten( hc->hs );
-#ifdef CGI_NICE
-	/* Set priority. */
-	(void) nice( CGI_NICE );
-#endif /* CGI_NICE */
+	child_r_start(hc);
 
 	qstring=strndup(pchar,QSTRING_MAX); /* copy the QUERY to write in */
 	pchar=qstring;
@@ -405,7 +377,7 @@ int hkp_lookup( httpd_conn* hc ) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g11" );
 			exit(1);
 		} else if (export_start) {
-			write(hc->conn_fd,"\n</pre></body></html>",sizeof("\n</pre></body></html>")-1);
+			write(hc->conn_fd,"\n</pre></body></html>\n",sizeof("\n</pre></body></html>\n")-1);
 		} else {
 			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
 		}

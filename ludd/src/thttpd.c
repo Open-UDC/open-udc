@@ -62,6 +62,7 @@
 
 #include <locale.h>
 #include <gpgme.h>
+#include <regex.h>
 
 #include "fdwatch.h"
 #include "libhttpd.h"
@@ -148,6 +149,9 @@ gpgme_ctx_t main_gpgctx;
 /* myself (peer) */
 peer_t myself;
 
+/* regex for udid2;c */
+regex_t udid2c_regex;
+
 /* Forwards. */
 static void parse_args( int argc, char** argv );
 static void usage( void );
@@ -232,13 +236,13 @@ handle_chld( int sig )
 		** each CGI can involve two or even three child processes.
 		** Decrementing for each child means that when there is heavy CGI
 		** activity, the count will be lower than it should be, and therefore
-		** more CGIs will be allowed than should be.
+		** more childs will be allowed than should be.
 		*/
 		if ( hs != (httpd_server*) 0 )
 			{
-			--hs->cgi_count;
-			if ( hs->cgi_count < 0 )
-				hs->cgi_count = 0;
+			if ( hs->cgi_count > 0 )
+				/* ... If a fork is called without increased the cgi_count (done by drop_child()), which is the case for cgi_interpose_* */
+				--hs->cgi_count;
 			}
 		}
 
@@ -381,7 +385,7 @@ main( int argc, char** argv )
 	{
 	struct passwd *pwd;
 	char cwd[MAXPATHLEN+1];
-	FILE *logfp, *fp;
+	FILE *logfp;
 	int num_ready;
 	int cnum;
 	connecttab *c;
@@ -473,7 +477,7 @@ main( int argc, char** argv )
 		logfp = (FILE*) 0;
 
 	/* Switch directory : the one in parameters, or the $HOME of the user(setuid) if root, or $HOME/.ludd  */
-	if ( dir == (char*) 0 )
+	if ( dir == (char*) 0 ) {
 		if ( getuid() == 0 ) 
 			dir=(pwd->pw_dir?pwd->pw_dir:".");
 		else {
@@ -482,6 +486,7 @@ main( int argc, char** argv )
 			strcat(dir,"/.");
 			strcat(dir,argv0);
 		}
+	}
 
 	if ( chdir( dir ) < 0 )
 		DIE(1, "chdir %s - %m",dir );
@@ -686,6 +691,9 @@ main( int argc, char** argv )
 				"started as root without requesting chroot(), warning only" );
 		}
 
+	if (regcomp(&udid2c_regex, "^udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};[0-9.e+-]{14};[0-9]+", REG_NOSUB|REG_EXTENDED))
+		DIE(1,"Could not compile regex 'udid2;c...' :-(");
+
 	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
 	setlocale(LC_ALL, "");
 	if ( ! gpgme_check_version(GPGME_VERSION_MIN) ) {
@@ -706,23 +714,28 @@ main( int argc, char** argv )
 
 	/* set homedir of gpg engine */
 	gpgerr = gpgme_get_engine_info(&enginfo);
-	if ( gpgerr  == GPG_ERR_NO_ERROR )
+	if ( gpgerr == GPG_ERR_NO_ERROR )
 		gpgerr = gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"../gpgme");
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
+	if ( gpgerr != GPG_ERR_NO_ERROR )
 		DIE(1,"gpgme_..._engine_info :-( %s",gpgme_strerror(gpgerr));
 
 	/* create context */
-	gpgerr=gpgme_new(&main_gpgctx);
-	if ( gpgerr  != GPG_ERR_NO_ERROR )
+	gpgerr = gpgme_new(&main_gpgctx);
+	if ( gpgerr != GPG_ERR_NO_ERROR )
 		DIE(1,"gpgme_new - %s",gpgme_strerror(gpgerr));
+
+	/* add GPGME_KEYLIST_MODE_SIGS to the keylist mode */
+	gpgerr = gpgme_set_keylist_mode(main_gpgctx,gpgme_get_keylist_mode(main_gpgctx)|GPGME_KEYLIST_MODE_SIGS|GPGME_KEYLIST_MODE_SIG_NOTATIONS);
+	if ( gpgerr != GPG_ERR_NO_ERROR )
+		DIE(1,gpgme_strerror(gpgerr));
 
 	/* get the bot  key */
 	if ( ! myself.fpr || strlen(myself.fpr) != 40 ) 
 		DIE( 1, "Invalid fingerprint (fpr) - forget ludd_init.sh ?");
 
 	gpgerr = gpgme_get_key (main_gpgctx,myself.fpr,&mygpgkey,1);
-	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
-		DIE(1,"gpgme_get_key - %s",gpgme_strerror(gpgerr));
+	if ( gpgerr != GPG_ERR_NO_ERROR ) {
+		DIE(1,"gpgme_get_key(%s) - %s",myself.fpr,gpgme_strerror(gpgerr));
 	} else if ( mygpgkey->revoked ) {
 		DIE(1,"key %s is revoked",mygpgkey->uids->uid);
 	} else if ( mygpgkey->expired ) {
@@ -733,6 +746,8 @@ main( int argc, char** argv )
 		DIE(1,"key %s is invalid",mygpgkey->uids->uid);
 	} else if (! mygpgkey->can_sign ) {
 		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
+	} else if ( (!mygpgkey->uids->comment) || strncmp(mygpgkey->uids->comment,"udbot1;",sizeof("udbot1")) || regexec(&udid2c_regex,mygpgkey->uids->comment+sizeof("udbot1"), 0, NULL, 0) ) {
+		DIE(1,"%s's key doesn't contain a valid udbot1 (%s)",mygpgkey->uids->name,mygpgkey->uids->comment)
 	}
 
 	/* The main context is for signing, put the key in and set armor */
@@ -740,7 +755,50 @@ main( int argc, char** argv )
 	gpgerr = gpgme_signers_add(main_gpgctx, mygpgkey);
 	if ( gpgerr  != GPG_ERR_NO_ERROR )
 		DIE(1,"gpgme_signers_add - %s",gpgme_strerror(gpgerr));
-	
+
+	/* Check that bot's key is signed by owner */
+	if (0)
+	{
+		/* dont work yet as we have to recall first gpgme_get_key(...,0) (with 0: for public keys), cf. gnupg mailing list) */
+		gpgme_key_sig_t sigs;
+		gpgme_key_t sigkey;
+		int found=0;
+		int clen=strlen(mygpgkey->uids->comment)-sizeof("udbot1;");
+
+		sigs=mygpgkey->uids->signatures;
+		while (sigs) {
+			//warnx("sig: %s",sigs->uid);
+			if ( !strcmp(mygpgkey->uids->uid,sigs->uid) ) { /* selfsig */
+				sigs=sigs->next;
+				continue;
+			}
+			if (gpgme_get_key(main_gpgctx,sigs->keyid,&sigkey,0) == GPG_ERR_NO_ERROR) {
+				gpgme_user_id_t gpguids=sigkey->uids;
+
+				while (gpguids) {
+					//warnx("comment: %s - %s",gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"));
+					if (!strncmp(gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"),clen)) {
+						/* We have found the udbot1 owner */
+						found=1;
+						warnx("owner's key fingerprint: %s",sigkey->subkeys->fpr);
+						syslog(LOG_INFO,"owner's key fingerprint: %s",sigkey->subkeys->fpr);
+						break;
+					}
+					gpguids=gpguids->next;
+				}
+				gpgme_key_unref(sigkey);
+			}
+			if (found)
+				break;
+			sigs=sigs->next;
+		}
+
+		if (! found) {
+			warnx("Certificate isn't signed by it's owner... gonna be rejected by peers");
+			syslog(LOG_WARNING,"Certificate isn't signed by it's owner... gonna be rejected by peers");
+		}
+	}
+
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
 	if ( connects == (connecttab*) 0 )
@@ -796,6 +854,7 @@ main( int argc, char** argv )
 			tmr_run( &tv );
 			continue;
 			}
+		//if (tv.tv_sec%86400 < 600)... /* (just an idea if need to launch daily jobs) */
 
 		/* Is it a new connection? */
 		if ( hs != (httpd_server*) 0 && hs->listen6_fd != -1 &&
@@ -1460,7 +1519,7 @@ static int
 handle_newconnect( struct timeval* tvP, int listen_fd )
 	{
 	connecttab* c;
-	ClientData client_data;
+	//ClientData client_data;
 
 	/* This loops until the accept() fails, trying to start new
 	** connections as fast as possible so we don't overrun the
@@ -1518,7 +1577,7 @@ handle_newconnect( struct timeval* tvP, int listen_fd )
 		first_free_connect = c->next_free_connect;
 		c->next_free_connect = -1;
 		++num_connects;
-		client_data.p = c;
+		//client_data.p = c;
 		c->active_at = tvP->tv_sec;
 		c->wakeup_timer = (Timer*) 0;
 		c->linger_timer = (Timer*) 0;
@@ -1541,7 +1600,7 @@ static void
 handle_read( connecttab* c, struct timeval* tvP )
 	{
 	int sz;
-	ClientData client_data;
+	//ClientData client_data;
 	httpd_conn* hc = c->hc;
 
 	/* Is there room in our buffer to read more bytes? */
@@ -1652,7 +1711,7 @@ handle_read( connecttab* c, struct timeval* tvP )
 	c->conn_state = CNST_SENDING;
 	c->started_at = tvP->tv_sec;
 	c->wouldblock_delay = 0;
-	client_data.p = c;
+	//client_data.p = c;
 
 	fdwatch_del_fd( hc->conn_fd );
 	fdwatch_add_fd( hc->conn_fd, c, FDW_WRITE );

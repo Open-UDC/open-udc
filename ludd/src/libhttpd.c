@@ -162,7 +162,6 @@ static char* build_env( char* fmt, char* arg );
 static char** make_envp( httpd_conn* hc );
 static char** make_argp( httpd_conn* hc );
 static void cgi_interpose_input( httpd_conn* hc, int wfd );
-static void post_post_garbage_hack( httpd_conn* hc );
 static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buffer, size_t size);
 static void gpg_data_release_cb(void *handle);
 static void cgi_interpose_output( httpd_conn* hc, int rfd );
@@ -184,7 +183,8 @@ static long long atoll( const char* str );
 ** response definitely gets written.  So, it checks this variable.  A bit
 ** of a hack but it seems to do the right thing.
 */
-int sub_process = 0;
+/* UPDATE: that was dirty Jef ! now child_r_start simply call httpd_clear_ndelay() */
+//int sub_process = 0;
 
 static void
 free_httpd_server( httpd_server* hs )
@@ -488,18 +488,13 @@ add_response( httpd_conn* hc, char* str )
 	}
 
 /* Send the buffered response. */
-void httpd_write_response( httpd_conn* hc )
-	{
-	/* If we are in a sub-process, turn off no-delay mode. */
-	if ( sub_process )
-		httpd_clear_ndelay( hc->conn_fd );
+void httpd_write_response( httpd_conn* hc ) {
 	/* Send the response, if necessary. */
-	if ( hc->responselen > 0 )
-		{
+	if ( hc->responselen > 0 ) {
 		(void) httpd_write_fully( hc->conn_fd, hc->response, hc->responselen );
 		hc->responselen = 0;
-		}
 	}
+}
 
 
 /* Set no-delay / non-blocking mode on a socket. */
@@ -2287,20 +2282,17 @@ cgi_kill( ClientData client_data, struct timeval* nowP )
 
 #ifdef GENERATE_INDEXES
 
-/* qsort comparison routine - declared old-style on purpose, for portability. */
-static int
-name_compare( a, b )
-	char** a;
-	char** b;
-	{
+/* qsort comparison routine */
+static int name_compare(char ** a, char ** b) {
 	return strcmp( *a, *b );
-	}
+}
 
+/*! drop_child should by call by the parent when a child will handle the request */
 void drop_child(const char * type,pid_t pid,httpd_conn* hc) {
 	ClientData client_data;
 
-	//syslog( LOG_INFO, "spawned %s process %d for '%.200s'", type, pid, hc->encodedurl );
-	syslog( LOG_INFO, "spawned %s process %d for '%.200s'", type, pid, hc->expnfilename );
+	++hc->hs->cgi_count;
+	syslog( LOG_INFO, "spawned %s process %d for '%.200s (%.80s)'", type, pid, hc->expnfilename, hc->pathinfo);
 #ifdef CGI_TIMELIMIT
 	/* Schedule a kill for the child process, in case it runs too long */
 	client_data.i = pid;
@@ -2314,6 +2306,17 @@ void drop_child(const char * type,pid_t pid,httpd_conn* hc) {
 	hc->status = 200;
 	hc->bytes_sent = CGI_BYTECOUNT;
 	hc->bfield &= ~HC_SHOULD_LINGER;
+}
+
+/*! child_r_start should be call early by the child handling the request */
+void child_r_start(httpd_conn* hc) {
+	httpd_unlisten( hc->hs );
+	/* we are in a sub-process, turn off no-delay mode. */
+	httpd_clear_ndelay( hc->conn_fd );
+#ifdef CGI_NICE
+	/* Set priority. */
+	(void) nice( CGI_NICE );
+#endif /* CGI_NICE */
 }
 
 static int
@@ -2369,7 +2372,6 @@ ls( httpd_conn* hc )
 				hc->encodedurl );
 			return -1;
 			}
-		++hc->hs->cgi_count;
 		r = fork( );
 		if ( r < 0 )
 			{
@@ -2382,17 +2384,12 @@ ls( httpd_conn* hc )
 		if ( r == 0 )
 			{
 			/* Child process. */
-			sub_process = 1;
-			httpd_unlisten( hc->hs );
+			child_r_start(hc);
+
 			send_mime(
 				hc, 200, ok200title, "", "", "text/html; charset=%s",
 				(off_t) -1, hc->sb.st_mtime );
 			httpd_write_response( hc );
-
-#ifdef CGI_NICE
-			/* Set priority. */
-			(void) nice( CGI_NICE );
-#endif /* CGI_NICE */
 
 			/* Open a stdio stream so that we can use fprintf, which is more
 			** efficient than a bunch of separate write()s.  We don't have
@@ -2453,7 +2450,7 @@ mode  links  bytes  last-changed  name\n\
 			closedir( dirp );
 
 			/* Sort the names. */
-			qsort( nameptrs, nnames, sizeof(*nameptrs), name_compare );
+			qsort( nameptrs, nnames, sizeof(*nameptrs),(__compar_fn_t)name_compare );
 
 			/* Generate output. */
 			for ( i = 0; i < nnames; ++i )
@@ -2787,41 +2784,31 @@ cgi_interpose_input( httpd_conn* hc, int wfd )
 			return;
 		c += r;
 		}
-	post_post_garbage_hack( hc );
-	}
 
+		/* Special hack to deal with broken browsers that send a LF or CRLF
+		** after POST data, causing TCP resets - we just read and discard up
+		** to 2 bytes.  Unfortunately this doesn't fix the problem for CGIs
+		** which avoid the interposer process due to their POST data being
+		** short.  Creating an interposer process for all POST CGIs is
+		** unacceptably expensive.  The eventual fix will come when interposing
+		** gets integrated into the main loop as a tasklet instead of a process.
+		*/
+		{
+			char buf[2];
 
-/* Special hack to deal with broken browsers that send a LF or CRLF
-** after POST data, causing TCP resets - we just read and discard up
-** to 2 bytes.  Unfortunately this doesn't fix the problem for CGIs
-** which avoid the interposer process due to their POST data being
-** short.  Creating an interposer process for all POST CGIs is
-** unacceptably expensive.  The eventual fix will come when interposing
-** gets integrated into the main loop as a tasklet instead of a process.
-*/
-static void
-post_post_garbage_hack( httpd_conn* hc )
-	{
-	char buf[2];
-
-	/* If we are in a sub-process, turn on no-delay mode in case we
-	** previously cleared it.
-	*/
-	if ( sub_process )
+		/* we are in a sub-process, re-turn on no-delay mode that we
+		** previously cleared.
+		*/
 		httpd_set_ndelay( hc->conn_fd );
-	/* And read up to 2 bytes. */
-	(void) read( hc->conn_fd, buf, sizeof(buf) );
+		/* And read up to 2 bytes. */
+		(void) read( hc->conn_fd, buf, sizeof(buf) );
+		}
 	}
-
 
 /* callback to get data from a FILE stream and duplicate it to and fd output */
 static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buffer, size_t size)
 {
 	size_t result;
-
-	/*char buf[BUFSIZE];
-	(void) my_snprintf( buf,BUFSIZE-1, "fp2fd %d %m \015\012",size );
-	(void) httpd_write_fully( handle->fdout, buf, strlen( buf ) ); */
 
 	/* should not happen */
 	/*if ( !size || size>SSIZE_MAX )
@@ -3107,7 +3094,7 @@ cgi_child( httpd_conn* hc )
 	*/
 	if ( hc->conn_fd == STDIN_FILENO || hc->conn_fd == STDOUT_FILENO || hc->conn_fd == STDERR_FILENO )
 		{
-		int newfd = dup( hc->conn_fd);
+		int newfd = dup2( hc->conn_fd,3);
 		if ( newfd >= 0 )
 			hc->conn_fd = newfd;
 		/* If the dup fails, shrug.  We'll just take our chances.
@@ -3145,7 +3132,6 @@ cgi_child( httpd_conn* hc )
 		if ( ipid == 0 )
 			{
 			/* Child Interposer process. */
-			sub_process = 1;
 			(void) close( p[0] );
 			cgi_interpose_input( hc, p[1] );
 			exit( 0 );
@@ -3189,7 +3175,6 @@ cgi_child( httpd_conn* hc )
 		if ( ipid == 0 )
 			{
 			/* Child Interposer process. */
-			sub_process = 1;
 			(void) close( p[1] );
 			cgi_interpose_output( hc, p[0] );
 			exit( 0 );
@@ -3224,11 +3209,6 @@ cgi_child( httpd_conn* hc )
 	** this is not a problem.
 	*/
 	/* (void) fcntl( hc->conn_fd, F_SETFD, 1 ); */
-
-#ifdef CGI_NICE
-	/* Set priority. */
-	(void) nice( CGI_NICE );
-#endif /* CGI_NICE */
 
 	/* Split the program into directory and binary, so we can chdir()
 	** to the program's own directory.  This isn't in the CGI 1.1
@@ -3290,7 +3270,6 @@ cgi( httpd_conn* hc )
 				hc->encodedurl );
 			return -1;
 			}
-		++hc->hs->cgi_count;
 		httpd_clear_ndelay( hc->conn_fd );
 		r = fork( );
 		if ( r < 0 )
@@ -3303,8 +3282,8 @@ cgi( httpd_conn* hc )
 		if ( r == 0 )
 			{
 			/* Child process. */
-			sub_process = 1;
-			httpd_unlisten( hc->hs );
+			child_r_start(hc);
+
 			cgi_child( hc );
 			}
 
