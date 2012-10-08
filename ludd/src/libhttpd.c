@@ -2986,8 +2986,10 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 			hc->conn_fd     /* fd out */
 		};
 
-		if (!bound)
-			bound="boundary"; /* default boundary ... :'-( :-p */
+		if (!bound) {
+			httpd_send_err(hc, 500, err500title, "", err500form, "m" );
+			exit(EXIT_FAILURE);
+		}
 
 		gpgerr = gpgme_data_new_from_cbs(&gpgdata, &gpgcbs,&cb_handle);
 		if (gpgerr == GPG_ERR_NO_ERROR) 
@@ -3028,6 +3030,7 @@ cgi_interpose_output( httpd_conn* hc, int rfd )
 		}
 		r=my_snprintf(buf,BUFSIZE, "\015\012--%s--\015\012",bound);
 		httpd_write_fully( hc->conn_fd, buf,MIN(r,BUFSIZE));
+		free(bound);
 
 	} else {
 		r=my_snprintf( buf,BUFSIZE-1, "HTTP/1.0 %d %s\015\012", status, title );

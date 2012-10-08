@@ -402,6 +402,9 @@ main( int argc, char** argv )
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
 
+	/* to get length of onwer's udid2;c */
+	regmatch_t pmatch;
+
 	argv0 = strrchr( argv[0], '/' );
 	if ( argv0 != (char*) 0 )
 		++argv0;
@@ -691,7 +694,7 @@ main( int argc, char** argv )
 				"started as root without requesting chroot(), warning only" );
 		}
 
-	if (regcomp(&udid2c_regex, "^udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};[0-9.e+-]{14};[0-9]+", REG_NOSUB|REG_EXTENDED))
+	if (regcomp(&udid2c_regex, "^(udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};[0-9.e+-]{14};[0-9]+)", REG_EXTENDED))
 		DIE(1,"Could not compile regex 'udid2;c...' :-(");
 
 	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
@@ -746,7 +749,7 @@ main( int argc, char** argv )
 		DIE(1,"key %s is invalid",mygpgkey->uids->uid);
 	} else if (! mygpgkey->can_sign ) {
 		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
-	} else if ( (!mygpgkey->uids->comment) || strncmp(mygpgkey->uids->comment,"udbot1;",sizeof("udbot1")) || regexec(&udid2c_regex,mygpgkey->uids->comment+sizeof("udbot1"), 0, NULL, 0) ) {
+	} else if ( (!mygpgkey->uids->comment) || strncmp(mygpgkey->uids->comment,"udbot1;",sizeof("udbot1")) || regexec(&udid2c_regex,mygpgkey->uids->comment+sizeof("udbot1"), 1, &pmatch, 0) ) {
 		DIE(1,"%s's key doesn't contain a valid udbot1 (%s)",mygpgkey->uids->name,mygpgkey->uids->comment)
 	}
 
@@ -757,14 +760,17 @@ main( int argc, char** argv )
 		DIE(1,"gpgme_signers_add - %s",gpgme_strerror(gpgerr));
 
 	/* Check that bot's key is signed by owner */
-	if (0)
 	{
-		/* dont work yet as we have to recall first gpgme_get_key(...,0) (with 0: for public keys), cf. gnupg mailing list) */
 		gpgme_key_sig_t sigs;
 		gpgme_key_t sigkey;
 		int found=0;
-		int clen=strlen(mygpgkey->uids->comment)-sizeof("udbot1;");
 
+		/* First recal gpgme_get_key but from public keyring to get signatures (little bug of gpg version < 2.1) */
+		gpgerr = gpgme_get_key (main_gpgctx,myself.fpr,&mygpgkey,0);
+		if ( gpgerr != GPG_ERR_NO_ERROR )
+			DIE(1,"gpgme_get_key(%s) - %s",myself.fpr,gpgme_strerror(gpgerr));
+
+		//warnx("pmatch: %d -> %d",pmatch.rm_so,pmatch.rm_eo);
 		sigs=mygpgkey->uids->signatures;
 		while (sigs) {
 			//warnx("sig: %s",sigs->uid);
@@ -777,7 +783,7 @@ main( int argc, char** argv )
 
 				while (gpguids) {
 					//warnx("comment: %s - %s",gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"));
-					if (!strncmp(gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"),clen)) {
+					if (!strncmp(gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"),pmatch.rm_eo-1)) {
 						/* We have found the udbot1 owner */
 						found=1;
 						warnx("owner's key fingerprint: %s",sigkey->subkeys->fpr);
