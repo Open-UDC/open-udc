@@ -260,6 +260,9 @@ void drop_child(const char * type,pid_t pid,httpd_conn* hc);
 /* Call this early(first) in the child process which will handle the request */
 void child_r_start(httpd_conn* hc);
 
+/* parse an HTTP response from rfd, sign it eventually, and write it into socket */
+int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign);
+
 /* Send an error message back to the client. */
 extern void httpd_send_err(
 	httpd_conn* hc, int status, char* title, char* extraheads, const char* form, const char* arg );
