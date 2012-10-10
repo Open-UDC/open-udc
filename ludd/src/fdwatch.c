@@ -225,7 +225,7 @@ fdwatch_del_fd( int fd )
 	{
 	if ( fd < 0 || fd >= nfiles || fd_rw[fd] == -1 )
 		{
-		syslog( LOG_ERR, "bad fd (%d) passed to fdwatch_del_fd!", fd );
+		syslog( LOG_ERR, "bad fd (%d) (%d,%d) passed to fdwatch_del_fd!", fd, nfiles, fd_rw[fd]);
 		return;
 		}
 	DEL_FD( fd );

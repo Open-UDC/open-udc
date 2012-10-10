@@ -2940,7 +2940,7 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 	
 	/* If there were no "Content-*:" headers, bail. */
 	if ( !c_headers[0] ) {
-		syslog( LOG_ERR, "no_header (%d)",force_sign);
+		syslog( LOG_ERR, "no header (%d)",force_sign);
 		httpd_send_err2(socket, 500, err500title, err500form);
 		HTTPD_PARSE_RESP_RETURN(500);
 	}
@@ -3026,7 +3026,6 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 		/* Write the headers. */
 		for (i=0;i<n_o_headers;i++) {
 			r=strlen(o_headers[i]);
-			syslog(LOG_INFO,"o: %s",o_headers[i]);
 			if (httpd_write_fully(socket,o_headers[i],r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(500);
@@ -3042,7 +3041,6 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 		/* Write the "Content-*" headers. */
 		for (i=0;i<n_c_headers;i++) {
 			r=strlen(c_headers[i]);
-			syslog(LOG_INFO,"c: %s",c_headers[i]);
 			if (httpd_write_fully(socket,c_headers[i],r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(500);
@@ -3355,8 +3353,7 @@ cgi( httpd_conn* hc )
 	}
 
 int
-httpd_start_request( httpd_conn* hc, struct timeval* nowP )
-	{
+httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 	static char* indexname;
 	static size_t maxindexname = 0;
 	static const char* index_names[] = { INDEX_NAMES };
@@ -3643,21 +3640,45 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP )
 			hc, 304, err304title, hc->encodings, "", hc->type, (off_t) -1,
 			hc->sb.st_mtime );
 		}
-	else
-		{
+	else {
 		hc->file_address = mmc_map( hc->expnfilename, &(hc->sb), nowP );
-		if ( hc->file_address == (char*) 0 )
-			{
+		if ( hc->file_address == (char*) 0 ) {
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 			return -1;
+		}
+		/* (Won't sign If To much forks are already running )*/
+		if (hc->bfield & HC_DETACH_SIGN && ( hc->hs->cgi_limit == 0 || hc->hs->cgi_count < hc->hs->cgi_limit ) ) {
+			int ipid,p[2];
+
+			if ( pipe( p ) < 0 ) {
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				return(-1);
 			}
+			ipid = fork( );
+			if ( ipid < 0 ) {
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				return(-1);
+			}
+			if ( ipid == 0 ) {
+				/* Child Interposer process. */
+				child_r_start(hc);
+				close(p[1]);
+				httpd_parse_resp(p[0],hc->conn_fd,1,1);
+				exit( 0 );
+			}
+			/* Parent process. */
+			close(p[0]);
+			dup2(p[1],hc->conn_fd);
+			close(p[1]);
+			drop_child("parse_resp",ipid,hc);
+		}
+
 		send_mime(
 			hc, 200, ok200title, hc->encodings, "", hc->type, hc->sb.st_size,
 			hc->sb.st_mtime );
-		}
-
-	return 0;
 	}
+	return 0;
+}
 
 
 static void
