@@ -77,7 +77,7 @@
 ** or whatever.  If you don't want any limit, comment this out, but that's
 ** probably a really bad idea.
 */
-#define CGI_TIMELIMIT 90
+#define CGI_TIMELIMIT 180
 
 /* CONFIGURE: Maximum number of simultaneous CGI programs allowed.
 ** If this many are already running, then attempts to run more will

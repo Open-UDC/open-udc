@@ -261,7 +261,7 @@ void drop_child(const char * type,pid_t pid,httpd_conn* hc);
 void child_r_start(httpd_conn* hc);
 
 /* parse an HTTP response from rfd, sign it eventually, and write it into socket */
-int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign);
+int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi);
 
 /* Send an error message back to the client. */
 extern void httpd_send_err(

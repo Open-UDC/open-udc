@@ -99,9 +99,9 @@ for ((i=0;$#;)) ; do
 	shift
 done
 
-mkdir -p  "$dir/gpgme" "$dir/pub/self" "$dir/pub/d" "$dir/pub/k"
+mkdir -p  "$dir/gpgme" "$dir/sigcache" "$dir/pub/d" "$dir/pub/k"
 if ((isroot)) ; then
-	chown .ludd "$dir/pub/self" "$dir/pub/d" "$dir/pub/k"
+	chown .ludd "$dir/sigcache" "$dir/pub/d" "$dir/pub/k"
 fi
 
 if [[ "$dir" != "$refdir" ]] ; then

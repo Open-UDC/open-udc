@@ -74,11 +74,11 @@
 #endif
 
 #ifndef MAXPATHLEN
-#define MAXPATHLEN 4096
+#define MAXPATHLEN 2048
 #endif
 
 #ifndef BUFSIZE
-#define BUFSIZE 2048
+#define BUFSIZE 32768
 #endif
 
 /* extern golbal variable */
@@ -1827,8 +1827,7 @@ httpd_parse_request( httpd_conn* hc )
 						}
 					}
 				}
-			else if ( strncasecmp( buf, "Range-If:", 9 ) == 0 ||
-					  strncasecmp( buf, "If-Range:", 9 ) == 0 )
+			else if ( strncasecmp( buf, "If-Range:", 9 ) == 0 )
 				{
 				cp = &buf[9];
 				hc->range_if = tdate_parse( cp );
@@ -2840,18 +2839,41 @@ static void gpg_data_release_cb(void *handle)
 	    /* must just be present... bug or feature?!? */
 }
 
-/*! parse an HTTP response (CGI or not) from rfd, sign it if status in it is 2XX, and write it to the fd "socket".
+/*! Check the dirname of a path, and create missing directories if needed
+ * \return like mkdir: 0 on succes, -1 on error (cf. errno) */
+static int mk_path(const char * path) {
+	char * cp , * dir=strdup(path);
+	struct stat std;
+
+	cp=strchr(dir,'/');
+	while (cp) {
+		*cp='\0';
+		if ( stat(dir,&std) < 0 && mkdir(dir,0755) < 0) {
+		/* If the path does not exist and we fail to create it */
+			free(dir);
+			return -1;
+		}
+		*cp='/';
+		cp++;
+		cp=strchr(cp,'/');
+	}
+	free(dir);
+	return 0;
+}
+
+
+
+/*! parse an HTTP response (CGI or not) from rfd, sign it if status in it is 2XX, and write it to the hc->conn_fd.
  * \param rfd: the file descriptor to read the response from
- * \param sign_asked: If the client asked signed data ("multipart/signed" in its "Accept:" header).
- * \param force_sign: If force_sign and sign_asked are set, it won't check the content-type and will sign even if it's already "multipart/signed". If sign_asked is not set this parameter is ignored.
+ * \param cgi: If set, the function won't sign if Content-type is already "multipart/signed" or if HC_DETACH_SIGN is unset, and won't cache the signature. If unset, the function will always sign (regardless of HC_DETACH_SIGN) and will use cached signature if HC_GOT_RANGE is unset.
  * \return the HTTP status of the written response.
  */
-int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
+int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 #define HTTP_MAX_CONTENTHEADERS 9
 #define HTTP_MAX_HEADERS 40
 #define HTTPD_PARSE_RESP_RETURN(code) { \
 	(fp?fclose(fp):close(rfd)); \
-	close(socket); \
+	close(hc->conn_fd); \
 	free(buf); \
 	for (i=0;i<n_c_headers;i++) \
 		free(c_headers[i]); \
@@ -2863,21 +2885,23 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 	FILE * fp;
 	char * c_headers[HTTP_MAX_CONTENTHEADERS]={(char *)0};
 	char * o_headers[HTTP_MAX_HEADERS]={(char *)0};
-	int  n_c_headers=0,n_o_headers=0,do_sign;
+	int  n_c_headers=0,n_o_headers=0,do_sign,use_cache;
 	ssize_t r;
-	size_t buflen=BUFSIZE,fr;
+	size_t buflen=BUFSIZE;
 	char * buf=malloc(buflen);
 	int status=-1,i;
 	char* title;
 	char* cp;
+	struct stat sts;
 
 
-	do_sign=(sign_asked?force_sign:0);
+	do_sign=(cgi?0:1);
+	use_cache=0; /* will be set to 1 (use cache) or 2 (do the cache) if ( !cgi and "../sigcache/" exist) later */
 
 	/* use a file descriptor for getline (which is POSIX since 2008, glibc >= 2.10 )*/
 	if ( !(fp=fdopen(rfd,"r")) ) {
 		syslog( LOG_ERR, "fdopen - %m");
-		httpd_send_err2(socket, 500, err500title, err500form);
+		httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 		HTTPD_PARSE_RESP_RETURN(500);
 	}
 
@@ -2896,7 +2920,7 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 				break;
 			} else {	/* unmanaged error (mem,... ) */
 				syslog( LOG_ERR, "getline - %m");
-				httpd_send_err2(socket, 500, err500title, err500form);
+				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 		} else if (r<=2) /* end of headers reached */
@@ -2915,7 +2939,7 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 				status = 302;
 		}
 
-		if ( sign_asked && !do_sign &&!strncasecmp(buf, "Content-Type:", 13) ) {
+		if ( !do_sign && (hc->bfield & HC_DETACH_SIGN) &&!strncasecmp(buf, "Content-Type:", 13) ) {
 			cp = buf+13;
 			cp += strspn( cp, " \t" );
 			if ( strncmp(cp,"multipart/msigned",sizeof("multipart/msigned")-1) )
@@ -2926,14 +2950,14 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 		if ( !strncasecmp( buf, "Content-",8 ) ) {
 			if (! (c_headers[n_c_headers]=strdup(buf)) ) {
 				syslog( LOG_ERR, "strdup - %m");
-				httpd_send_err2(socket, 500, err500title, err500form);
+				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 			n_c_headers=MIN(HTTP_MAX_CONTENTHEADERS-1,n_c_headers+1);
 		} else {
 			if (! (o_headers[n_o_headers]=strdup(buf)) ) {
 				syslog( LOG_ERR, "strdup - %m");
-				httpd_send_err2(socket, 500, err500title, err500form);
+				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 			n_o_headers=MIN(HTTP_MAX_HEADERS-2,n_o_headers+1); /* Keep 1 slot empty to eventually insert "HTTP/..." */
@@ -2942,49 +2966,65 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 	
 	/* If there were no "Content-*:" headers, bail. */
 	if ( !c_headers[0] ) {
-		syslog( LOG_ERR, "no header (%d)",force_sign);
-		httpd_send_err2(socket, 500, err500title, err500form);
+		syslog( LOG_ERR, "no header (%d)",cgi);
+		httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 		HTTPD_PARSE_RESP_RETURN(500);
 	}
 
-	/* set a default status (because cgi may return none) */
-	if (status<0)
-		status=200;
+	if (cgi) {
+		/* set a default status (because cgi may return none) */
+		if (status<0)
+			status=200;
 
-	/* Check if first header start with "HTTP/ ... ", (still because of cgi) */
-	if ( !o_headers[0] || strncmp(o_headers[0], "HTTP/", 5 ) ) {
+		/* Check if first header start with "HTTP/ ... ", (still for cgi) */
+		if ( !o_headers[0] || strncmp(o_headers[0], "HTTP/", 5 ) ) {
 
-		for (i=n_o_headers;i>0;i--)
-			o_headers[i]=o_headers[i-1];
-		n_o_headers++;
+			for (i=n_o_headers;i>0;i--)
+				o_headers[i]=o_headers[i-1];
+			n_o_headers++;
 
-		if ( ! (o_headers[0]=malloc(100)) ) {
-			syslog( LOG_ERR, "malloc - %m");
-			httpd_send_err2(socket, 500, err500title, err500form);
-			HTTPD_PARSE_RESP_RETURN(500);
-		}
-
-		/* Insert the status line. */
-		switch ( status )
-			{
-			case 200: title = ok200title; break;
-			case 302: title = err302title; break;
-			case 304: title = err304title; break;
-			case 400: title = httpd_err400title; break;
-#ifdef AUTH_FILE
-			case 401: title = err401title; break;
-#endif /* AUTH_FILE */
-			case 403: title = err403title; break;
-			case 404: title = err404title; break;
-			case 408: title = httpd_err408title; break;
-			case 500: title = err500title; break;
-			case 501: title = err501title; break;
-			case 503: title = httpd_err503title; break;
-			default: title = "Something"; break;
+			if ( ! (o_headers[0]=malloc(100)) ) {
+				syslog( LOG_ERR, "malloc - %m");
+				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+				HTTPD_PARSE_RESP_RETURN(500);
 			}
-		my_snprintf(o_headers[0],99, "HTTP/1.0 %d %s\015\012", status, title );
+
+			/* Insert the status line. */
+			switch ( status )
+				{
+				case 200: title = ok200title; break;
+				case 302: title = err302title; break;
+				case 304: title = err304title; break;
+				case 400: title = httpd_err400title; break;
+#ifdef AUTH_FILE
+				case 401: title = err401title; break;
+#endif /* AUTH_FILE */
+				case 403: title = err403title; break;
+				case 404: title = err404title; break;
+				case 408: title = httpd_err408title; break;
+				case 500: title = err500title; break;
+				case 501: title = err501title; break;
+				case 503: title = httpd_err503title; break;
+				default: title = "Something"; break;
+				}
+			my_snprintf(o_headers[0],99, "HTTP/1.0 %d %s\015\012", status, title );
+		}
+	} else {
+		if ( chdir("../sigcache") < 0 ) {
+			syslog( LOG_ERR,"chdir %s - %m","../sigcache");
+		} else if (!(hc->bfield & HC_GOT_RANGE)){
+			use_cache=2; /* by default: do the cache */
+			if ( stat(hc->expnfilename,&sts) == 0 ) { 
+				if ( ! S_ISREG(sts.st_mode) ) {
+					/* May happen ... */
+					remove(hc->expnfilename);
+					syslog( LOG_WARNING,"remove %s - %m",hc->expnfilename);
+				} else if ( sts.st_mtime > hc->sb.st_mtime )
+				/* The cached signature seems newer than file */
+					use_cache=1; /* just use it */
+			}
+		}
 	}
-	//syslog( LOG_INFO, "%d %d %d %s",n_o_headers,o_headers[0],o_headers[1],o_headers[0]);
 
 	if (do_sign && status>=200 && status<300) {
 
@@ -3004,12 +3044,12 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 		};
 		fp2fd_gpg_data_handle_t cb_handle = {
 			fp,				/* fp in */
-			socket     		/* fd out */
+			hc->conn_fd     		/* fd out */
 		};
 
 		if (!bound) {
 			syslog(LOG_ERR, "malloc - %m");
-			httpd_send_err2(socket, 500, err500title, err500form);
+			httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 			HTTPD_PARSE_RESP_RETURN(500);
 		}
 
@@ -3019,7 +3059,7 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			syslog(LOG_ERR, gpgme_strerror(gpgerr));
-			httpd_send_err2(socket, 500, err500title, err500form);
+			httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
 			HTTPD_PARSE_SIGN_CLEAN();
 			HTTPD_PARSE_RESP_RETURN(500);
 		}
@@ -3028,79 +3068,135 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 		/* Write the headers. */
 		for (i=0;i<n_o_headers;i++) {
 			r=strlen(o_headers[i]);
-			if (httpd_write_fully(socket,o_headers[i],r) !=r ) {
+			if (httpd_write_fully(hc->conn_fd,o_headers[i],r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
-				HTTPD_PARSE_RESP_RETURN(500);
+				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
 
 		r=my_snprintf(buf,buflen-1, "%s %s; %s=%s\015\012\015\012--%s\015\012","Content-Type:","multipart/msigned","boundary",bound,bound);
 		r=MIN(r,buflen);
-		if (httpd_write_fully(socket,buf,r) !=r ) {
+		if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 			HTTPD_PARSE_SIGN_CLEAN();
-			HTTPD_PARSE_RESP_RETURN(500);
+			HTTPD_PARSE_RESP_RETURN(-1);
 		}
 		/* Write the "Content-*" headers. */
 		for (i=0;i<n_c_headers;i++) {
 			r=strlen(c_headers[i]);
-			if (httpd_write_fully(socket,c_headers[i],r) !=r ) {
+			if (httpd_write_fully(hc->conn_fd,c_headers[i],r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
-				HTTPD_PARSE_RESP_RETURN(500);
+				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
-		httpd_write_fully(socket,"\015\012",2);
-	
+		httpd_write_fully(hc->conn_fd,"\015\012",2);
+
 		/* contrary to RFC 3156, no headers are signed, only the content */
-		gpgerr = gpgme_op_sign (main_gpgctx, gpgdata,gpgsig,GPGME_SIG_MODE_DETACH);
+		if (use_cache==1) {
+			for (;;) {
+				r = fread(buf,sizeof(char), buflen-1,fp );
+				if ( r <= 0 ) {
+					if ( errno == EINTR || errno == EAGAIN ) { /* should not happen (in blocking mode) */
+						struct timespec tim={0, 100000000}; /* 100 ms */
+						nanosleep(&tim, NULL);
+						continue;
+					} else if ( feof(fp) ) {
+						break;
+					} else {	/* unmanaged error (mem,... ) */
+						syslog( LOG_ERR, "fread - %m");
+						HTTPD_PARSE_SIGN_CLEAN();
+						HTTPD_PARSE_RESP_RETURN(-1);
+					}
+				}
+				if ( httpd_write_fully(hc->conn_fd, buf, r ) != r ) {
+					HTTPD_PARSE_SIGN_CLEAN();
+					HTTPD_PARSE_RESP_RETURN(-1);
+				}
+			}
+			gpgerr=GPG_ERR_NO_ERROR;
+		} else
+			gpgerr = gpgme_op_sign (main_gpgctx, gpgdata,gpgsig,GPGME_SIG_MODE_DETACH);
+
 		if ( gpgerr == GPG_ERR_NO_ERROR) {
 			off_t siglen;
-			siglen=gpgme_data_seek (gpgsig, 0, SEEK_END);
-			gpgme_data_seek(gpgsig, 0, SEEK_SET);	
+			FILE * sigfile;
+			if (use_cache==1) 
+				siglen=sts.st_size;
+			else {
+				siglen=gpgme_data_seek(gpgsig, 0, SEEK_END);
+				gpgme_data_seek(gpgsig, 0, SEEK_SET);
+			}	
 			r=my_snprintf(buf,buflen-1, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",siglen);
 			r=MIN(r,buflen);
-			if (httpd_write_fully(socket,buf,r) !=r ) {
+			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
-				HTTPD_PARSE_RESP_RETURN(500);
+				HTTPD_PARSE_RESP_RETURN(-1);
 			}
-		    while ( (r=gpgme_data_read(gpgsig, buf, buflen)) )
-				if (httpd_write_fully(socket,buf,r) !=r ) {
-					HTTPD_PARSE_SIGN_CLEAN();
-					HTTPD_PARSE_RESP_RETURN(500);
+
+			if (use_cache==2) {
+			/* (Try to) Cache the signature */
+				if ( mk_path(hc->expnfilename) == 0 && (sigfile=fopen(hc->expnfilename,"w")) ) {
+			   		while ( (r=gpgme_data_read(gpgsig, buf, buflen)) > 0 )
+						if (fwrite(buf,sizeof(char),r,sigfile) != r) {
+						   unlink(hc->expnfilename);
+					   	   break;
+						}	   
+					fclose(sigfile);
+					gpgme_data_seek(gpgsig, 0, SEEK_SET);	
 				}
+			}
+
+			if (use_cache==1) {
+			/* output cached signature */
+				sigfile=fopen(hc->expnfilename,"r");
+				if (sigfile) {
+					while ( (r=fread(buf,sizeof(char), buflen-1, sigfile)) )
+						if ( httpd_write_fully(hc->conn_fd, buf, r ) != r ) {
+							HTTPD_PARSE_SIGN_CLEAN();
+							HTTPD_PARSE_RESP_RETURN(-1);
+						}
+					fclose(sigfile);
+				}
+			} else {
+				while ( (r=gpgme_data_read(gpgsig, buf, buflen)) > 0 )
+					if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
+						HTTPD_PARSE_SIGN_CLEAN();
+						HTTPD_PARSE_RESP_RETURN(-1);
+					}
+			}
 		} else {
 			r=my_snprintf( buf,buflen-1, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
 			r=MIN(r,buflen);
-			if (httpd_write_fully(socket,buf,r) !=r ) {
+			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
-				HTTPD_PARSE_RESP_RETURN(500);
+				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
 		r=my_snprintf(buf,buflen-1, "\015\012--%s--\015\012",bound);
-		httpd_write_fully(socket, buf,MIN(r,buflen));
+		httpd_write_fully(hc->conn_fd, buf,MIN(r,buflen));
 		HTTPD_PARSE_SIGN_CLEAN();
 		HTTPD_PARSE_RESP_RETURN(status);
 	} else {
 		/* Write the headers. */
 		for (i=0;i<n_o_headers;i++) {
 			r=strlen(o_headers[i]);
-			if (httpd_write_fully(socket,o_headers[i],r) !=r ) {
-				HTTPD_PARSE_RESP_RETURN(500);
+			if (httpd_write_fully(hc->conn_fd,o_headers[i],r) !=r ) {
+				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
 		/* Write the "Content-*" headers. */
 		for (i=0;i<n_c_headers;i++) {
 			r=strlen(c_headers[i]);
-			if (httpd_write_fully(socket,c_headers[i],r) !=r ) {
-				HTTPD_PARSE_RESP_RETURN(500);
+			if (httpd_write_fully(hc->conn_fd,c_headers[i],r) !=r ) {
+				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
-		httpd_write_fully(socket,"\015\012",2);
+		httpd_write_fully(hc->conn_fd,"\015\012",2);
 	
 		/* Echo the rest of the output. */
 		for (;;) {
-			fr = fread(buf,sizeof(char), buflen-1,fp );
-			if ( fr <= 0 ) {
-				if ( errno == EINTR || errno == EAGAIN ) { /* should no more happen since using fread */
+			r = fread(buf,sizeof(char), buflen-1,fp );
+			if ( r <= 0 ) {
+				if ( errno == EINTR || errno == EAGAIN ) { /* should not happen (in blocking mode) */
 					struct timespec tim={0, 100000000}; /* 100 ms */
 					nanosleep(&tim, NULL);
 					continue;
@@ -3108,12 +3204,11 @@ int httpd_parse_resp(int rfd, int socket, int sign_asked, int force_sign) {
 					break;
 				} else {	/* unmanaged error (mem,... ) */
 					syslog( LOG_ERR, "fread - %m");
-					httpd_send_err2(socket, 500, err500title, err500form);
-					HTTPD_PARSE_RESP_RETURN(500);
+					HTTPD_PARSE_RESP_RETURN(-1);
 				}
 			}
-			if ( httpd_write_fully(socket, buf, fr ) != fr )
-				break;
+			if ( httpd_write_fully(hc->conn_fd, buf, r ) != r )
+				HTTPD_PARSE_RESP_RETURN(-1);
 		}
 		HTTPD_PARSE_RESP_RETURN(status);
 	}
@@ -3229,7 +3324,7 @@ cgi_child( httpd_conn* hc )
 			{
 			/* Child Interposer process. */
 			(void) close( p[1] );
-			httpd_parse_resp(p[0],hc->conn_fd,hc->bfield & HC_DETACH_SIGN,0);
+			httpd_parse_resp(p[0],hc,1);
 			shutdown( hc->conn_fd, SHUT_WR );
 			exit( 0 );
 			}
@@ -3665,7 +3760,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 				/* Child Interposer process. */
 				child_r_start(hc);
 				close(p[1]);
-				httpd_parse_resp(p[0],hc->conn_fd,1,1);
+				httpd_parse_resp(p[0],hc,0);
 				exit( 0 );
 			}
 			/* Parent process. */
