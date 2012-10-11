@@ -2828,7 +2828,9 @@ static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buff
 		else
 			return(-1);
 	}
-	httpd_write_fully( handle->fdout, buffer, result );
+	if (httpd_write_fully( handle->fdout, buffer, result ) != result)
+		return(-1);
+
 	return(result);
 }
 
@@ -3668,8 +3670,10 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			}
 			/* Parent process. */
 			close(p[0]);
+			/* overwrite hc->conn_fd by the pipe output */
 			dup2(p[1],hc->conn_fd);
 			close(p[1]);
+			httpd_set_ndelay(hc->conn_fd);
 			drop_child("parse_resp",ipid,hc);
 		}
 
