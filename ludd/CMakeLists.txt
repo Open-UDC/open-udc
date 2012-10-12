@@ -43,7 +43,7 @@ ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
 ADD_SUBDIRECTORY(doxydocs)
 ADD_SUBDIRECTORY(scripts)
 ADD_SUBDIRECTORY(src)
-ADD_SUBDIRECTORY(udid2js)
+ADD_SUBDIRECTORY(html_src)
 
 ######################################################################################
 

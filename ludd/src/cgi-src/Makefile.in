@@ -60,7 +60,7 @@ strerror.o:
 	@ln -s ../strerror.o
 	cd .. ; $(MAKE) $(MFLAGS) strerror.o
 
-install:	all
+installthis:	all
 	-mkdir -p $(CGIBINDIR)
 	rm -f $(CGIBINDIR)/redirect
 	cp redirect $(CGIBINDIR)/redirect
@@ -72,6 +72,10 @@ install:	all
 	cp ssi.8 $(MANDIR)/man8/ssi.8
 	rm -f $(CGIBINDIR)/phf
 	cp phf $(CGIBINDIR)/phf
+
+# Old thttpd's cgi are no more installed.
+#install: installthis
+install:
 
 uninstall:
 	rm -rf $(CGIBINDIR)

@@ -89,7 +89,6 @@ installthis:
 	-mkdir -p $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 555 ludd $(DESTDIR)$(BINDIR)
 	$(INSTALL) -m 555 ludd_init.sh $(DESTDIR)$(BINDIR)
-	$(INSTALL) robots.txt $(HOMEDIR)/$(WEBDIR)
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8

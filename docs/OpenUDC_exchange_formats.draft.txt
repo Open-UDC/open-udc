@@ -79,21 +79,20 @@ Request for Comments:                                      Open-UDC Team
   Here is an OverView of such tree structure :
 
 http[s]://Node[:port]/[Root/]...
-|-- in/
-|   |-- creation
-|   |-- transaction
-|   `-- sign
+|-- udc/
+|   |-- create
+|   `-- validate
 |-- udid2/
 |   |-- geolist_FRA.txt.asc
 |   |-- geolist_ITA.txt.asc
 |   |(...)
 |   `-- index.html
 |-- pks/
-|   |-- add
-|   |-- padd
+|   |-- keyservers
 |   `-- lookup
 |-- peers/
 |   |-- self
+|   |-- register
 |   `-- list
 |-- c/
 |   `-- [CREATION_SHEET_NUM]/

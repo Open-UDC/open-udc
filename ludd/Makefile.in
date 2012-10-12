@@ -41,7 +41,7 @@ HOMEDIR = @localstatedir@/ludd
 WEBDIR = pub
 
 # CONFIGURE: Directory for CGI executables.
-CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/in
+CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/cgi-bin
 
 # default user to switch to, when running as root
 LUDDUSER =	@ludduser@
@@ -61,7 +61,7 @@ INSTALL =	@INSTALL@
 
 @SET_MAKE@
 
-SUBDIRS =	src udid2js
+SUBDIRS =	src html_src
 
 all:		subdirs
 this:		all
