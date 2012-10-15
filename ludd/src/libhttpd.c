@@ -54,6 +54,7 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <pthread.h>
 #include <gpgme.h>
 
 #ifdef HAVE_DIRENT_H
@@ -96,16 +97,6 @@ extern char* crypt( const char* key, const char* setting );
 #include "tdate_parse.h"
 #include "hkp.h"
 
-#ifndef STDIN_FILENO
-#define STDIN_FILENO 0
-#endif
-#ifndef STDOUT_FILENO
-#define STDOUT_FILENO 1
-#endif
-#ifndef STDERR_FILENO
-#define STDERR_FILENO 2
-#endif
-
 #ifndef SHUT_WR
 #define SHUT_WR 1
 #endif
@@ -129,6 +120,11 @@ typedef int socklen_t;
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #endif
 
+/* a struct passed to callbacks for gpgme data buffers */
+struct fp2fd_gpg_data_handle {
+	FILE * fpin;
+	int fdout;
+}; 
 
 /* Forwards. */
 static void free_httpd_server( httpd_server* hs );
@@ -161,8 +157,8 @@ static int ls( httpd_conn* hc );
 static char* build_env( char* fmt, char* arg );
 static char** make_envp( httpd_conn* hc );
 static char** make_argp( httpd_conn* hc );
-static void cgi_interpose_input( httpd_conn* hc, int wfd );
-static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buffer, size_t size);
+static void cgi_interpose_input(interpose_args_t * args);
+static ssize_t fp2fd_gpg_data_rd_cb(struct fp2fd_gpg_data_handle * handle, void *buffer, size_t size);
 static void gpg_data_release_cb(void *handle);
 static void cgi_child( httpd_conn* hc );
 static int cgi( httpd_conn* hc );
@@ -2764,8 +2760,10 @@ make_argp( httpd_conn* hc )
 ** buffer.
 */
 static void
-cgi_interpose_input( httpd_conn* hc, int wfd )
+cgi_interpose_input(interpose_args_t * args)
 	{
+	int wfd=args->fd;
+	const httpd_conn * hc=args->hc;
 	size_t c;
 	ssize_t r;
 	char buf[BUFSIZE];
@@ -2812,7 +2810,7 @@ cgi_interpose_input( httpd_conn* hc, int wfd )
 	}
 
 /* callback to get data from a FILE stream and duplicate it to and fd output */
-static ssize_t fp2fd_gpg_data_rd_cb(fp2fd_gpg_data_handle_t * handle, void *buffer, size_t size)
+static ssize_t fp2fd_gpg_data_rd_cb(struct fp2fd_gpg_data_handle * handle, void *buffer, size_t size)
 {
 	size_t result;
 
@@ -2839,11 +2837,14 @@ static void gpg_data_release_cb(void *handle)
 	    /* must just be present... bug or feature?!? */
 }
 
-/*! Check the dirname of a path, and create missing directories if needed
+/*! Check the dirname of a file path, and create missing directories if needed
  * \return like mkdir: 0 on succes, -1 on error (cf. errno) */
 static int mk_path(const char * path) {
 	char * cp , * dir=strdup(path);
 	struct stat std;
+
+	if (!dir)
+		return(-1);
 
 	cp=strchr(dir,'/');
 	while (cp) {
@@ -2861,14 +2862,43 @@ static int mk_path(const char * path) {
 	return 0;
 }
 
+/*! Chdir into the dirname of a file path.
+ * \return the basename of the file path, or NULL on error (cf. errno)
+ * \Note: if input is not a file path (eg finishing with a '/') it will return an empty string (""). */
+static const char * chdir_path(const char * path) {
+	char * directory, * binary;
 
+	directory = strdup(path);
+	if (! directory)
+		return NULL;
+
+	binary = strrchr( directory, '/' );
+	if ( ! binary ) {
+		free(directory);
+		return path;
+	} else {
+		*binary = '\0';
+		if ( chdir(directory) == 0 ) {
+			free(directory);
+			return &path[(binary-directory+1)];
+		} else {
+			free(directory);
+			return(NULL);
+		}
+	}
+}
 
 /*! parse an HTTP response (CGI or not) from rfd, sign it if status in it is 2XX, and write it to the hc->conn_fd.
- * \param rfd: the file descriptor to read the response from
+ * \param fd: the file descriptor to read the response from
  * \param cgi: If set, the function won't sign if Content-type is already "multipart/signed" or if HC_DETACH_SIGN is unset, and won't cache the signature. If unset, the function will always sign (regardless of HC_DETACH_SIGN) and will use cached signature if HC_GOT_RANGE is unset.
- * \return the HTTP status of the written response.
+ * \Note: it closes the rfd and the hc->conn_fd before to return.
+ *
  */
-int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
+void httpd_parse_resp(interpose_args_t * args) {
+	int rfd=args->fd;
+	const httpd_conn * hc=args->hc;
+	int cgi=args->option;
+#define SIG_CACHE_DIR "../sigcache"
 #define HTTP_MAX_CONTENTHEADERS 9
 #define HTTP_MAX_HEADERS 40
 #define HTTPD_PARSE_RESP_RETURN(code) { \
@@ -2879,7 +2909,7 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 		free(c_headers[i]); \
 	for (i=0;i<n_o_headers;i++) \
 		free(o_headers[i]); \
-	return(code); \
+	return ; \
 	}
 
 	FILE * fp;
@@ -2890,13 +2920,13 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 	size_t buflen=BUFSIZE;
 	char * buf=malloc(buflen);
 	int status=-1,i;
-	char* title;
-	char* cp;
+	char * title, * cp;
+	char fcache[MAXPATHLEN];
 	struct stat sts;
 
 
 	do_sign=(cgi?0:1);
-	use_cache=0; /* will be set to 1 (use cache) or 2 (do the cache) if ( !cgi and "../sigcache/" exist) later */
+	use_cache=0; /* will be set to 1 (use cache) or 2 (do the cache) if ( !cgi and SIG_CACHE_DIR exist) later */
 
 	/* use a file descriptor for getline (which is POSIX since 2008, glibc >= 2.10 )*/
 	if ( !(fp=fdopen(rfd,"r")) ) {
@@ -3007,18 +3037,20 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 				case 503: title = httpd_err503title; break;
 				default: title = "Something"; break;
 				}
-			my_snprintf(o_headers[0],99, "HTTP/1.0 %d %s\015\012", status, title );
+			my_snprintf(o_headers[0],100, "HTTP/1.0 %d %s\015\012", status, title );
 		}
 	} else {
-		if ( chdir("../sigcache") < 0 ) {
-			syslog( LOG_ERR,"chdir %s - %m","../sigcache");
+		if ( stat(SIG_CACHE_DIR,&sts) < 0 || !S_ISDIR(sts.st_mode) ) {
+			syslog( LOG_ERR,"invalid cache dir %s - %m",SIG_CACHE_DIR);
+		} else if ( snprintf(fcache,MAXPATHLEN,"%s/%s",SIG_CACHE_DIR,hc->expnfilename) >= MAXPATHLEN ) {
+			syslog( LOG_ERR,"too big cache path - %s",hc->expnfilename);
 		} else if (!(hc->bfield & HC_GOT_RANGE)){
 			use_cache=2; /* by default: do the cache */
-			if ( stat(hc->expnfilename,&sts) == 0 ) { 
+			if ( stat(fcache,&sts) == 0 ) { 
 				if ( ! S_ISREG(sts.st_mode) ) {
 					/* May happen ... */
-					remove(hc->expnfilename);
-					syslog( LOG_WARNING,"remove %s - %m",hc->expnfilename);
+					remove(fcache);
+					syslog( LOG_WARNING,"remove %s - %m",fcache);
 				} else if ( sts.st_mtime > hc->sb.st_mtime )
 				/* The cached signature seems newer than file */
 					use_cache=1; /* just use it */
@@ -3042,7 +3074,7 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 			NULL,									/* seek method */
 			gpg_data_release_cb						/* release method */
 		};
-		fp2fd_gpg_data_handle_t cb_handle = {
+		struct fp2fd_gpg_data_handle cb_handle = {
 			fp,				/* fp in */
 			hc->conn_fd     		/* fd out */
 		};
@@ -3074,7 +3106,7 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 			}
 		}
 
-		r=my_snprintf(buf,buflen-1, "%s %s; %s=%s\015\012\015\012--%s\015\012","Content-Type:","multipart/msigned","boundary",bound,bound);
+		r=my_snprintf(buf,buflen, "%s %s; %s=%s\015\012\015\012--%s\015\012","Content-Type:","multipart/msigned","boundary",bound,bound);
 		r=MIN(r,buflen);
 		if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 			HTTPD_PARSE_SIGN_CLEAN();
@@ -3125,7 +3157,7 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 				siglen=gpgme_data_seek(gpgsig, 0, SEEK_END);
 				gpgme_data_seek(gpgsig, 0, SEEK_SET);
 			}	
-			r=my_snprintf(buf,buflen-1, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",siglen);
+			r=my_snprintf(buf,buflen, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",siglen);
 			r=MIN(r,buflen);
 			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
@@ -3134,10 +3166,10 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 
 			if (use_cache==2) {
 			/* (Try to) Cache the signature */
-				if ( mk_path(hc->expnfilename) == 0 && (sigfile=fopen(hc->expnfilename,"w")) ) {
+				if ( mk_path(fcache) == 0 && (sigfile=fopen(fcache,"w")) ) {
 			   		while ( (r=gpgme_data_read(gpgsig, buf, buflen)) > 0 )
 						if (fwrite(buf,sizeof(char),r,sigfile) != r) {
-						   unlink(hc->expnfilename);
+						   unlink(fcache);
 					   	   break;
 						}	   
 					fclose(sigfile);
@@ -3147,7 +3179,7 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 
 			if (use_cache==1) {
 			/* output cached signature */
-				sigfile=fopen(hc->expnfilename,"r");
+				sigfile=fopen(fcache,"r");
 				if (sigfile) {
 					while ( (r=fread(buf,sizeof(char), buflen-1, sigfile)) )
 						if ( httpd_write_fully(hc->conn_fd, buf, r ) != r ) {
@@ -3164,14 +3196,14 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 					}
 			}
 		} else {
-			r=my_snprintf( buf,buflen-1, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
+			r=my_snprintf( buf,buflen, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
 			r=MIN(r,buflen);
 			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
-		r=my_snprintf(buf,buflen-1, "\015\012--%s--\015\012",bound);
+		r=my_snprintf(buf,buflen, "\015\012--%s--\015\012",bound);
 		httpd_write_fully(hc->conn_fd, buf,MIN(r,buflen));
 		HTTPD_PARSE_SIGN_CLEAN();
 		HTTPD_PARSE_RESP_RETURN(status);
@@ -3216,194 +3248,154 @@ int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi) {
 
 /* CGI child process. */
 static void
-cgi_child( httpd_conn* hc )
-	{
-	pid_t ipid;
+cgi_child( httpd_conn* hc ) {
 	char** argp;
 	char** envp;
-	char* binary;
-	char* directory;
+	int i,interpose_input,interpose_output;
 
 	/* Unset close-on-exec flag for this socket.  This actually shouldn't
 	** be necessary, according to POSIX a dup()'d file descriptor does
 	** *not* inherit the close-on-exec flag, its flag is always clear.
 	** However, Linux messes this up and does copy the flag to the
-	** dup()'d descriptor, so we have to clear it.  This could be
-	** ifdeffed for Linux only.
+	** dup()'d descriptor, so we have to clear it.
+	* TODO: This could be ifdeffed for Linux only.
 	*/
 	(void) fcntl( hc->conn_fd, F_SETFD, 0 );
 
-	/* If the socket happens to be using one of the stdin/stdout/stderr
-	** descriptors, move it to another descriptor so that the dup2 calls
-	** below don't screw things up.  We did arbitrarily pick fd 9 - if there
-	** was already something on it, he clobber it, but that doesn't matter
-	** since at this point the only fd of interest is the connection.
-	** All others will be closed on exec.
-	*/
-	if ( hc->conn_fd == STDIN_FILENO || hc->conn_fd == STDOUT_FILENO || hc->conn_fd == STDERR_FILENO )
-		{
-		int newfd = dup2( hc->conn_fd,9);
-		if ( newfd >= 0 )
-			hc->conn_fd = newfd;
-		/* If the dup fails, shrug.  We'll just take our chances.
-		** Shouldn't happen though.
-		*/
-		}
-
 	/* Make the environment vector. */
 	envp = make_envp( hc );
-
 	/* Make the argument vector. */
 	argp = make_argp( hc );
 
-	/* Set up stdin.  For POSTs we may have to set up a pipe from an
-	** interposer process, depending on if we've read some of the data
-	** into our buffer.
-	*/
-	if ( hc->method == METHOD_POST && hc->read_idx > hc->checked_idx )
-		{
-		int p[2];
+	interpose_input=(hc->method == METHOD_POST && hc->read_idx > hc->checked_idx );
+	interpose_output=( strncmp(argp[0], "nph-", 4) && hc->http_version > 9 );
 
-		if ( pipe( p ) < 0 )
-			{
-			syslog( LOG_ERR, "pipe - %m" );
+	//syslog( LOG_ERR, "in:%d out:%d read_idx:%d checked_idx:%d",interpose_input,interpose_output,hc->read_idx,hc->checked_idx);
+
+	/* First duplicate the socket to stdin/stdout/stderr, if there
+	** was already something on it,we clobber it, but that doesn't matter
+	** since at this point the only fd of interest is the connection.
+	** All others will be closed on exec.
+	** Note: if syslog use stdin,stdout or stderr, it will be closed. But it should use a fd > 2 since it was open before to close them in thttpd.c.
+	*/
+	
+	if ( dup2(hc->conn_fd,STDIN_FILENO) < 0
+			|| dup2(hc->conn_fd,STDOUT_FILENO) < 0
+			|| dup2(hc->conn_fd,STDERR_FILENO) < 0 ) {
+		syslog( LOG_ERR, "dup2 - %m" );
+		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+		exit(EXIT_FAILURE);
+	}
+
+	if ( interpose_input || interpose_output ) {
+		/* we will need to create an interposer process */
+		pid_t ipid;
+		int pin[2],pou[2];
+
+		/* hc->conn_fd should be stdin,stdout or stderr. So save it first */
+		hc->conn_fd=dup(hc->conn_fd);
+		if ( hc->conn_fd < 0 ) {
+			syslog( LOG_ERR, "dup - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			exit( 1 );
+			exit(EXIT_FAILURE);
+		}
+
+		/* Then create needed pipe(s) : */
+		if ( interpose_input ) {
+			if ( pipe( pin ) < 0 ) {
+				syslog( LOG_ERR, "pipe - %m" );
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				exit(EXIT_FAILURE);
 			}
+		}
+		if ( interpose_output ) {
+			if ( pipe( pou ) < 0 ) {
+				syslog( LOG_ERR, "pipe - %m" );
+				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				exit( 1 );
+			}
+		}
+
+		/* Now we fork */
 		ipid = fork( );
-		if ( ipid < 0 )
-			{
+		if ( ipid < 0 ) {
 			syslog( LOG_ERR, "fork - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			exit( 1 );
-			}
-		if ( ipid == 0 )
-			{
+			exit(EXIT_FAILURE);
+		}
+		if ( ipid == 0 ) {
 			/* Child Interposer process. */
-			(void) close( p[0] );
-			cgi_interpose_input( hc, p[1] );
-			exit( 0 );
-			}
-		/* Need to schedule a kill for process r; but in the main process! */
-		(void) close( p[1] );
-		if ( p[0] != STDIN_FILENO )
-			{
-			(void) dup2( p[0], STDIN_FILENO );
-			(void) close( p[0] );
-			}
-		}
-	else
-		{
-		/* Otherwise, the request socket is stdin. */
-		if ( hc->conn_fd != STDIN_FILENO )
-			(void) dup2( hc->conn_fd, STDIN_FILENO );
-		}
+			interpose_args_t agin,agou;
+			pthread_t tin;
+			int s;
 
-	/* Set up stdout/stderr.  If we're doing CGI header parsing,
-	** we need an output interposer too.
-	*/
-	if ( strncmp( argp[0], "nph-", 4 ) != 0 && ( hc->http_version > 9 ) )
-		/* Note: argp[0] is the script name and nph means "Not Parse Header" */
-		{
-		int p[2];
+			if ( interpose_input ) {
+				close(pin[0]);
+				/* Create a thread for input */
+				agin.fd=pin[1];
+				agin.hc=hc;
+				s=pthread_create(&tin, NULL,(void * (*)(void *)) &cgi_interpose_input, &agin);
+				if ( s !=0 ) {
+					errno=s;
+					syslog( LOG_ERR, "pthread_create - %m" );
+					httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+					exit(EXIT_FAILURE);
+				}
+			}
 
-		if ( pipe( p ) < 0 )
-			{
-			syslog( LOG_ERR, "pipe - %m" );
-			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			exit( 1 );
+			if ( interpose_output ) {
+				close(pou[1]);
+				/* And parse output */
+				agou.fd=pou[0];
+				agou.hc=hc;
+				agou.option=1;
+				httpd_parse_resp(&agou);
+			} else if ( interpose_input ) {
+				/* No output interposer but an input one, wait the end of the thread */
+				pthread_join(tin, NULL);
+				/* TODO: Use such call instead if possible (flag for GNU) */
+				//pthread_timedjoin_np(pthread_t thread, void **retval, const struct timespec *abstime);
 			}
-		ipid = fork( );
-		if ( ipid < 0 )
-			{
-			syslog( LOG_ERR, "fork - %m" );
-			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
-			exit( 1 );
-			}
-		if ( ipid == 0 )
-			{
-			/* Child Interposer process. */
-			(void) close( p[1] );
-			httpd_parse_resp(p[0],hc,1);
-			shutdown( hc->conn_fd, SHUT_WR );
-			exit( 0 );
-			}
-		/* Need to schedule a kill for process ipid; but in the main process! */
-		(void) close( p[0] );
-		if ( p[1] != STDOUT_FILENO )
-			(void) dup2( p[1], STDOUT_FILENO );
-		if ( p[1] != STDERR_FILENO )
-			(void) dup2( p[1], STDERR_FILENO );
-		if ( p[1] != STDOUT_FILENO && p[1] != STDERR_FILENO )
-			(void) close( p[1] );
-		}
-	else
-		{
-		/* Otherwise, the request socket is stdout/stderr. */
-		if ( hc->conn_fd != STDOUT_FILENO )
-			(void) dup2( hc->conn_fd, STDOUT_FILENO );
-		if ( hc->conn_fd != STDERR_FILENO )
-			(void) dup2( hc->conn_fd, STDERR_FILENO );
-		}
 
-	/* At this point we would like to set close-on-exec again for hc->conn_fd
-	** (see previous comments on Linux's broken behavior re: close-on-exec
-	** and dup.)  Unfortunately there seems to be another Linux problem, or
-	** perhaps a different aspect of the same problem - if we do this
-	** close-on-exec in Linux, the socket stays open but stderr gets
-	** closed - the last fd duped from the socket.  What a mess.  So we'll
-	** just leave the socket as is, which under other OSs means an extra
-	** file descriptor gets passed to the child process.  Since the child
-	** probably already has that file open via stdin stdout and/or stderr,
-	** this is not a problem.
-	*/
-	/* (void) fcntl( hc->conn_fd, F_SETFD, 1 ); */
+			//shutdown( hc->conn_fd, SHUT_WR );
+			exit(EXIT_SUCCESS);
+		}
+		/* Parent process */
+		/* TODO: Need to schedule a kill for process ipid; but in the main process ; Or use 2 threads and pthread_timedjoin_np in the child process. Today as killing the cgi is already scheduled and SIGPIPE set to defaut, the child ipid may be kill by this signal. That's good but not sufficient. */
+
+		if ( hc->method == METHOD_POST )
+			dup2( pin[0], STDIN_FILENO );
+		if ( interpose_output ) {
+			dup2( pou[1], STDOUT_FILENO );
+			dup2( pou[1], STDERR_FILENO );
+		}
+	}
+	
+	/* Default behavior for SIGPIPE. */
+#ifdef HAVE_SIGSET
+		(void) sigset( SIGPIPE, SIG_DFL );
+#else /* HAVE_SIGSET */
+		(void) signal( SIGPIPE, SIG_DFL );
+#endif /* HAVE_SIGSET */
+
+	/* TODO: a FLAG to use closefrom if available. */
+	/* Note: we arbitrarily choose a limit, because it should not exist fd after. But if it's false we have to use sysconf(_SC_OPEN_MAX) instead */
+	for (i=STDERR_FILENO+1;i<10;i++)
+		close(i);
 
 	/* Split the program into directory and binary, so we can chdir()
 	** to the program's own directory.  This isn't in the CGI 1.1
-	** spec, but it's what other HTTP servers do.
-	*/
-	directory = strdup( hc->expnfilename );
-	if ( directory == (char*) 0 )
-		binary = hc->expnfilename;	  /* ignore errors */
-	else
-		{
-		binary = strrchr( directory, '/' );
-		if ( binary == (char*) 0 )
-			binary = hc->expnfilename;
-		else
-			{
-			*binary++ = '\0';
-			(void) chdir( directory );  /* ignore errors */
-			}
-		}
-
-	/* Default behavior for SIGPIPE. */
-#ifdef HAVE_SIGSET
-	(void) sigset( SIGPIPE, SIG_DFL );
-#else /* HAVE_SIGSET */
-	(void) signal( SIGPIPE, SIG_DFL );
-#endif /* HAVE_SIGSET */
-
-	/* Close the syslog descriptor so that the CGI program can't
-	** mess with it.  All other open descriptors should be either
-	** the listen socket(s), sockets from accept(), or the file-logging
-	** fd, and all of those are set to close-on-exec, so we don't
-	** have to close anything else.
-	*/
-	closelog();
-
-	/* Run the program. */
-	(void) execve( binary, argp, envp );
+	** spec, but it's what other HTTP servers do,
+	** and run it. */
+	execve(chdir_path(hc->expnfilename), argp, envp );
 
 	/* Something went wrong. */
 	openlog( argv0, LOG_NDELAY|LOG_PID, LOG_FACILITY );
 	syslog( LOG_ERR, "execve %.80s - %m", hc->expnfilename );
 	httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
 	shutdown( hc->conn_fd, SHUT_WR );
-	exit( 1 );
-	}
-
+	exit(EXIT_FAILURE);
+}
 
 static int
 cgi( httpd_conn* hc )
@@ -3758,9 +3750,10 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			}
 			if ( ipid == 0 ) {
 				/* Child Interposer process. */
+				interpose_args_t args = { p[0] , hc , 0 };
 				child_r_start(hc);
 				close(p[1]);
-				httpd_parse_resp(p[0],hc,0);
+				httpd_parse_resp(&args);
 				exit( 0 );
 			}
 			/* Parent process. */
@@ -4017,7 +4010,7 @@ ssize_t httpd_write_fully( int fd, const void* buf, size_t nbytes ) {
 			continue;
 		}
 		if ( r < 0 ) {
-			syslog( LOG_ERR, "httpd_write_fully - %d - %m", r );
+			syslog( LOG_ERR, "httpd_write_fully (%d) - %m", fd );
 			return r;
 		}
 		if ( r == 0 )

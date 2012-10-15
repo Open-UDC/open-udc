@@ -142,11 +142,12 @@ typedef struct {
 #define HC_UNSET(hc,mask) { (hc)->bfield &= ~(mask); }
 #define HC_IS_SET(hc,mask) ( (hc)->bfield & (mask) )
 
-/* struct passed to callbacks for gpgme data buffers */
+/* struct passed to pthread_create for interposed thread */
 typedef struct {
-	FILE * fpin;
-	int fdout;
-} fp2fd_gpg_data_handle_t; 
+	int fd;
+	const httpd_conn* hc;
+	int option;
+} interpose_args_t;
 
 /* Methods. */
 #define METHOD_UNKNOWN 0
@@ -261,7 +262,7 @@ void drop_child(const char * type,pid_t pid,httpd_conn* hc);
 void child_r_start(httpd_conn* hc);
 
 /* parse an HTTP response from rfd, sign it eventually, and write it into socket */
-int httpd_parse_resp(int rfd, const httpd_conn* hc, int cgi);
+void httpd_parse_resp(interpose_args_t * args);
 
 /* Send an error message back to the client. */
 extern void httpd_send_err(

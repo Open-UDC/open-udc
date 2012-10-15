@@ -805,6 +805,8 @@ main( int argc, char** argv )
 		}
 	}
 
+	gpgme_key_unref(mygpgkey);
+
 	/* Initialize our connections table. */
 	connects = NEW( connecttab, max_connects );
 	if ( connects == (connecttab*) 0 )
