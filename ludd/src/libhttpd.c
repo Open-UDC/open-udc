@@ -165,10 +165,6 @@ static int cgi( httpd_conn* hc );
 static void make_log_entry( httpd_conn* hc, struct timeval* nowP );
 static int sockaddr_check( httpd_sockaddr* saP );
 static size_t sockaddr_len( httpd_sockaddr* saP );
-#ifndef HAVE_ATOLL
-static long long atoll( const char* str );
-#endif /* HAVE_ATOLL */
-
 
 /* This global keeps track of whether we are in the main process or a
 ** sub-process.  The reason is that httpd_write_response() can get called
@@ -560,28 +556,28 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 			mod = now;
 		(void) strftime( nowbuf, sizeof(nowbuf), rfc1123fmt, gmtime( &now ) );
 		(void) strftime( modbuf, sizeof(modbuf), rfc1123fmt, gmtime( &mod ) );
-		(void) my_snprintf(
+		(void) snprintf(
 			fixed_type, sizeof(fixed_type), type, DEFAULT_CHARSET );
-		(void) my_snprintf( buf, sizeof(buf),
+		(void) snprintf( buf, sizeof(buf),
 			"%.20s %d %s\015\012Server: %s\015\012Content-Type: %s\015\012Date: %s\015\012Last-Modified: %s\015\012Accept-Ranges: bytes\015\012Connection: close\015\012",
 			hc->protocol, status, title, EXPOSED_SERVER_SOFTWARE, fixed_type,
 			nowbuf, modbuf );
 		add_response( hc, buf );
 		if ( status < 200 || status >= 400 )
 			{
-			(void) my_snprintf( buf, sizeof(buf),
+			(void) snprintf( buf, sizeof(buf),
 				"Cache-Control: no-cache,no-store\015\012" );
 			add_response( hc, buf );
 			}
 		if ( encodings[0] != '\0' )
 			{
-			(void) my_snprintf( buf, sizeof(buf),
+			(void) snprintf( buf, sizeof(buf),
 				"Content-Encoding: %s\015\012", encodings );
 			add_response( hc, buf );
 			}
 		if ( partial_content )
 			{
-			(void) my_snprintf( buf, sizeof(buf),
+			(void) snprintf( buf, sizeof(buf),
 				"Content-Range: bytes %lld-%lld/%lld\015\012%s %lld\015\012",
 				(int64_t) hc->first_byte_index, (int64_t) hc->last_byte_index,
 				(int64_t) length, "Content-Length:",
@@ -590,7 +586,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 			}
 		else if ( length >= 0 )
 			{
-			(void) my_snprintf( buf, sizeof(buf),
+			(void) snprintf( buf, sizeof(buf),
 				"%s %lld\015\012","Content-Length:", (int64_t) length );
 			add_response( hc, buf );
 			}
@@ -638,7 +634,7 @@ send_response_tail( httpd_conn* hc )
 	{
 	char buf[1000];
 
-	(void) my_snprintf( buf, sizeof(buf), "\
+	(void) snprintf( buf, sizeof(buf), "\
 <HR>\n\
 <ADDRESS><A HREF=\"%s\">%s</A></ADDRESS>\n\
 </BODY>\n\
@@ -692,7 +688,7 @@ httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, const
 	send_mime(
 		hc, status, title, "", extraheads, "text/html; charset=%s", (off_t) -1,
 		(time_t) 0 );
-	(void) my_snprintf( buf, sizeof(buf), "\
+	(void) snprintf( buf, sizeof(buf), "\
 <HTML>\n\
 <HEAD><TITLE>%d %s</TITLE></HEAD>\n\
 <BODY BGCOLOR=\"#cc9999\" TEXT=\"#000000\" LINK=\"#2020ff\" VLINK=\"#4040cc\">\n\
@@ -700,7 +696,7 @@ httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, const
 		status, title, status, title );
 	add_response( hc, buf );
 	defang( arg, defanged_arg, sizeof(defanged_arg) );
-	(void) my_snprintf( buf, sizeof(buf), form, defanged_arg );
+	(void) snprintf( buf, sizeof(buf), form, defanged_arg );
 	add_response( hc, buf );
 	/* if ( match( "**MSIE**", hc->useragent ) )
 	// Fuck off old (~#!) MSIE !!
@@ -743,7 +739,7 @@ send_authenticate( httpd_conn* hc, char* realm )
 
 	httpd_realloc_str(
 		&header, &maxheader, sizeof(headstr) + strlen( realm ) + 3 );
-	(void) my_snprintf( header, maxheader, "%s%s\"\015\012", headstr, realm );
+	(void) snprintf( header, maxheader, "%s%s\"\015\012", headstr, realm );
 	httpd_send_err( hc, 401, err401title, header, err401form, hc->encodedurl );
 	/* If the request was a POST then there might still be data to be read,
 	** so we need to do a lingering close.
@@ -858,7 +854,7 @@ auth_check( httpd_conn* hc, char* dirname  )
 	/* Construct auth filename. */
 	httpd_realloc_str(
 		&authpath, &maxauthpath, strlen( dirname ) + 1 + sizeof(AUTH_FILE) );
-	(void) my_snprintf( authpath, maxauthpath, "%s/%s", dirname, AUTH_FILE );
+	(void) snprintf( authpath, maxauthpath, "%s/%s", dirname, AUTH_FILE );
 
 	/* Does this directory have an auth file? */
 	if ( stat( authpath, &sb ) < 0 )
@@ -1001,19 +997,19 @@ send_dirredirect( httpd_conn* hc )
 		httpd_realloc_str(
 			&location, &maxlocation,
 			strlen( hc->encodedurl ) + 2 + strlen( hc->query ) );
-		(void) my_snprintf( location, maxlocation,
+		(void) snprintf( location, maxlocation,
 			"%s/?%s", hc->encodedurl, hc->query );
 		}
 	else
 		{
 		httpd_realloc_str(
 			&location, &maxlocation, strlen( hc->encodedurl ) + 1 );
-		(void) my_snprintf( location, maxlocation,
+		(void) snprintf( location, maxlocation,
 			"%s/", hc->encodedurl );
 		}
 	httpd_realloc_str(
 		&header, &maxheader, sizeof(headstr) + strlen( location ) );
-	(void) my_snprintf( header, maxheader,
+	(void) snprintf( header, maxheader,
 		"%s%s\015\012", headstr, location );
 	httpd_send_err( hc, 302, err302title, header, err302form, location );
 	}
@@ -1911,7 +1907,11 @@ httpd_parse_request( httpd_conn* hc )
 		}
 
 	/* Detach sign asked, response inspired from rfc3156 (which is for emails) */
+#ifdef HAVE_STRCASESTR
 	if ( strcasestr(hc->accept,"multipart/msigned"))
+#else
+	if ( strstr(hc->accept,"multipart/msigned")) /* won't work if client use funny upper cases :'-( :-p */
+#endif
 			hc->bfield |= HC_DETACH_SIGN;
 
 	/* Ok, the request has been parsed.  Now we resolve stuff that
@@ -2471,13 +2471,13 @@ mode  links  bytes  last-changed  name\n\
 					}
 				else
 					{
-					(void) my_snprintf( name, maxname,
+					(void) snprintf( name, maxname,
 						"%s/%s", hc->expnfilename, nameptrs[i] );
 					if ( strcmp( hc->origfilename, "." ) == 0 )
-						(void) my_snprintf( rname, maxrname,
+						(void) snprintf( rname, maxrname,
 							"%s", nameptrs[i] );
 					else
-						(void) my_snprintf( rname, maxrname,
+						(void) snprintf( rname, maxrname,
 							"%s%s", hc->origfilename, nameptrs[i] );
 					}
 				httpd_realloc_str(
@@ -2603,7 +2603,7 @@ build_env( char* fmt, char* arg )
 	size = strlen( fmt ) + strlen( arg );
 	if ( size > maxbuf )
 		httpd_realloc_str( &buf, &maxbuf, size );
-	(void) my_snprintf( buf, maxbuf, fmt, arg );
+	(void) snprintf( buf, maxbuf, fmt, arg );
 	cp = strdup( buf );
 	if ( cp == (char*) 0 )
 		{
@@ -2637,7 +2637,7 @@ make_envp( httpd_conn* hc )
 		envp[envn++] = build_env( "SERVER_NAME=%s", cp );
 	envp[envn++] = "GATEWAY_INTERFACE=CGI/1.1";
 	envp[envn++] = build_env("SERVER_PROTOCOL=%s", hc->protocol);
-	(void) my_snprintf( buf, sizeof(buf), "%d", (int) hc->hs->port );
+	(void) snprintf( buf, sizeof(buf), "%d", (int) hc->hs->port );
 	envp[envn++] = build_env( "SERVER_PORT=%s", buf );
 	envp[envn++] = build_env(
 		"REQUEST_METHOD=%s", httpd_method_str( hc->method ) );
@@ -2650,7 +2650,7 @@ make_envp( httpd_conn* hc )
 		cp2 = NEW( char, l );
 		if ( cp2 != (char*) 0 )
 			{
-			(void) my_snprintf( cp2, l, "%s%s", hc->hs->cwd, hc->pathinfo );
+			(void) snprintf( cp2, l, "%s%s", hc->hs->cwd, hc->pathinfo );
 			envp[envn++] = build_env( "PATH_TRANSLATED=%s", cp2 );
 			}
 		}
@@ -2679,7 +2679,7 @@ make_envp( httpd_conn* hc )
 		envp[envn++] = build_env( "HTTP_HOST=%s", hc->hdrhost );
 	if ( hc->contentlength != -1 )
 		{
-		(void) my_snprintf(
+		(void) snprintf(
 			buf, sizeof(buf), "%lu", (unsigned long) hc->contentlength );
 		envp[envn++] = build_env( "CONTENT_LENGTH=%s", buf );
 		}
@@ -3037,7 +3037,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 				case 503: title = httpd_err503title; break;
 				default: title = "Something"; break;
 				}
-			my_snprintf(o_headers[0],100, "HTTP/1.0 %d %s\015\012", status, title );
+			snprintf(o_headers[0],100, "HTTP/1.0 %d %s\015\012", status, title );
 		}
 	} else {
 		if ( stat(SIG_CACHE_DIR,&sts) < 0 || !S_ISDIR(sts.st_mode) ) {
@@ -3106,7 +3106,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 			}
 		}
 
-		r=my_snprintf(buf,buflen, "%s %s; %s=%s\015\012\015\012--%s\015\012","Content-Type:","multipart/msigned","boundary",bound,bound);
+		r=snprintf(buf,buflen, "%s %s; %s=%s\015\012\015\012--%s\015\012","Content-Type:","multipart/msigned","boundary",bound,bound);
 		r=MIN(r,buflen);
 		if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 			HTTPD_PARSE_SIGN_CLEAN();
@@ -3157,7 +3157,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 				siglen=gpgme_data_seek(gpgsig, 0, SEEK_END);
 				gpgme_data_seek(gpgsig, 0, SEEK_SET);
 			}	
-			r=my_snprintf(buf,buflen, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",siglen);
+			r=snprintf(buf,buflen, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",(int) siglen);
 			r=MIN(r,buflen);
 			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
@@ -3196,14 +3196,14 @@ void httpd_parse_resp(interpose_args_t * args) {
 					}
 			}
 		} else {
-			r=my_snprintf( buf,buflen, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
+			r=snprintf( buf,buflen, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
 			r=MIN(r,buflen);
 			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
-		r=my_snprintf(buf,buflen, "\015\012--%s--\015\012",bound);
+		r=snprintf(buf,buflen, "\015\012--%s--\015\012",bound);
 		httpd_write_fully(hc->conn_fd, buf,MIN(r,buflen));
 		HTTPD_PARSE_SIGN_CLEAN();
 		HTTPD_PARSE_RESP_RETURN(status);
@@ -3251,7 +3251,7 @@ static void
 cgi_child( httpd_conn* hc ) {
 	char** argp;
 	char** envp;
-	int i,interpose_input,interpose_output;
+	int interpose_input,interpose_output;
 
 	/* Unset close-on-exec flag for this socket.  This actually shouldn't
 	** be necessary, according to POSIX a dup()'d file descriptor does
@@ -3378,10 +3378,16 @@ cgi_child( httpd_conn* hc ) {
 		(void) signal( SIGPIPE, SIG_DFL );
 #endif /* HAVE_SIGSET */
 
-	/* TODO: a FLAG to use closefrom if available. */
+#ifdef HAVE_CLOSEFROM
+	closefrom(STDERR_FILENO+1);
+#else
+	{
+		int i;
 	/* Note: we arbitrarily choose a limit, because it should not exist fd after. But if it's false we have to use sysconf(_SC_OPEN_MAX) instead */
-	for (i=STDERR_FILENO+1;i<10;i++)
-		close(i);
+		for (i=STDERR_FILENO+1;i<10;i++)
+			close(i);
+	}
+#endif
 
 	/* Split the program into directory and binary, so we can chdir()
 	** to the program's own directory.  This isn't in the CGI 1.1
@@ -3795,10 +3801,10 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 	else
 		ru = "-";
 	/* Format the url. */
-	(void) my_snprintf( url, sizeof(url),"%.200s", hc->encodedurl );
+	(void) snprintf( url, sizeof(url),"%.200s", hc->encodedurl );
 	/* Format the bytes. */
 	if ( hc->bytes_sent >= 0 )
-		(void) my_snprintf(
+		(void) snprintf(
 			bytes, sizeof(bytes), "%lld", (int64_t) hc->bytes_sent );
 	else
 		(void) strcpy( bytes, "-" );
@@ -3838,7 +3844,7 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 			zone = -zone;
 			}
 		zone = ( zone / 60 ) * 100 + zone % 60;
-		(void) my_snprintf( date, sizeof(date),
+		(void) snprintf( date, sizeof(date),
 			"%s %c%04d", date_nozone, sign, zone );
 		/* And write the log entry. */
 		(void) fprintf( hc->hs->logfp,
@@ -3912,53 +3918,42 @@ sockaddr_len( httpd_sockaddr* saP )
 		}
 	}
 
-
-/* Some systems don't have snprintf(), so we make our own that uses
-** either vsnprintf() or vsprintf().  If your system doesn't have
-** vsnprintf(), it is probably vulnerable to buffer overruns.
-** Upgrade!
+#ifndef HAVE_DPRINTF
+/* Some systems don't have dprintf(), so we make our own...
 */
-int my_snprintf( char* str, size_t size, const char* format, ... )
-	{
+int dprintf( int fd, const char* format, ... ) {
 	va_list ap;
 	int r;
+	char * buf=malloc(MAXPATHLEN);
+	
+	if (!buf)
+		return(-1);
 
 	va_start( ap, format );
-#ifdef HAVE_VSNPRINTF
-	r = vsnprintf( str, size, format, ap );
-#else /* HAVE_VSNPRINTF */
-	r = vsprintf( str, format, ap );
-#endif /* HAVE_VSNPRINTF */
+	r=vsnprintf(buf,MAXPATHLEN,format,ap);
 	va_end( ap );
+	if (r>=MAXPATHLEN) {
+		char * buf2;
+		if ((buf2=realloc(buf,r+1)) != buf ) {
+				free(buf);
+				buf=buf2;
+		}
+		if (!buf)
+			return(-1);
+		va_start( ap, format );
+		r=vsnprintf(buf,r,format,ap);
+		va_end( ap );
+	}
+
+	if (r>0) {
+		r=write(fd,buf,r);
+		free(buf);
+		return r;
+	}
+	free(buf);
 	return r;
-	}
-
-
-#ifndef HAVE_ATOLL
-static long long
-atoll( const char* str )
-	{
-	long long value;
-	long long sign;
-
-	while ( isspace( *str ) )
-		++str;
-	switch ( *str )
-		{
-		case '-': sign = -1; ++str; break;
-		case '+': sign = 1; ++str; break;
-		default: sign = 1; break;
-		}
-	value = 0;
-	while ( isdigit( *str ) )
-		{
-		value = value * 10 + ( *str - '0' );
-		++str;
-		}
-	return sign * value;
-	}
-#endif /* HAVE_ATOLL */
-
+}
+#endif
 
 /*! httpd_read_fully read the requested buffer completely, accounting for interruptions.
  * \return the effective number of bytes read.

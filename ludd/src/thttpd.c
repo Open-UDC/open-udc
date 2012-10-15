@@ -214,11 +214,7 @@ handle_chld( int sig )
 	/* Reap defunct children until there aren't any more. */
 	for (;;)
 		{
-#ifdef HAVE_WAITPID
 		pid = waitpid( (pid_t) -1, &status, WNOHANG );
-#else /* HAVE_WAITPID */
-		pid = wait3( &status, WNOHANG, (struct rusage*) 0 );
-#endif /* HAVE_WAITPID */
 		if ( (int) pid == 0 )				/* none left */
 			break;
 		if ( (int) pid < 0 )

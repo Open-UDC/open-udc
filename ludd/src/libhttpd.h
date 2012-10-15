@@ -328,9 +328,9 @@ extern ssize_t httpd_write_fully( int fd, const void* buf, size_t nbytes );
 /* Generate debugging statistics syslog message. */
 extern void httpd_logstats( long secs );
 
-/* This function exist for historical reason: snprintf was not on all systems before */
-extern int my_snprintf( char* str, size_t size, const char* format, ... );
-/* TODO: Maybe remove that function to use the C99 snprintf */
+#ifndef HAVE_DPRINTF
+extern int dprintf( int fd, const char* format, ... );
+#endif /* HAVE_DPRINTF */
 
 /* Allocate and generate a random string of size len (from charset [G-Vg-v]) */
 extern char *random_boundary(unsigned short len);
