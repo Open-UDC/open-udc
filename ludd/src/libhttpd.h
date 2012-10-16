@@ -144,7 +144,8 @@ typedef struct {
 
 /* struct passed to pthread_create for interposed thread */
 typedef struct {
-	int fd;
+	int rfd;
+	int wfd;
 	const httpd_conn* hc;
 	int option;
 } interpose_args_t;

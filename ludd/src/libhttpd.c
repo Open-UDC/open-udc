@@ -2300,7 +2300,7 @@ void drop_child(const char * type,pid_t pid,httpd_conn* hc) {
 	client_data.i = pid;
 	if ( tmr_create( (struct timeval*) 0, cgi_kill, client_data, CGI_TIMELIMIT * 1000L, 0 ) == (Timer*) 0 )
 		{
-		syslog( LOG_CRIT, "tmr_create(cgi_kill lookup) failed" );
+		syslog( LOG_CRIT, "tmr_create(cgi_kill %d) failed (%s)",pid,type);
 		/* TODO : It kills the daemon, so maybe kill the Child and return instead of exit */
 		exit(EXIT_FAILURE);
 		}
@@ -2319,6 +2319,12 @@ void child_r_start(httpd_conn* hc) {
 	/* Set priority. */
 	(void) nice( CGI_NICE );
 #endif /* CGI_NICE */
+	/* Default behavior for SIGPIPE. */
+#ifdef HAVE_SIGSET
+	(void) sigset( SIGPIPE, SIG_DFL );
+#else /* HAVE_SIGSET */
+	(void) signal( SIGPIPE, SIG_DFL );
+#endif /* HAVE_SIGSET */
 }
 
 static int
@@ -2762,7 +2768,6 @@ make_argp( httpd_conn* hc )
 static void
 cgi_interpose_input(interpose_args_t * args)
 	{
-	int wfd=args->fd;
 	const httpd_conn * hc=args->hc;
 	size_t c;
 	ssize_t r;
@@ -2771,12 +2776,12 @@ cgi_interpose_input(interpose_args_t * args)
 	c = hc->read_idx - hc->checked_idx;
 	if ( c > 0 )
 		{
-		if ( httpd_write_fully( wfd, &(hc->read_buf[hc->checked_idx]), c ) != c )
+		if ( httpd_write_fully( args->wfd, &(hc->read_buf[hc->checked_idx]), c ) != c )
 			return;
 		}
 	while ( c < hc->contentlength )
 		{
-		r = read( hc->conn_fd, buf, MIN( sizeof(buf), hc->contentlength - c ) );
+		r = read( args->rfd, buf, MIN( sizeof(buf), hc->contentlength - c ) );
 		if ( r < 0 && ( errno == EINTR || errno == EAGAIN ) )
 			{
 			sleep( 1 );
@@ -2784,7 +2789,7 @@ cgi_interpose_input(interpose_args_t * args)
 			}
 		if ( r <= 0 )
 			return;
-		if ( httpd_write_fully( wfd, buf, r ) != r )
+		if ( httpd_write_fully( args->wfd, buf, r ) != r )
 			return;
 		c += r;
 		}
@@ -2803,9 +2808,9 @@ cgi_interpose_input(interpose_args_t * args)
 		/* we are in a sub-process, re-turn on no-delay mode that we
 		** previously cleared.
 		*/
-		httpd_set_ndelay( hc->conn_fd );
+		httpd_set_ndelay( args->rfd );
 		/* And read up to 2 bytes. */
-		(void) read( hc->conn_fd, buf, sizeof(buf) );
+		(void) read( args->rfd, buf, sizeof(buf) );
 		}
 	}
 
@@ -2895,15 +2900,14 @@ static const char * chdir_path(const char * path) {
  *
  */
 void httpd_parse_resp(interpose_args_t * args) {
-	int rfd=args->fd;
 	const httpd_conn * hc=args->hc;
 	int cgi=args->option;
 #define SIG_CACHE_DIR "../sigcache"
 #define HTTP_MAX_CONTENTHEADERS 9
 #define HTTP_MAX_HEADERS 40
 #define HTTPD_PARSE_RESP_RETURN(code) { \
-	(fp?fclose(fp):close(rfd)); \
-	close(hc->conn_fd); \
+	(fp?fclose(fp):close(args->rfd)); \
+	close(args->wfd); \
 	free(buf); \
 	for (i=0;i<n_c_headers;i++) \
 		free(c_headers[i]); \
@@ -2929,9 +2933,9 @@ void httpd_parse_resp(interpose_args_t * args) {
 	use_cache=0; /* will be set to 1 (use cache) or 2 (do the cache) if ( !cgi and SIG_CACHE_DIR exist) later */
 
 	/* use a file descriptor for getline (which is POSIX since 2008, glibc >= 2.10 )*/
-	if ( !(fp=fdopen(rfd,"r")) ) {
+	if ( !(fp=fdopen(args->rfd,"r")) ) {
 		syslog( LOG_ERR, "fdopen - %m");
-		httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+		httpd_send_err2(args->wfd, 500, err500title, err500form);
 		HTTPD_PARSE_RESP_RETURN(500);
 	}
 
@@ -2950,7 +2954,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 				break;
 			} else {	/* unmanaged error (mem,... ) */
 				syslog( LOG_ERR, "getline - %m");
-				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+				httpd_send_err2(args->wfd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 		} else if (r<=2) /* end of headers reached */
@@ -2980,14 +2984,14 @@ void httpd_parse_resp(interpose_args_t * args) {
 		if ( !strncasecmp( buf, "Content-",8 ) ) {
 			if (! (c_headers[n_c_headers]=strdup(buf)) ) {
 				syslog( LOG_ERR, "strdup - %m");
-				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+				httpd_send_err2(args->wfd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 			n_c_headers=MIN(HTTP_MAX_CONTENTHEADERS-1,n_c_headers+1);
 		} else {
 			if (! (o_headers[n_o_headers]=strdup(buf)) ) {
 				syslog( LOG_ERR, "strdup - %m");
-				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+				httpd_send_err2(args->wfd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 			n_o_headers=MIN(HTTP_MAX_HEADERS-2,n_o_headers+1); /* Keep 1 slot empty to eventually insert "HTTP/..." */
@@ -2997,7 +3001,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 	/* If there were no "Content-*:" headers, bail. */
 	if ( !c_headers[0] ) {
 		syslog( LOG_ERR, "no header (%d)",cgi);
-		httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+		httpd_send_err2(args->wfd, 500, err500title, err500form);
 		HTTPD_PARSE_RESP_RETURN(500);
 	}
 
@@ -3015,7 +3019,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 
 			if ( ! (o_headers[0]=malloc(100)) ) {
 				syslog( LOG_ERR, "malloc - %m");
-				httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+				httpd_send_err2(args->wfd, 500, err500title, err500form);
 				HTTPD_PARSE_RESP_RETURN(500);
 			}
 
@@ -3076,12 +3080,12 @@ void httpd_parse_resp(interpose_args_t * args) {
 		};
 		struct fp2fd_gpg_data_handle cb_handle = {
 			fp,				/* fp in */
-			hc->conn_fd     		/* fd out */
+			args->wfd     		/* fd out */
 		};
 
 		if (!bound) {
 			syslog(LOG_ERR, "malloc - %m");
-			httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+			httpd_send_err2(args->wfd, 500, err500title, err500form);
 			HTTPD_PARSE_RESP_RETURN(500);
 		}
 
@@ -3091,7 +3095,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			syslog(LOG_ERR, gpgme_strerror(gpgerr));
-			httpd_send_err2(hc->conn_fd, 500, err500title, err500form);
+			httpd_send_err2(args->wfd, 500, err500title, err500form);
 			HTTPD_PARSE_SIGN_CLEAN();
 			HTTPD_PARSE_RESP_RETURN(500);
 		}
@@ -3100,7 +3104,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 		/* Write the headers. */
 		for (i=0;i<n_o_headers;i++) {
 			r=strlen(o_headers[i]);
-			if (httpd_write_fully(hc->conn_fd,o_headers[i],r) !=r ) {
+			if (httpd_write_fully(args->wfd,o_headers[i],r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
@@ -3108,19 +3112,19 @@ void httpd_parse_resp(interpose_args_t * args) {
 
 		r=snprintf(buf,buflen, "%s %s; %s=%s\015\012\015\012--%s\015\012","Content-Type:","multipart/msigned","boundary",bound,bound);
 		r=MIN(r,buflen);
-		if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
+		if (httpd_write_fully(args->wfd,buf,r) !=r ) {
 			HTTPD_PARSE_SIGN_CLEAN();
 			HTTPD_PARSE_RESP_RETURN(-1);
 		}
 		/* Write the "Content-*" headers. */
 		for (i=0;i<n_c_headers;i++) {
 			r=strlen(c_headers[i]);
-			if (httpd_write_fully(hc->conn_fd,c_headers[i],r) !=r ) {
+			if (httpd_write_fully(args->wfd,c_headers[i],r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
-		httpd_write_fully(hc->conn_fd,"\015\012",2);
+		httpd_write_fully(args->wfd,"\015\012",2);
 
 		/* contrary to RFC 3156, no headers are signed, only the content */
 		if (use_cache==1) {
@@ -3139,7 +3143,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 						HTTPD_PARSE_RESP_RETURN(-1);
 					}
 				}
-				if ( httpd_write_fully(hc->conn_fd, buf, r ) != r ) {
+				if ( httpd_write_fully(args->wfd, buf, r ) != r ) {
 					HTTPD_PARSE_SIGN_CLEAN();
 					HTTPD_PARSE_RESP_RETURN(-1);
 				}
@@ -3159,7 +3163,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 			}	
 			r=snprintf(buf,buflen, "\015\012--%s\015\012%s %s\015\012%s %d\015\012\015\012",bound,"Content-Type:","application/pgp-signature","Content-Length:",(int) siglen);
 			r=MIN(r,buflen);
-			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
+			if (httpd_write_fully(args->wfd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
@@ -3182,7 +3186,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 				sigfile=fopen(fcache,"r");
 				if (sigfile) {
 					while ( (r=fread(buf,sizeof(char), buflen-1, sigfile)) )
-						if ( httpd_write_fully(hc->conn_fd, buf, r ) != r ) {
+						if ( httpd_write_fully(args->wfd, buf, r ) != r ) {
 							HTTPD_PARSE_SIGN_CLEAN();
 							HTTPD_PARSE_RESP_RETURN(-1);
 						}
@@ -3190,7 +3194,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 				}
 			} else {
 				while ( (r=gpgme_data_read(gpgsig, buf, buflen)) > 0 )
-					if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
+					if (httpd_write_fully(args->wfd,buf,r) !=r ) {
 						HTTPD_PARSE_SIGN_CLEAN();
 						HTTPD_PARSE_RESP_RETURN(-1);
 					}
@@ -3198,31 +3202,31 @@ void httpd_parse_resp(interpose_args_t * args) {
 		} else {
 			r=snprintf( buf,buflen, "gpgme_op_sign -> %d : %s \015\012\015\012--%s--", gpgerr,gpgme_strerror(gpgerr),bound );
 			r=MIN(r,buflen);
-			if (httpd_write_fully(hc->conn_fd,buf,r) !=r ) {
+			if (httpd_write_fully(args->wfd,buf,r) !=r ) {
 				HTTPD_PARSE_SIGN_CLEAN();
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
 		r=snprintf(buf,buflen, "\015\012--%s--\015\012",bound);
-		httpd_write_fully(hc->conn_fd, buf,MIN(r,buflen));
+		httpd_write_fully(args->wfd, buf,MIN(r,buflen));
 		HTTPD_PARSE_SIGN_CLEAN();
 		HTTPD_PARSE_RESP_RETURN(status);
 	} else {
 		/* Write the headers. */
 		for (i=0;i<n_o_headers;i++) {
 			r=strlen(o_headers[i]);
-			if (httpd_write_fully(hc->conn_fd,o_headers[i],r) !=r ) {
+			if (httpd_write_fully(args->wfd,o_headers[i],r) !=r ) {
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
 		/* Write the "Content-*" headers. */
 		for (i=0;i<n_c_headers;i++) {
 			r=strlen(c_headers[i]);
-			if (httpd_write_fully(hc->conn_fd,c_headers[i],r) !=r ) {
+			if (httpd_write_fully(args->wfd,c_headers[i],r) !=r ) {
 				HTTPD_PARSE_RESP_RETURN(-1);
 			}
 		}
-		httpd_write_fully(hc->conn_fd,"\015\012",2);
+		httpd_write_fully(args->wfd,"\015\012",2);
 	
 		/* Echo the rest of the output. */
 		for (;;) {
@@ -3239,7 +3243,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 					HTTPD_PARSE_RESP_RETURN(-1);
 				}
 			}
-			if ( httpd_write_fully(hc->conn_fd, buf, r ) != r )
+			if ( httpd_write_fully(args->wfd, buf, r ) != r )
 				HTTPD_PARSE_RESP_RETURN(-1);
 		}
 		HTTPD_PARSE_RESP_RETURN(status);
@@ -3282,8 +3286,7 @@ cgi_child( httpd_conn* hc ) {
 	if ( dup2(hc->conn_fd,STDIN_FILENO) < 0
 			|| dup2(hc->conn_fd,STDOUT_FILENO) < 0
 			|| dup2(hc->conn_fd,STDERR_FILENO) < 0 ) {
-		syslog( LOG_ERR, "dup2 - %m" );
-		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+		httpd_send_err( hc, 500, err500title, "", err500form, "d" );
 		exit(EXIT_FAILURE);
 	}
 
@@ -3295,23 +3298,20 @@ cgi_child( httpd_conn* hc ) {
 		/* hc->conn_fd should be stdin,stdout or stderr. So save it first */
 		hc->conn_fd=dup(hc->conn_fd);
 		if ( hc->conn_fd < 0 ) {
-			syslog( LOG_ERR, "dup - %m" );
-			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+			httpd_send_err( hc, 500, err500title, "", err500form, "d" );
 			exit(EXIT_FAILURE);
 		}
 
 		/* Then create needed pipe(s) : */
 		if ( interpose_input ) {
 			if ( pipe( pin ) < 0 ) {
-				syslog( LOG_ERR, "pipe - %m" );
-				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				httpd_send_err( hc, 500, err500title, "", err500form, "p" );
 				exit(EXIT_FAILURE);
 			}
 		}
 		if ( interpose_output ) {
 			if ( pipe( pou ) < 0 ) {
-				syslog( LOG_ERR, "pipe - %m" );
-				httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+				httpd_send_err( hc, 500, err500title, "", err500form, "p" );
 				exit( 1 );
 			}
 		}
@@ -3319,8 +3319,7 @@ cgi_child( httpd_conn* hc ) {
 		/* Now we fork */
 		ipid = fork( );
 		if ( ipid < 0 ) {
-			syslog( LOG_ERR, "fork - %m" );
-			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+			httpd_send_err( hc, 500, err500title, "", err500form, "f" );
 			exit(EXIT_FAILURE);
 		}
 		if ( ipid == 0 ) {
@@ -3332,13 +3331,13 @@ cgi_child( httpd_conn* hc ) {
 			if ( interpose_input ) {
 				close(pin[0]);
 				/* Create a thread for input */
-				agin.fd=pin[1];
+				agin.rfd=hc->conn_fd;
+				agin.wfd=pin[1];
 				agin.hc=hc;
 				s=pthread_create(&tin, NULL,(void * (*)(void *)) &cgi_interpose_input, &agin);
 				if ( s !=0 ) {
 					errno=s;
-					syslog( LOG_ERR, "pthread_create - %m" );
-					httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
+					httpd_send_err( hc, 500, err500title, "", err500form, "thc" );
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -3346,7 +3345,8 @@ cgi_child( httpd_conn* hc ) {
 			if ( interpose_output ) {
 				close(pou[1]);
 				/* And parse output */
-				agou.fd=pou[0];
+				agou.rfd=pou[0];
+				agou.wfd=hc->conn_fd;
 				agou.hc=hc;
 				agou.option=1;
 				httpd_parse_resp(&agou);
@@ -3370,13 +3370,6 @@ cgi_child( httpd_conn* hc ) {
 			dup2( pou[1], STDERR_FILENO );
 		}
 	}
-	
-	/* Default behavior for SIGPIPE. */
-#ifdef HAVE_SIGSET
-		(void) sigset( SIGPIPE, SIG_DFL );
-#else /* HAVE_SIGSET */
-		(void) signal( SIGPIPE, SIG_DFL );
-#endif /* HAVE_SIGSET */
 
 #ifdef HAVE_CLOSEFROM
 	closefrom(STDERR_FILENO+1);
@@ -3756,7 +3749,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			}
 			if ( ipid == 0 ) {
 				/* Child Interposer process. */
-				interpose_args_t args = { p[0] , hc , 0 };
+				interpose_args_t args = { p[0], hc->conn_fd, hc , 0 };
 				child_r_start(hc);
 				close(p[1]);
 				httpd_parse_resp(&args);
@@ -3764,11 +3757,15 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			}
 			/* Parent process. */
 			close(p[0]);
-			/* overwrite hc->conn_fd by the pipe output */
-			dup2(p[1],hc->conn_fd);
-			close(p[1]);
-			httpd_set_ndelay(hc->conn_fd);
 			drop_child("parse_resp",ipid,hc);
+			/* overwrite hc->conn_fd by the pipe output */
+			if ( dup2(p[1],hc->conn_fd) < 0 ) {
+				httpd_send_err( hc, 500, err500title, "", err500form, "d" );
+				close(p[1]); /* To end child */
+				return(-1);
+			}
+			close(p[1]); /* it have been dupped on hc->conn_fd */
+			httpd_set_ndelay(hc->conn_fd);
 		}
 
 		send_mime(

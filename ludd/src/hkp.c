@@ -11,14 +11,13 @@
 #include <unistd.h>
 #include <errno.h>   /* errno             */
 #include <gpgme.h>
+#include <pthread.h>
 
 #include "hkp.h"
 #include "timers.h"
 #include "libhttpd.h"
 
 #define QSTRING_MAX 1024
-#define BUFFSIZE 2048
-#define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
 
 /* struct passed to gpgdata4export_cb */
 struct gpgdata4export_handle {
@@ -48,6 +47,7 @@ static char * get_starting_comment(char * ud, gpgme_key_t gkey) {
 }
 
 int hkp_add( httpd_conn* hc ) {
+#define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
 	size_t c;
 	ssize_t r;
 
@@ -231,10 +231,13 @@ static void gpg_data_release_cb(void *handle)
 	    /* must just be present... bug or feature?!? */
 }
 
+/*
+ * \return a negative number to finish the connection, or 0 if it have fork.
+ */
 int hkp_lookup( httpd_conn* hc ) {
 
 #define HKP_MAX_SEARCHS 32
-	int r,i,nsearchs=0;
+	int r,i,nsearchs=0,p[2];
 	char * op=(char *)0;
 	char * search[HKP_MAX_SEARCHS+1]={(char *)0};
 	char * searchdec[HKP_MAX_SEARCHS+1]={(char *)0};
@@ -243,7 +246,9 @@ int hkp_lookup( httpd_conn* hc ) {
 	gpgme_ctx_t gpglctx;
 	gpgme_error_t gpgerr;
 
-	char * qstring, * pchar;
+	char * pchar;
+	interpose_args_t args;
+	pthread_t tparse;
 
 	if ( hc->method == METHOD_HEAD ) {
 		send_mime(
@@ -279,9 +284,13 @@ int hkp_lookup( httpd_conn* hc ) {
 	}
 	/* Child process. */
 	child_r_start(hc);
-
-	qstring=strndup(pchar,QSTRING_MAX); /* copy the QUERY to write in */
-	pchar=qstring;
+#define HKP_LOOKUP_EXIT(code) {\
+	if (tparse) { \
+		close(hc->conn_fd); \
+		pthread_join(tparse, NULL); \
+	} \
+	exit(code); \
+}\
 
 	while (pchar && *pchar) {
 		if (!strncmp(pchar,"op=",3)) {
@@ -345,7 +354,39 @@ int hkp_lookup( httpd_conn* hc ) {
 	gpgerr=gpgme_new(&gpglctx);
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 		httpd_send_err(hc, 500, err500title, "", err500form, "g01" );
-		exit(1);
+		exit(EXIT_FAILURE);
+	}
+
+	if (hc->bfield & HC_DETACH_SIGN) {
+		int s;
+		if ( pipe( p ) < 0 ) {
+			syslog( LOG_ERR, "pipe - %m" );
+			httpd_send_err( hc, 500, err500title, "", err500form, "p" );
+			exit(EXIT_FAILURE);
+		}
+		/* Create a thread for input */
+		args.rfd=p[0];
+		args.wfd=dup(hc->conn_fd);
+		args.hc=hc;
+		args.option=1; /* to not caching */
+
+		if (args.wfd < 0) {
+			httpd_send_err( hc, 500, err500title, "", err500form, "d" );
+			exit(EXIT_FAILURE);
+		}
+		/* move p[1] to hc->conn_fd */
+		if ( dup2(p[1],hc->conn_fd) < 0 ) {
+			httpd_send_err( hc, 500, err500title, "", err500form, "d" );
+			exit(EXIT_FAILURE);
+		}
+		close(p[1]);
+
+		s=pthread_create(&tparse, NULL,(void * (*)(void *)) &httpd_parse_resp, &args);
+		if ( s !=0 ) {
+			errno=s;
+			httpd_send_err( hc, 500, err500title, "", err500form, "c" );
+			exit(EXIT_FAILURE);
+		}
 	}
 	
 	if (!strcmp(op, "get")) {
@@ -368,20 +409,20 @@ int hkp_lookup( httpd_conn* hc ) {
 		}
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g10" );
-			exit(1);
+			HKP_LOOKUP_EXIT(EXIT_FAILURE);
 		}
 		export_start=0;
 
 		gpgerr = gpgme_op_export_ext(gpglctx,(const char **)searchdec,0,gpgdata);
 		if ( gpgerr != GPG_ERR_NO_ERROR) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g11" );
-			exit(1);
+			HKP_LOOKUP_EXIT(EXIT_FAILURE);
 		} else if (export_start) {
 			write(hc->conn_fd,"\n</pre></body></html>\n",sizeof("\n</pre></body></html>\n")-1);
 		} else {
 			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
 		}
-		exit(EXIT_SUCCESS);
+		HKP_LOOKUP_EXIT(EXIT_SUCCESS);
 	} else if (!strcmp(op, "index")) {
 		FILE* fp;
 		char begin=0;
@@ -396,7 +437,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		fp = fdopen( hc->conn_fd, "w" );
 		if ( fp == (FILE*) 0 ) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "fd" );
-			exit(1);
+			HKP_LOOKUP_EXIT(EXIT_FAILURE);
 		}
 
 		/* check for the searched key(s) */
@@ -404,7 +445,7 @@ int hkp_lookup( httpd_conn* hc ) {
 		//gpgerr = gpgme_op_keylist_start(gpglctx, NULL, 0);
 		if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 			httpd_send_err(hc, 500, err500title, "", err500form, "g20" );
-			exit(1);
+			HKP_LOOKUP_EXIT(EXIT_FAILURE);
 		}
 
 		gpgerr = gpgme_op_keylist_next (gpglctx, &gpgkey);
@@ -428,18 +469,17 @@ int hkp_lookup( httpd_conn* hc ) {
 			gpgme_key_unref(gpgkey); /* ... because i don't know how "gpgme_op_keylist_next" behave when not returning GPG_ERR_NO_ERROR */
 		if (!begin) {
 			httpd_send_err(hc, 404, err404title, "", "Get: %.80s (...): No key found ! :-(", search[0]);
-			exit(0);
+			HKP_LOOKUP_EXIT(EXIT_SUCCESS);
 		}
 		(void) fclose( fp );
-		exit(0);
+		HKP_LOOKUP_EXIT(EXIT_SUCCESS);
 
 	} else if ( !strcmp(op, "photo") || !strcmp(op, "x-photo") ) {
 			httpd_send_err(hc, 501, err501title, "", err501form, op );
-			exit(1);
+			HKP_LOOKUP_EXIT(EXIT_FAILURE);
 	} else {
 		httpd_send_err(hc, 400, httpd_err400title, "", "Unrecognized operation %.80s", op );
-		exit(0);
+		HKP_LOOKUP_EXIT(EXIT_SUCCESS);
 	}
-	exit(-1) ;
 }
 
