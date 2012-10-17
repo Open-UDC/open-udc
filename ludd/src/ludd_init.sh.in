@@ -1,5 +1,9 @@
 #!/bin/bash
 
+LUDDUSER="@ludduser@"
+LUDDVERSION="@luddversion@"
+KEYSERVER="hkp://pool.sks-keyservers.net"
+
 helpmsg='Usage: '"${0##*/}"' [options]
 Options:
 	-d, --dir	directory (default: $HOME of .ludd user if root, or $HOME/.ludd if not).
@@ -36,8 +40,17 @@ function ludd_chooseinlist {
 function ludd_genbotkey {
 	for ((;;)) ; do
 		for ((;;)) ; do
-			read -p "What is ur udid2 (udid2;c;...) ? " myudid
-			grep "^udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+;\?$" <(echo $myudid) > /dev/null && break
+			read -p "What is ur id (udid2;c;...) ? " myudid
+			if grep "^udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+;\?$" <(echo $myudid) > /dev/null ; then
+				break;
+			else
+				echo "Warning: this id ($myudid) is not a valid udid2 for OpenUDC" >&2
+				read -p "     Will your node join an OpenUDC network ? (y/n) " answer
+				case "$answer" in
+					N* | n* )
+						break ;;
+				esac
+			fi
 		done
 		read -p "your bot name ? " mname
 		for ((;;)) ; do
@@ -71,9 +84,6 @@ EOF
 
 return $?
 }
-
-LUDDUSER="@ludduser@"
-LUDDVERSION="@luddversion@"
 
 refdir=$(grep "^"$LUDDUSER":" /etc/passwd | cut -d ":" -f 6)
 
@@ -111,7 +121,7 @@ if [[ "$dir" != "$refdir" ]] ; then
 	cp -avf "$refdir/pub/c" "$dir/pub"
 fi
 
-mybotkeys=($(gpg --list-secret-keys --with-colons --with-fingerprint "udbot1;udid2;" | grep "^fpr" | cut -d: -f 10))
+mybotkeys=($(gpg --list-secret-keys --with-colons --with-fingerprint "udbot1;" | grep "^fpr" | cut -d: -f 10))
 
 echo "NOTE: passphrase to cypher bot's private key is unsupported yet".
 ludd_chooseinlist "bot key to use ?" 1 "create a new one" "${mybotkeys[@]}"
@@ -132,9 +142,32 @@ esac
 
 myudid="$(gpg --list-secret-keys --with-colons ${mybotkeys[$bki]} | sed -n ' s/^sec:.*(udbot1;\(udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+\).*/\1/p ' )"
 if [ -z "$myudid" ] ; then 
-	echo "key ${mybotkeys[$bki]} is not a valid bot key" >&2
-	exit 3
+	echo "Warning: key ${mybotkeys[$bki]} is not a valid bot key for OpenUDC" >&2
+	read -p "     Will your node join an OpenUDC network ? (y/n) " answer
+	case "$answer" in
+		Y* | y* | O* | o* )
+			exit 3 ;;
+	esac
+	myudid="$(gpg --list-secret-keys --with-colons ${mybotkeys[$bki]} | sed -n ' s/^sec:.*(udbot1;\([^)]\+\).*/\1/p ' )"
+	[ -z "$myudid" ] && exit 3
 fi
+
+# Export udbot1 key and owner's key to the keyring.
+gpg --homedir "$dir/gpgme" --keyserver "$KEYSERVER" --search-keys "$myudid"
+gpg  --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$dir/gpgme"
+
+if ((isroot)) ; then
+	chown -R .ludd "$dir/gpgme"
+fi
+
+if ! grep "$LUDDVERSION ###" "$dir/gpgme/gpg.conf" > /dev/null ; then
+	cat >> "$dir/gpgme/gpg.conf" <<EOF
+### following import-option line has been added $(date -R) by ${0##*/} - $LUDDVERSION ###
+#import-options import-clean
+keyserver $KEYSERVER
+EOF
+fi
+chmod go+r "$dir/gpgme/gpg.conf"
 
 while true ; do 
 	read -p "External host name or addr [$(hostname)] ? " myhost
@@ -149,13 +182,13 @@ while true ; do
 done
 
 cd "$dir"
-[ -f "ludd.conf" ] && cp -v ludd.conf ludd.conf.save
+[ -f "ludd.conf" ] && cp -v ludd.conf ludd.conf.save_$(date +"%F")
 
 cat << EOF > ludd.conf
 # ludd.conf: ludd configuration file
 
 # Commentaries are based on the ludd(8) manpage.
-# ludd read the configuration file only once. So the dfault config file is not
+# ludd read the configuration file only once. So the default config file is not
 # read if an other config file is passed, with "-C", as an argument to ludd.
 
 # Specifies an alternate homedir for ludd.
@@ -203,16 +236,11 @@ ehost=$myhost
 
 EOF
 
-gpg  --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$dir/gpgme"
-
-if ! grep '^[^#]*\<import-options\>.\+\<import-clean\>' "$dir/gpgme/gpg.conf" > /dev/null ; then
-	cat >> "$dir/gpgme/gpg.conf" <<EOF
-### following import-option line has been added $(date -R) by ${0##*/} - $LUDDVERSION ###
-import-options import-clean
+cat <<EOF
+NOTE: your bot's certificate have to be signed with your own OpenPGP certificate.
+      It means that on the machine where your secret key is available, you should do:
+         $ gpg --sign "${mybotkeys[$bki]}"
+         $ gpg --keyserver "$myhost:$myport" --send-keys "0x${mybotkeys[$bki]}"
 EOF
-fi
 
-if ((isroot)) ; then
-	chown -R .ludd "$dir/gpgme"
-fi
-
+			
