@@ -31,7 +31,7 @@ struct gpgdata4export_handle {
 
 static int export_start=0; /* set to 1 once by gpgdata4export_cb(...) */
 
-#if defined CHECK_UDID2 && ! defined RESTRICTED_PKS_ADD
+#if defined CHECK_UDID2 && ! defined PKS_ADD_MERGE_ONLY
 extern regex_t udid2c_regex;
 
 /* get first uid in a key where comment match preg
@@ -62,7 +62,7 @@ int hkp_add( httpd_conn* hc ) {
 	gpgme_error_t gpgerr;
 	gpgme_data_t gpgdata;
 	gpgme_import_result_t gpgimport=NULL;
-#if defined RESTRICTED_PKS_ADD || defined CHECK_UDID2 || defined LOG_PKS_ADD
+#if defined PKS_ADD_MERGE_ONLY || defined CHECK_UDID2 || defined PKS_ADD_LOG
 	gpgme_import_status_t gpgikey=NULL;
 	gpgme_key_t gpgkey=NULL;
 	char * uid2=NULL;
@@ -175,7 +175,7 @@ int hkp_add( httpd_conn* hc ) {
 		exit(EXIT_FAILURE);
 	}
 
-#if defined RESTRICTED_PKS_ADD || defined CHECK_UDID2 || defined LOG_PKS_ADD
+#if defined PKS_ADD_MERGE_ONLY || defined CHECK_UDID2 || defined PKS_ADD_LOG
 	/* Check (and eventually delete) imported keys */
 	gpgikey=gpgimport->imports;
 	while (gpgikey) {
@@ -193,7 +193,7 @@ int hkp_add( httpd_conn* hc ) {
 				httpd_send_err(hc, 500, err500title, "", err500form, "" );
 				exit(EXIT_FAILURE);
 			}
-#ifdef RESTRICTED_PKS_ADD
+#ifdef PKS_ADD_MERGE_ONLY
 			if (1)
 #else
 #ifdef CHECK_UDID2
@@ -203,24 +203,24 @@ int hkp_add( httpd_conn* hc ) {
 #else
 			if (0)
 #endif /* CHECK_UDID2 */
-#endif /* RESTRICTED_PKS_ADD */
+#endif /* PKS_ADD_MERGE_ONLY */
 			{
-#ifdef LOG_PKS_ADD
+#ifdef PKS_ADD_LOG
 				syslog(LOG_INFO,"pks/add:reject:%d:%s:%s:",gpgikey->status,gpgikey->fpr,uid2?uid2:gpgkey->uids->uid);
-#endif /* LOG_PKS_ADD */
+#endif /* PKS_ADD_LOG */
 				rcode=202;
 				gpgerr=gpgme_op_delete(gpglctx,gpgkey,1); /* Note: this also unref the key */
 			}
-#ifdef LOG_PKS_ADD
+#ifdef PKS_ADD_LOG
 			else
 				syslog(LOG_INFO,"pks/add:accept:%d:%s:%s:",gpgikey->status,gpgikey->fpr,uid2?uid2:gpgkey->uids->uid);
-#endif /* LOG_PKS_ADD */
+#endif /* PKS_ADD_LOG */
 			gpgme_key_unref(gpgkey);
 		}
-#ifdef LOG_PKS_ADD
+#ifdef PKS_ADD_LOG
 		else
 			syslog(LOG_INFO,"pks/add:update:%d:%s:",gpgikey->status,gpgikey->fpr);
-#endif /* LOG_PKS_ADD */
+#endif /* PKS_ADD_LOG */
 
 #ifdef REEXPORT_PKS_ADD /* I have try almost every thing, but it doesn't work ! :-( */
 		if (gpgkey) 
@@ -241,7 +241,7 @@ int hkp_add( httpd_conn* hc ) {
 	if (rcode==202)
 		send_mime(hc, 202, ok200title, "", "X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
 	else
-#endif /* RESTRICTED_PKS_ADD || CHECK_UDID2 */
+#endif /* PKS_ADD_MERGE_ONLY || CHECK_UDID2 */
 		send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
 	httpd_write_response(hc);
 	r=snprintf(buff,buffsize,"<html><head><title>pks/add %d keys</title></head><body><h2>Total: %d<br>imported: %d<br>unchanged: %d<br>no_user_id: %d<br>new_user_ids: %d<br>new_sub_keys: %d<br>new_signatures: %d<br>new_revocations: %d<br>secret_read: %d<br>not_imported: %d</h2></body></html>", gpgimport->considered, gpgimport->considered, gpgimport->imported, gpgimport->unchanged, gpgimport->no_user_id, gpgimport->new_user_ids, gpgimport->new_sub_keys, gpgimport->new_signatures, gpgimport->new_revocations, gpgimport->secret_read, gpgimport->not_imported);

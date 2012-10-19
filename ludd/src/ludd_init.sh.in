@@ -165,7 +165,14 @@ fi
 if ! grep "$LUDDVERSION ###" "$dir/gpgme/gpg.conf" > /dev/null 2>&1 ; then
 	cat >> "$dir/gpgme/gpg.conf" <<EOF
 ### following import-option line has been added $(date -R) by ${0##*/} - $LUDDVERSION ###
+# "import-options" apply on key imported through pks/add or via creation sheets. The most
+# intersting options are import-clean or import-minimal. You should not set merge-only
+# since it it will block retrieving new keys through creation sheet. Use instead the compile
+# flag PKS_ADD_MERGE_ONLY in ludd.
 #import-options import-clean
+
+# keyserver to use for retrieving new keys from creation sheet.
+# Note: if the server doesn't answer, ludd may instead request some peers before to fail.
 keyserver $KEYSERVER
 
 EOF
