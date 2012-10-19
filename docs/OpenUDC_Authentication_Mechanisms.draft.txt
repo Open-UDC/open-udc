@@ -24,7 +24,7 @@ Request for Comments:                                      Open-UDC Team
     4.4 Explicit living trust level .................................
     4.5 Proof of life ...............................................
  5. Bot Authentication .............................................
- 6. Node Authentication .............................................
+ 6. Pool Authentication .............................................
 
 1.== Introduction ==
 
@@ -73,10 +73,10 @@ Request for Comments:                                      Open-UDC Team
         Was used for Human Authentication, now deprecated.
     - "udid2"
         Used for Human Authentication.
-    - "udbot1"
-        Used for Bot Authentication.
-    - "udnode1"
-        Used for Node Authentication.
+    - "ubot1"
+        Used for Bot (ie. Node) Authentication.
+    - "upoo1"
+        Used for Pool Authentication.
 
   The charaters after the last recognized field in the string SHOULD be
   ignored and MAY use other charset (UTF-8...). They MAY be use to add
@@ -347,13 +347,13 @@ Request for Comments:                                      Open-UDC Team
   To prevent that, each bot are authenticated as a human's minion:
 
   Each bots have their own OpenPGP certificate, and one of the uid
-  comment field MUST begin with the special string "udbot1;" ,
+  comment field MUST begin with the special string "ubot1;" ,
   followed immediately by the full udid2 of its master.
 
   e.g.: the OpenPGP certificate of François-Xavier-Robert's bot MUST
   have this string in the comment field of one of its uid:
 
-  udbot1;udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
+  ubot1;udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
 
   And this OpenPGP uid MUST be signed by the human master to proove
   she/he recognized this minion.
@@ -364,10 +364,10 @@ Request for Comments:                                      Open-UDC Team
   Note: take care that private key(s) of bots are often not protected
   by a passphrase.
 
-6.== Node Authentication ==
+6.== Pool Authentication ==
 
     As long as a single network will be enough to trade efficiently in
-    a given web of trust, splitting the network into different node will
-    not be mandatory.
+    a given web of trust, splitting the network into different pools
+    will not be mandatory.
 
-    (Today, 31 may 2011) Node specification may wait.
+    (Today, 31 may 2011) Pool specification may wait.

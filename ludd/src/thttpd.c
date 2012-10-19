@@ -149,8 +149,10 @@ gpgme_ctx_t main_gpgctx;
 /* myself (peer) */
 peer_t myself;
 
+#ifdef CHECK_UDID2
 /* regex for udid2;c */
 regex_t udid2c_regex;
+#endif
 
 /* Forwards. */
 static void parse_args( int argc, char** argv );
@@ -397,9 +399,6 @@ main( int argc, char** argv )
 
 	gpgme_error_t gpgerr;
 	gpgme_engine_info_t enginfo;
-
-	/* to get length of onwer's udid2;c */
-	regmatch_t pmatch;
 
 	argv0 = strrchr( argv[0], '/' );
 	if ( argv0 != (char*) 0 )
@@ -689,9 +688,10 @@ main( int argc, char** argv )
 				LOG_WARNING,
 				"started as root without requesting chroot(), warning only" );
 		}
-
-	if (regcomp(&udid2c_regex, "^(udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};[0-9.e+-]{14};[0-9]+)", REG_EXTENDED))
+#ifdef CHECK_UDID2
+	if (regcomp(&udid2c_regex, "^udid2;c;[A-Z]{1,20};[A-Z-]{1,20};[0-9-]{10};[0-9.e+-]{14};[0-9]+", REG_EXTENDED|REG_NOSUB))
 		DIE(1,"Could not compile regex 'udid2;c...' :-(");
+#endif
 
 	/* Check gpgme version ( http://www.gnupg.org/documentation/manuals/gpgme/Library-Version-Check.html )*/
 	setlocale(LC_ALL, "");
@@ -745,8 +745,14 @@ main( int argc, char** argv )
 		DIE(1,"key %s is invalid",mygpgkey->uids->uid);
 	} else if (! mygpgkey->can_sign ) {
 		DIE(1,"key %s can not sign",mygpgkey->uids->uid);
-	} else if ( (!mygpgkey->uids->comment) || strncmp(mygpgkey->uids->comment,"udbot1;",sizeof("udbot1")) || regexec(&udid2c_regex,mygpgkey->uids->comment+sizeof("udbot1"), 1, &pmatch, 0) ) {
-		DIE(1,"%s's key doesn't contain a valid udbot1 (%s)",mygpgkey->uids->name,mygpgkey->uids->comment)
+	/* TODO: Parse all uids instead of first one only */
+	} else if ( (!mygpgkey->uids->comment) || strncmp(mygpgkey->uids->comment,"ubot1;",sizeof("ubot1"))
+#ifdef CHECK_UDID2
+			|| regexec(&udid2c_regex,mygpgkey->uids->comment+sizeof("ubot1"), 0, NULL, 0)
+#endif
+		) {
+
+		DIE(1,"%s's key doesn't contain a valid ubot1 (%s)",mygpgkey->uids->name,mygpgkey->uids->comment)
 	}
 
 	/* The main context is for signing, put the key in and set armor */
@@ -760,13 +766,13 @@ main( int argc, char** argv )
 		gpgme_key_sig_t sigs;
 		gpgme_key_t sigkey;
 		int found=0;
+		int idlen=strlen(mygpgkey->uids->comment+sizeof("ubot1"));
 
 		/* First recal gpgme_get_key but from public keyring to get signatures (little bug of gpg version < 2.1) */
 		gpgerr = gpgme_get_key (main_gpgctx,myself.fpr,&mygpgkey,0);
 		if ( gpgerr != GPG_ERR_NO_ERROR )
 			DIE(1,"gpgme_get_key(%s) - %s",myself.fpr,gpgme_strerror(gpgerr));
 
-		//warnx("pmatch: %d -> %d",pmatch.rm_so,pmatch.rm_eo);
 		sigs=mygpgkey->uids->signatures;
 		while (sigs) {
 			//warnx("sig: %s",sigs->uid);
@@ -778,9 +784,8 @@ main( int argc, char** argv )
 				gpgme_user_id_t gpguids=sigkey->uids;
 
 				while (gpguids) {
-					//warnx("comment: %s - %s",gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"));
-					if (!strncmp(gpguids->comment,mygpgkey->uids->comment+sizeof("udbot1"),pmatch.rm_eo-1)) {
-						/* We have found the udbot1 owner */
+					if (!strncmp(gpguids->comment,mygpgkey->uids->comment+sizeof("ubot1"),idlen)) {
+						/* We have found the ubot1 owner */
 						found=1;
 						warnx("owner's key fingerprint: %s",sigkey->subkeys->fpr);
 						syslog(LOG_INFO,"owner's key fingerprint: %s",sigkey->subkeys->fpr);
@@ -827,8 +832,9 @@ main( int argc, char** argv )
 		}
 
 	/* We will now only use syslog if some errors happen, so close stderr */
-    warnx("started successfully ! (pid %d, only syslog is now used)",getpid());
-	fclose( stderr );
+    warnx("started successfully ! (pid [%d], messages are now sent to syslog only)",getpid());
+	if ( ! debug )
+		fclose( stderr );
 
 	/* Main loop. */
 	(void) gettimeofday( &tv, (struct timezone*) 0 );

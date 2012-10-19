@@ -90,7 +90,7 @@
 /* CONFIGURE: How many seconds to allow for reading the initial request
 ** on a new connection.
 */
-#define IDLE_READ_TIMELIMIT 60
+#define IDLE_READ_TIMELIMIT 30
 
 /* CONFIGURE: How many seconds before an idle connection gets closed.
 */
@@ -112,6 +112,26 @@
 ** at all and will not check for auth files, which saves a bit of CPU time.
 */
 //#define AUTH_FILE ".htpasswd"
+
+
+/* CONFIGURE: This disable new keys to be added through pks/add. If defined
+ * the keyring only accept existing key through pks/add (for updates like revoking).
+ * The default procedure for importing new keys is to write their fingerprint in a
+ * creation sheet.
+ * If you don't want to have unused or unknow keys in your keyring, you should define it.
+ */
+#define RESTRICTED_PKS_ADD
+
+/* CONFIGURE: This is required for OpenUDC compatibility : it checks that your bot
+ * certificate contain a valid udid2. 
+ * (ie: "udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+" )
+ * Note: if RESTRICTED_PKS_ADD is undef, it also checks those added through pks/add.
+ */
+#define CHECK_UDID2
+
+/* CONFIGURE: It implies to log keys sended to pks/add (still via syslog).
+ */
+//#define LOG_PKS_ADD
 
 /* CONFIGURE: The default character set name to use with text MIME types.
 ** This gets substituted into the MIME types where they have a "%s".

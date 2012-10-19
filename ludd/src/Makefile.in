@@ -147,4 +147,4 @@ mmc.o:		mmc.h libhttpd.h
 timers.o:	timers.h
 match.o:	match.h
 tdate_parse.o:	tdate_parse.h
-hkp.o:		hkp.h libhttpd.h
+hkp.o:		config.h hkp.h libhttpd.h

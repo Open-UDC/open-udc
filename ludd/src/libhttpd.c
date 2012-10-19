@@ -683,7 +683,7 @@ httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, const
 
 	/* log server error */
 	if (status>=500)
-		syslog( LOG_ERR, "HTTP %d (%.80s):%m \"%.80s\"",status,arg,hc->encodedurl );
+		syslog( LOG_ERR, "HTTP %d (%.80s) - %m \"%.80s\"",status,arg,hc->encodedurl );
 
 	send_mime(
 		hc, status, title, "", extraheads, "text/html; charset=%s", (off_t) -1,
