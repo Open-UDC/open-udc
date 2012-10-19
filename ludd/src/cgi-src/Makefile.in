@@ -42,7 +42,9 @@ CLEANFILES =	*.o redirect ssi phf
 	@rm -f $@
 	$(CC) $(CFLAGS) -c $*.c
 
-all:		redirect ssi phf
+# Old thttpd's cgi are no more compiled.
+#all:		redirect ssi phf
+all:
 
 redirect:	redirect.o
 	$(CC) $(LDFLAGS) redirect.o $(LIBS) -o redirect

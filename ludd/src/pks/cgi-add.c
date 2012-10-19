@@ -23,10 +23,13 @@
 #include <unistd.h>
 #include <locale.h>  /* locale support    */
 #include <gpgme.h>
+#include <regex.h>
 
 #include "version.h"
 
 #define INPUT_MAX (1<<17) /* 1<<17 = 128ko */
+#define HTML_4XX "<html><head><title>Error handling request</title></head><body><h1>Error handling request: %s</h1></body></html>"
+#define HTML_5XX "<html><head><title>Internal Error</title></head><body><h1>Internal Error - %s</h1></body></html>"
 
 static void http_header(int code)
 {
@@ -81,12 +84,11 @@ static char * get_starting_comment(char * ud, gpgme_key_t gkey) {
 	return((char *) 0);
 }
 
-
 int main(int argc, char *argv[])
 {
 	gpgme_ctx_t gpgctx;
 	gpgme_error_t gpgerr;
-	//gpgme_engine_info_t enginfo;
+	gpgme_engine_info_t enginfo;
 	gpgme_data_t gpgdata;
 	gpgme_import_result_t gpgimport;
 	gpgme_import_status_t gpgikey;
@@ -98,13 +100,13 @@ int main(int argc, char *argv[])
 	pclen=getenv("CONTENT_LENGTH");
 	if (! pclen || *pclen == '\0' || (clen=atoi(pclen)) < 9 ) {
 		http_header(411);
-		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: Only non-empty POST containing OpenPGP certificate(s) compatible with an OpenUDC Policy are accepted here !</h1></body></html>");
+		printf(HTML_4XX,"Only non-empty POST containing OpenPGP certificate(s) compatible with an OpenUDC Policy are accepted here !");
 		return 1;
 	}
 
 	if ( clen >= INPUT_MAX ) {
 		http_header(413);
-		printf("<html><head><title>Error handling request</title></head><body><h1>Error handling request: your POST is too big.</h1></body></html>");
+		printf(HTML_5XX,"your POST is too big.");
 		return 1;
 	}
 
@@ -113,13 +115,13 @@ int main(int argc, char *argv[])
 		buff[clen]='\0'; /*security for strdecode */
 	else {
 		http_header(500);
-		printf("<html><head><title>Internal Error</title></head><body><h1>Internal Error.</h1></body></html>");
+		printf(HTML_5XX,"");
 		return 1;
 	}
 
 	if ( fread(buff,sizeof(char),clen,stdin) != clen ) {
 		http_header(500);
-		printf("<html><head><title>Internal Error</title></head><body><h1>Error reading your data.</h1></body></html>");
+		printf(HTML_5XX,"Error reading your data.");
 		return 1;
 	}
 
@@ -131,15 +133,14 @@ int main(int argc, char *argv[])
 	gpgerr=gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP);
 	if (gpgerr == GPG_ERR_NO_ERROR)
 		gpgerr=gpgme_new(&gpgctx);
-	/*if (gpgerr == GPG_ERR_NO_ERROR)
+	if (gpgerr == GPG_ERR_NO_ERROR)
 		gpgerr = gpgme_get_engine_info(&enginfo);
 	if (gpgerr == GPG_ERR_NO_ERROR)
-		gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,TMP_DIR);
-	*/
+		gpgerr = gpgme_ctx_set_engine_info(gpgctx, GPGME_PROTOCOL_OpenPGP, enginfo->file_name,"../../gpgme");
 
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 		http_header(500);
-		printf("<html><head><title>Internal Error</title></head><body><h1>Error handling request due to internal error (gpgme %d).</h1></body></html>",gpgerr);
+		printf(HTML_5XX,gpgme_strerror(gpgerr));
 		return 1;
 	}
 
@@ -154,25 +155,25 @@ int main(int argc, char *argv[])
 
 	if ( gpgerr  != GPG_ERR_NO_ERROR ) {
 		http_header(500);
-		printf("<html><head><title>Internal Error</title></head><body><h1>Internal Error (%d).</h1></body></html>",gpgerr);
+		printf(HTML_5XX,gpgme_strerror(gpgerr));
 		return 1;
 	}
 
 	if ( (gpgerr=gpgme_op_import (gpgctx, gpgdata)) != GPG_ERR_NO_ERROR ) {
 		http_header(400);
-		printf("<html><head><title>Error</title></head><body><h1>Error handling request (gpgme import %d).</h1></body></html>",gpgerr);
+		printf(HTML_4XX,gpgme_strerror(gpgerr));
 		return 1;
 	}
 
 	if ((gpgimport= gpgme_op_import_result(gpgctx)) == NULL )  {
 		http_header(500);
-		printf("<html><head><title>Internal Error</title></head><body><h1>Internal Error result is NULL (... should not happen :-/).</h1></body></html>");
+		printf(HTML_5XX,"result is NULL (... should not happen :-/).");
 		return 1;
 	}
 
 	if ( gpgimport->considered == 0 ) {
 		http_header(400);
-		printf("<html><head><title>Error</title></head><body><h1>Error handling request (No valid key POST).</h1></body></html>",gpgerr);
+		printf(HTML_4XX,"No valid key POST.");
 		return 1;
 	}
 	/* Check (and eventually delete) imported keys */
@@ -189,14 +190,13 @@ int main(int argc, char *argv[])
 		if ( (gpgerr=gpgme_get_key (gpgctx,gpgikey->fpr,&gpgkey,0)) != GPG_ERR_NO_ERROR ) {
 			/* should not happen */
 			http_header(500);
-			printf("<html><head><title>Internal Error</title></head><body><h1>Internal Error (gpgme get key %d).</h1></body></html>",gpgerr);
+			printf(HTML_5XX,gpgme_strerror(gpgerr));
 			return 1;
 		}
 
-		/* Check that it does expire and an uid comment start with "udid2;c;" or "udbot1;" */
-		if (!( gpgkey->subkeys->expires > 0
-				&& (get_starting_comment("udid2;c;",gpgkey)
-					|| get_starting_comment("udbot1;",gpgkey)) )) {
+		/* Check that an uid comment start with "udid2;c;" or "ubot1;" */
+		if (!( get_starting_comment("udid2;c;",gpgkey)
+					|| get_starting_comment("ubot1;",gpgkey) ) ) {
 			rcode=202;
 			gpgme_op_delete (gpgctx,gpgkey,1);
 		}
