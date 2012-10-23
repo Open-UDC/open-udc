@@ -26,6 +26,7 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .IR logfile ]
 .RB [ -i
 .IR pidfile ]
+.RB [ -nk ]
 .RB [ -f
 .IR fpr ]
 .RB [ -V ]
@@ -112,6 +113,13 @@ If no file is specified, no process-id is written.
 You can use this file to send signals to ludd.
 See below for details.
 The config-file option name for this flag is "pidfile".
+.TP
+.B -nk
+Enable new keys to be added through pks/add.
+By default the keyring only accept existing key through pks/add (for updates like revoking).
+The procedure for importing new keys is to write their fingerprint in a creation sheet.
+Unless you want to store unused or unknow keys in your keyring, you shouldn't use this.
+The config-file option name for this flag is "newkeys".
 .TP
 .B -f
 Specifies the fingerprint of the OpenPGP key to use.
@@ -367,6 +375,9 @@ new one.
 This is a little tricky to set up correctly, for instance if you are using
 chroot() then the log file must be within the chroot tree, but it's
 definitely doable.
+.SH FILES
+From its running directory:
+.B ludd.conf gpgme/gpg.conf
 .SH "SEE ALSO"
 lud(1), OpenUDC(8)
 .SH THANKS

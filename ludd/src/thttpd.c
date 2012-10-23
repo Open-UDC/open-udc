@@ -87,7 +87,7 @@ char* argv0;
 static int debug;
 static unsigned short port;
 static char* dir;
-static int do_chroot, no_log, no_symlink_check;
+static int do_chroot, hsbfield;
 static char* cgi_pattern;
 static int cgi_limit;
 static char* logfile;
@@ -360,7 +360,7 @@ re_open_logfile( void )
 	{
 	FILE* logfp;
 
-	if ( no_log || hs == (httpd_server*) 0 )
+	if ( (hsbfield & HS_NO_LOG ) || hs == (httpd_server*) 0 )
 		return;
 
 	/* Re-open the log file. */
@@ -442,7 +442,7 @@ main( int argc, char** argv )
 		{
 		if ( strcmp( logfile, "/dev/null" ) == 0 )
 			{
-			no_log = 1;
+			hsbfield |= HS_NO_LOG;
 			logfp = (FILE*) 0;
 			}
 		else if ( strcmp( logfile, "-" ) == 0 )
@@ -487,7 +487,7 @@ main( int argc, char** argv )
 	}
 
 	if ( chdir( dir ) < 0 )
-		DIE(1, "chdir %s - %m",dir );
+		DIE(1,"chdir %s - %m %s",dir,"(forget ludd_init.sh ?)");
 
 	if (read_config(DEFAULT_CFILE) < 2)
 		/* if read_config does something: re-parse args which override it */
@@ -595,7 +595,7 @@ main( int argc, char** argv )
 
 	/* Switch to the web (public) directory. */
 	if ( chdir(WEB_DIR) < 0 )
-		DIE(1,"chdir %s - %m (forget ludd_init.sh ?)",WEB_DIR);
+		DIE(1,"chdir %s - %m %s",WEB_DIR,"(forget ludd_init.sh ?)");
 
 	/* Set up to catch signals. */
 #ifdef HAVE_SIGSET
@@ -634,7 +634,7 @@ main( int argc, char** argv )
 	hs = httpd_initialize(
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		port, cgi_pattern, cgi_limit, cwd, no_log, logfp, no_symlink_check );
+		port, cgi_pattern, cgi_limit, cwd, hsbfield, logfp);
 	if ( hs == (httpd_server*) 0 )
 		DIE(1,"Could not perform httpd initialization (%m). Exiting");
 
@@ -730,7 +730,7 @@ main( int argc, char** argv )
 
 	/* get the bot  key */
 	if ( ! myself.fpr || strlen(myself.fpr) != 40 ) 
-		DIE( 1, "Invalid fingerprint (fpr) - forget ludd_init.sh ?");
+		DIE( 1, "Invalid fingerprint %s","(forget ludd_init.sh ?)");
 
 	gpgerr = gpgme_get_key (main_gpgctx,myself.fpr,&mygpgkey,1);
 	if ( gpgerr != GPG_ERR_NO_ERROR ) {
@@ -944,13 +944,14 @@ parse_args( int argc, char** argv )
 	debug = 0;
 	port = DEFAULT_PORT;
 	dir = (char*) 0;
+	hsbfield = 0;
 #ifdef ALWAYS_CHROOT
 	do_chroot = 1;
+	hsbfield |= HS_NO_SYMLINK_CHECK;
 #else /* ALWAYS_CHROOT */
 	do_chroot = 0;
 #endif /* ALWAYS_CHROOT */
-	no_log = 0;
-	no_symlink_check = do_chroot;
+	hsbfield |= HS_PKS_ADD_MERGE_ONLY;
 #ifdef CGI_PATTERN
 	cgi_pattern = CGI_PATTERN;
 #else /* CGI_PATTERN */
@@ -993,12 +994,16 @@ parse_args( int argc, char** argv )
 		else if ( strcmp( argv[argn], "-r" ) == 0 )
 			{
 			do_chroot = 1;
-			no_symlink_check = 1;
+			hsbfield |= HS_NO_SYMLINK_CHECK;
 			}
 		else if ( strcmp( argv[argn], "-nor" ) == 0 )
 			{
 			do_chroot = 0;
-			no_symlink_check = 0;
+			hsbfield &= ~HS_NO_SYMLINK_CHECK;
+			}
+		else if ( strcmp( argv[argn], "-nk" ) == 0 )
+			{
+			hsbfield &= ~HS_PKS_ADD_MERGE_ONLY;
 			}
 		else if ( strcmp( argv[argn], "-u" ) == 0 && argn + 1 < argc )
 			{
@@ -1064,17 +1069,18 @@ usage( void )
 			    "Options:\n" \
 			    "	-C FILE     config file to use (default: "DEFAULT_CFILE" in running directory)\n" \
 			    "	-p PORT     listenning port (default: %d)\n" \
-			    "	-e PORT     external port (to be reach by peers, default: listenning port)\n" \
+			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
 			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/.ludd/)\n" \
-			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
 			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n" \
+			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
 			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
 			    "	-t FILE     file of throttle settings (default: no throtlling)\n" \
-			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
-			    "	-E HOST     external host name or IP adress (default: default hostname)\n" \
 			    "	-l LOGFILE  file for logging (default: via syslog())\n" \
 			    "	-i PIDFILE  file to write the process-id to\n" \
-			    "	-f FPR      Fingerprint of the ludd's OpenPGP key (no default, MANDATORY)\n" \
+			    "	-nk         new (unknow) keys may be added in our keyring through \"pks/add\"\n" \
+			    "	-e PORT     external port (to be reach by peers, default: listenning port)\n" \
+			    "	-E HOST     external host name or IP adress (default: default hostname)\n" \
+			    "	-f FPR      fingerprint of the ludd's OpenPGP key (no default, MANDATORY)\n" \
 			    "	-V          show version and exit\n" \
 			    "	-D          stay in foreground\n"
 			    , argv0, DEFAULT_PORT );
@@ -1101,7 +1107,7 @@ static int read_config( char* filename )
 
 	fp = fopen( filename, "r" );
 	if ( fp == (FILE*) 0 )
-		DIE(1,"%s: %m :-( (forget ludd_init.sh ?)",filename);
+		DIE(1,"%s: %m :-( %s",filename,"(forget ludd_init.sh ?)");
 
 	while ( fgets( line, sizeof(line), fp ) != (char*) 0 )
 		{
@@ -1146,13 +1152,18 @@ static int read_config( char* filename )
 				{
 				no_value_required( name, value );
 				do_chroot = 1;
-				no_symlink_check = 1;
+				hsbfield |= HS_NO_SYMLINK_CHECK;
 				}
 			else if ( strcasecmp( name, "nochroot" ) == 0 )
 				{
 				no_value_required( name, value );
 				do_chroot = 0;
-				no_symlink_check = 0;
+				hsbfield &= ~HS_NO_SYMLINK_CHECK;
+				}
+			else if ( strcasecmp( name, "newkeys" ) == 0 )
+				{
+				no_value_required( name, value );
+				hsbfield &= ~HS_PKS_ADD_MERGE_ONLY;
 				}
 			else if ( strcasecmp( name, "user" ) == 0 )
 				{

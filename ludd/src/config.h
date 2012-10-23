@@ -113,25 +113,17 @@
 */
 //#define AUTH_FILE ".htpasswd"
 
-
-/* CONFIGURE: This disable new keys to be added through pks/add. If defined
- * the keyring only accept existing key through pks/add (for updates like revoking).
- * The default procedure for importing new keys is to write their fingerprint in a
- * creation sheet.
- * If you don't want to have unused or unknow keys in your keyring, you should define it.
- */
-#define PKS_ADD_MERGE_ONLY
-
 /* CONFIGURE: This is required for OpenUDC compatibility : it checks that your bot
  * certificate contain a valid udid2. 
  * (ie: "udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+" )
- * Note: if PKS_ADD_MERGE_ONLY is undef, it also checks those added through pks/add.
+ * Note: If -nk is passed (which means PKS_ADD_MERGE_ONLY unset) it will also checks
+ * those added through pks/add.
  */
 #define CHECK_UDID2
 
 /* CONFIGURE: It implies to log keys sended to pks/add (still via syslog).
  */
-//#define PKS_ADD_LOG
+#define PKS_ADD_LOG
 
 /* CONFIGURE: The default character set name to use with text MIME types.
 ** This gets substituted into the MIME types where they have a "%s".

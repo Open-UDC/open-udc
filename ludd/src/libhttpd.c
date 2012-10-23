@@ -194,7 +194,7 @@ httpd_server*
 httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit,
-	char* cwd, int no_log, FILE* logfp, int no_symlink_check )
+	char* cwd, int bfield, FILE* logfp )
 	{
 	httpd_server* hs;
 	static char ghnbuf[256];
@@ -251,10 +251,9 @@ httpd_initialize(
 		syslog( LOG_CRIT, "out of memory copying cwd" );
 		return (httpd_server*) 0;
 		}
-	hs->no_log = no_log;
+	hs->bfield = bfield;
 	hs->logfp = (FILE*) 0;
 	httpd_set_logfp( hs, logfp );
-	hs->no_symlink_check = no_symlink_check;
 
 	/* Initialize listen sockets.  Try v6 first because of a Linux peculiarity;
 	** like some other systems, it has magical v6 sockets that also listen for
@@ -1938,7 +1937,7 @@ httpd_parse_request( httpd_conn* hc )
 	/* Expand all symbolic links in the filename.  This also gives us
 	** any trailing non-existing components, for pathinfo.
 	*/
-	cp = expand_symlinks( hc->expnfilename, &pi, hc->hs->no_symlink_check, hc->tildemapped );
+	cp = expand_symlinks( hc->expnfilename, &pi, (hc->hs->bfield & HS_NO_SYMLINK_CHECK), hc->tildemapped );
 	if ( cp == (char*) 0 )
 		{
 		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
@@ -3575,7 +3574,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		/* Got an index file.  Expand symlinks again.  More pathinfo means
 		** something went wrong.
 		*/
-		cp = expand_symlinks( indexname, &pi, hc->hs->no_symlink_check, hc->tildemapped );
+		cp = expand_symlinks( indexname, &pi, (hc->hs->bfield & HS_NO_SYMLINK_CHECK), hc->tildemapped );
 		if ( cp == (char*) 0 || pi[0] != '\0' )
 			{
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
@@ -3783,7 +3782,7 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 	char url[305];
 	char bytes[40];
 
-	if ( hc->hs->no_log )
+	if ( hc->hs->bfield & HS_NO_LOG )
 		return;
 
 	/* This is straight CERN Combined Log Format - the only tweak

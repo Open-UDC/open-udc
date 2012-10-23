@@ -76,10 +76,13 @@ typedef struct {
 	int cgi_limit, cgi_count;
 	char* cwd;
 	int listen4_fd, listen6_fd;
-	int no_log;
+	int bfield;
 	FILE* logfp;
-	int no_symlink_check;
 	} httpd_server;
+
+#define HS_NO_SYMLINK_CHECK (1<<1)
+#define HS_NO_LOG (1<<2)
+#define HS_PKS_ADD_MERGE_ONLY (1<<3)
 
 /* A connection. */
 typedef struct {
@@ -138,9 +141,9 @@ typedef struct {
 #define HC_DETACH_SIGN (1<<4)
 
 /* Useless macros. BTW: if u really think it improves readability, u may use them */
-#define HC_SET(hc,mask) { (hc)->bfield |= (mask); }
-#define HC_UNSET(hc,mask) { (hc)->bfield &= ~(mask); }
-#define HC_IS_SET(hc,mask) ( (hc)->bfield & (mask) )
+#define HX_SET(hx,mask) { (hx)->bfield |= (mask); }
+#define HX_UNSET(hx,mask) { (hx)->bfield &= ~(mask); }
+#define HX_IS_SET(hx,mask) ( (hx)->bfield & (mask) )
 
 /* struct passed to pthread_create for interposed thread */
 typedef struct {
@@ -182,7 +185,7 @@ extern int strdecode( char* to, char* from );
 extern httpd_server* httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
 	unsigned short port, char* cgi_pattern, int cgi_limit,
-	char* cwd, int no_log, FILE* logfp, int no_symlink_check);
+	char* cwd, int bfield, FILE* logfp);
 
 /* Change the log file. */
 extern void httpd_set_logfp( httpd_server* hs, FILE* logfp );
