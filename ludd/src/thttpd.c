@@ -195,10 +195,10 @@ static void logstats( struct timeval* nowP );
 static void thttpd_logstats( long secs );
 
 /* Macro to DIE */
-#define DIE(code,...) { \
+#define DIE(code,...) do { \
 	syslog( LOG_CRIT,__VA_ARGS__); \
 	errx((code),__VA_ARGS__); \
-	}
+	} while (0)
 
 /* SIGTERM and SIGINT say to exit immediately. */
 static void handle_term( int sig ) {
@@ -423,11 +423,6 @@ main( int argc, char** argv )
 	/* Read zone info now, in case we chroot(). */
 	tzset();
 
-	/* Look up hostname now, in case we chroot(). */
-	lookup_hostname( &sa4, sizeof(sa4), &gotv4, &sa6, sizeof(sa6), &gotv6 );
-	if ( ! ( gotv4 || gotv6 ) )
-		DIE(1, "can't find any valid address" );
-
 	/* Throttle file. */
 	numthrottles = 0;
 	maxthrottles = 0;
@@ -503,6 +498,11 @@ main( int argc, char** argv )
 		/* if read_config does something: re-parse args which override it */
 		parse_args( argc, argv );
 	
+	/* Look up hostname now, in case we will chroot(). */
+	lookup_hostname( &sa4, sizeof(sa4), &gotv4, &sa6, sizeof(sa6), &gotv6 );
+	if ( ! ( gotv4 || gotv6 ) )
+		DIE(1, "can't find any valid address" );
+
 	/* if we are root make sure that directory is owned by the specified user */
 	if ( getuid() == 0 ) {
 		if (stat(".",&stf) )
@@ -761,8 +761,7 @@ main( int argc, char** argv )
 			|| regexec(&udid2c_regex,mygpgkey->uids->comment+sizeof("ubot1"), 0, NULL, 0)
 #endif
 		) {
-
-		DIE(1,"%s's key doesn't contain a valid ubot1 (%s)",mygpgkey->uids->name,mygpgkey->uids->comment)
+		DIE(1,"%s's key doesn't contain a valid ubot1 (%s)",mygpgkey->uids->name,mygpgkey->uids->comment);
 	}
 
 	/* The main context is for signing, put the key in and set armor */
