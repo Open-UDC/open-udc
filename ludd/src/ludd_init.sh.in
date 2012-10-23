@@ -205,14 +205,17 @@ cat << EOF > ludd.conf
 # Note: this is ignored for the default config file, which is found in the homedir ! :-D
 #dir=/var/ludd
 
-# Specifie the fingerprint of the (secret) key to use for signing.
+# Specifies the fingerprint of the (secret) key to use for signing.
 fpr=${mybotkeys[$bki]}
 
-# Specifies an alternate port number to listen on.
+# Specifies the external port to reach us (may differs from port if you are behind a NAT).
 eport=$myport
 
-# Specifie the external host name (or host adress) to reach us.
+# Specifies the external host name (or host adress) to reach us.
 ehost=$myhost
+
+# Specifies an alternate port number to listen on.
+#port=11371
 
 # Specifies a hostname (and so interface) to bind to. The default is to bind to
 # all hostnames supported on the local machine. See ludd(8) for details.
@@ -230,6 +233,10 @@ ehost=$myhost
 # Specifies a wildcard pattern for CGI programs, for instance "**.cgi" or
 # "/cgi-bin/*". See ludd(8) for details.
 #cgipat=""
+
+# Specifies the maximum number of simultaneous requests which need to call fork().
+# Suchs requests are: the CGI programs and the embedded actions (pks/add, pks/lookup ...).
+#cgilimit=200
 
 # Specifies a file of throttle settings. This feature may be removed in the futur.
 # See ludd(8) for details.

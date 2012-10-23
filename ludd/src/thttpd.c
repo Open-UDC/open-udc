@@ -84,17 +84,27 @@ typedef long long int64_t;
 #endif
 
 char* argv0;
-static int debug;
-static unsigned short port;
-static char* dir;
-static int do_chroot, hsbfield;
-static char* cgi_pattern;
-static int cgi_limit;
-static char* logfile;
-static char* throttlefile;
-static char* hostname;
-static char* pidfile;
-static char* user;
+static int debug = 0;
+static char* dir = (char*) 0;
+#ifdef ALWAYS_CHROOT
+static int do_chroot = 1;
+static int hsbfield = ( HS_NO_SYMLINK_CHECK | HS_PKS_ADD_MERGE_ONLY );
+#else /* ALWAYS_CHROOT */
+static int do_chroot = 0;
+static int hsbfield = HS_PKS_ADD_MERGE_ONLY;
+#endif /* ALWAYS_CHROOT */
+static int cgi_limit = CGI_LIMIT;
+#ifdef CGI_PATTERN
+static char * cgi_pattern = CGI_PATTERN;
+#else /* CGI_PATTERN */
+static char * cgi_pattern = (char*) 0;
+#endif /* CGI_PATTERN */
+static unsigned short port = DEFAULT_PORT;
+static char* logfile = (char*) 0;
+static char* throttlefile = (char*) 0;
+static char* hostname = (char*) 0;
+static char* pidfile = (char*) 0;
+static char* user = DEFAULT_USER;
 
 typedef struct {
 	char* pattern;
@@ -940,33 +950,6 @@ static void
 parse_args( int argc, char** argv )
 	{
 	int argn;
-
-	debug = 0;
-	port = DEFAULT_PORT;
-	dir = (char*) 0;
-	hsbfield = 0;
-#ifdef ALWAYS_CHROOT
-	do_chroot = 1;
-	hsbfield |= HS_NO_SYMLINK_CHECK;
-#else /* ALWAYS_CHROOT */
-	do_chroot = 0;
-#endif /* ALWAYS_CHROOT */
-	hsbfield |= HS_PKS_ADD_MERGE_ONLY;
-#ifdef CGI_PATTERN
-	cgi_pattern = CGI_PATTERN;
-#else /* CGI_PATTERN */
-	cgi_pattern = (char*) 0;
-#endif /* CGI_PATTERN */
-#ifdef CGI_LIMIT
-	cgi_limit = CGI_LIMIT;
-#else /* CGI_LIMIT */
-	cgi_limit = 0;
-#endif /* CGI_LIMIT */
-	throttlefile = (char*) 0;
-	hostname = (char*) 0;
-	logfile = (char*) 0;
-	pidfile = (char*) 0;
-	user = DEFAULT_USER;
 	argn = 1;
 	while ( argn < argc && argv[argn][0] == '-' )
 		{

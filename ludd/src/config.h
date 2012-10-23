@@ -81,9 +81,9 @@
 
 /* CONFIGURE: Maximum number of simultaneous CGI programs allowed.
 ** If this many are already running, then attempts to run more will
-** return an HTTP 503 error.  If this is not defined then there's
+** return an HTTP 503 error.  If this is defined to zero, there is
 ** no limit (and you'd better have a lot of memory).  This can also be
-** set in the runtime config file.
+** set in the runtime config file, the option name is "cgilimit".
 */
 #define CGI_LIMIT 200
 

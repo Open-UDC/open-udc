@@ -192,7 +192,8 @@ Relevant config.h option: ALWAYS_CHROOT.
 ludd supports the CGI 1.1 spec.
 .PP
 In order for a CGI program to be run, its name must match the pattern
-specified either at compile time or on the command line with the -c flag.
+specified either at compile time or on the command line with the -c flag, or
+using "cgipat=..." in the configuration file.
 This is a simple shell-style filename pattern.
 You can use * to match any string not including a slash,
 or ** to match any string including slashes,
@@ -217,7 +218,7 @@ Note: the current working directory when a CGI program gets run is
 the directory that the CGI program lives in.
 This isn't in the CGI 1.1 spec, but it's what most other HTTP servers do.
 .PP
-Relevant config.h options: CGI_PATTERN, CGI_TIMELIMIT, CGI_NICE, CGI_PATH, CGI_LD_LIBRARY_PATH, CGIBINDIR.
+Relevant config.h options: CGI_LIMIT, CGI_PATTERN, CGI_TIMELIMIT, CGI_NICE, CGI_PATH, CGI_LD_LIBRARY_PATH, CGIBINDIR.
 .SH "THROTTLING"
 .PP
 The throttle file lets you set maximum byte rates on URLs or URL groups.
