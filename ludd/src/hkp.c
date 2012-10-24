@@ -222,28 +222,18 @@ int hkp_add( httpd_conn* hc ) {
 		} else
 			PKSADDLOG("pks/add:update:%d:%s:",gpgikey->status,gpgikey->fpr);
 
-#ifdef REEXPORT_PKS_ADD /* I have try almost every thing, but it doesn't work ! :-( */
-		if (gpgkey) 
-			{
-			gpgme_key_t keyarray[10];
-			keyarray[0]=gpgkey;
-			keyarray[1]=NULL;
-	//gpgerr=gpgme_set_keylist_mode(gpglctx,gpgme_get_keylist_mode(gpglctx)|GPGME_KEYLIST_MODE_EXTERN|GPGME_KEYLIST_MODE_EPHEMERAL|GPGME_KEYLIST_MODE_LOCAL);
-			gpgme_set_armor(gpglctx,1);
-			//gpgerr=gpgme_op_export(gpglctx,gpgikey->fpr,GPGME_EXPORT_MODE_EXTERN,NULL); /* Doesn't seems to work :-( */
-			gpgerr=gpgme_op_export_keys(gpglctx, keyarray,GPGME_KEYLIST_MODE_EXTERN,NULL); /* Doesn't work either :-( */
-			//syslog(LOG_INFO,"gpgme_op_export: %s ",gpgme_strerror(gpgerr));
-			}
-#endif /* REEXPORT_PKS_ADD */
 		gpgikey=gpgikey->next;
 	}
 
-	if (rcode==202)
+	if (rcode==202) {
 		send_mime(hc, 202, ok200title, "", "X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
-	else
+		httpd_write_response(hc);
+		r=snprintf(buff,buffsize,"<html><head><title>pks/add ?? keys</title></head><body><h2>%s<br>It may happen if a keys is unknow or doesn't contain a valid udid2 (\"udid2;c;...\")</h2></body></html>","X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012");
+	} else {
 		send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
-	httpd_write_response(hc);
-	r=snprintf(buff,buffsize,"<html><head><title>pks/add %d keys</title></head><body><h2>Total: %d<br>imported: %d<br>unchanged: %d<br>no_user_id: %d<br>new_user_ids: %d<br>new_sub_keys: %d<br>new_signatures: %d<br>new_revocations: %d<br>secret_read: %d<br>not_imported: %d</h2></body></html>", gpgimport->considered, gpgimport->considered, gpgimport->imported, gpgimport->unchanged, gpgimport->no_user_id, gpgimport->new_user_ids, gpgimport->new_sub_keys, gpgimport->new_signatures, gpgimport->new_revocations, gpgimport->secret_read, gpgimport->not_imported);
+		httpd_write_response(hc);
+		r=snprintf(buff,buffsize,"<html><head><title>pks/add %d keys</title></head><body><h2>Total: %d<br>imported: %d<br>unchanged: %d<br>no_user_id: %d<br>new_user_ids: %d<br>new_sub_keys: %d<br>new_signatures: %d<br>new_revocations: %d<br>secret_read: %d<br>not_imported: %d</h2></body></html>", gpgimport->considered, gpgimport->considered, gpgimport->imported, gpgimport->unchanged, gpgimport->no_user_id, gpgimport->new_user_ids, gpgimport->new_sub_keys, gpgimport->new_signatures, gpgimport->new_revocations, gpgimport->secret_read, gpgimport->not_imported);
+	}
 	httpd_write_fully( hc->conn_fd, buff,MIN(r,buffsize));
 
 	gpgme_release (gpglctx);

@@ -186,7 +186,7 @@ while true ; do
 done
 
 while true ; do 
-	read -p "external port number [11371] ? " myport
+	read -p "port number to listen and to be reach externally [11371] ? " myport
 	[ "$myport" ] || myport=11371
 	((myport)) && break
 done
@@ -215,7 +215,7 @@ eport=$myport
 ehost=$myhost
 
 # Specifies an alternate port number to listen on.
-#port=11371
+port=$myport
 
 # Specifies a hostname (and so interface) to bind to. The default is to bind to
 # all hostnames supported on the local machine. See ludd(8) for details.
