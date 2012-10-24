@@ -18,9 +18,9 @@ if [ "$SEND_ALL_TO" ] ; then
 	grep -h "^${yesterday}.*pks/add:accept:" "$LOGFILE.1" "$LOGFILE"
 	echo "Total: $nba"
 	echo -e "\n----- Updates -----\n"
-	grep -h "^${yesterday}.*pks/add:update:" "$LOGFILE.1" "$LOGFILE"  | tee /proc/self/fd/2 | wc
+	( grep -h "^${yesterday}.*pks/add:update:" "$LOGFILE.1" "$LOGFILE"  | tee /dev/stderr 3>&1 1>&2 2>&3 | wc >&2 ) 2>&1
 	echo -e "\n----- Rejects -----\n"
-	grep -h "^${yesterday}.*pks/add:reject:" "$LOGFILE.1" "$LOGFILE"  | tee /proc/self/fd/2 | wc
+	( grep -h "^${yesterday}.*pks/add:reject:" "$LOGFILE.1" "$LOGFILE"  | tee /dev/stderr 3>&1 1>&2 2>&3 | wc >&2 ) 2>&1
 	) | sendmail "$SEND_ALL_TO"
 fi
 
