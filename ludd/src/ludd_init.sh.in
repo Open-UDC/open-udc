@@ -282,7 +282,7 @@ esac
 # to forge a different key with the same fingerprint.
 # Such possibility is so a flaw when we don't check the OpenPGP Web of
 # Trust... which is the case here, as it began with following keys.
-cat << EOF | gpg --import --homedir "$dir/gpgme" 2> /dev/null ; ((isroot)) && chown "$LUDDUSER" "$dir/gpgme/*.gpg"
+cat << EOF | gpg --import --homedir "$dir/gpgme" 2> /dev/null ; ((isroot)) && chown "$LUDDUSER" "$dir/gpgme/"*.gpg
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 

@@ -335,8 +335,10 @@ int hkp_lookup( httpd_conn* hc ) {
 			op=pchar;
 		} else if (!strncmp(pchar,"search=",7)) {
 			pchar+=7;
-			search[nsearchs]=pchar;
-			nsearchs=MIN(HKP_MAX_SEARCHS-1,nsearchs+1);
+			if ( *pchar != '\0' && *pchar != '&' ) {
+				search[nsearchs]=pchar;
+				nsearchs=MIN(HKP_MAX_SEARCHS-1,nsearchs+1);
+			}
 		} else if (!strncmp(pchar,"options=",8)) {
 			/*this parameter is useless now, as today we only support "mr" option and always enable it (machine readable) */
 			pchar+=8;
@@ -371,7 +373,7 @@ int hkp_lookup( httpd_conn* hc ) {
 
 	if ( ! search[0] ) { 
 		/* (mandatory parameter) */
-		httpd_send_err(hc, 400, httpd_err400title, "", "Missing \"search\" parameter in \"%.80s\".</h1></body></html>", hc->query );
+		httpd_send_err(hc, 400, httpd_err400title, "", "Missing a \"search\" value in the query.</h1></body></html>","");
 		exit(0);
 	} else {
 		for (i=0;i<nsearchs;i++) {

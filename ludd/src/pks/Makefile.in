@@ -52,7 +52,8 @@ add:	cgi-add.o
 
 install:	all
 	-mkdir -p $(HOMEDIR)/$(WEBDIR)/pks
-# lookup and add are now integrated inside ludd
+	$(INSTALL) -m 444 index.html keys.jpg $(HOMEDIR)/$(WEBDIR)/pks
+# lookup and add are now integrated inside ludd cf. file "hkp.c"
 #	$(INSTALL) cgi-add $(HOMEDIR)/$(WEBDIR)/pks/add
 #	$(INSTALL) cgi-lookup $(HOMEDIR)/$(WEBDIR)/pks/lookup
 

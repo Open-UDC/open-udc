@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Ludd Search Page</title>
+    
+    <meta http-equiv="content-type"
+     content="text/html; charset=utf-8">
+    
+  </head>
+  <body text="#000000" bgcolor="#BBEEAA" link="#000099"
+   vlink="#990099" alink="#000099">
+    
+
+    <table>
+
+      <tbody>
+   <tr>
+     <td> <img src="keys.jpg" alt="keys" width="140" align="left">
+       
+		 <h1> Ludd OpenPGP Keyserver <br><script>document.write(window.location.hostname);</script></h1>
+       </td></tr>
+      </tbody>
+    </table>
+    <br>
+    
+    <table cellpadding="2" cellspacing="2" border="1" width="600"
+      bgcolor="#ddddff">
+      <tbody>
+   <tr>
+     <td valign="top">      
+       <h3>Extract a key</h3>
+
+       You can extract keys by typing in some words that appear in the userid
+       of the key you're looking for, or by typing in the keyid in hex format ("0x...")
+       <p>
+       <form action="/pks/lookup" method="get"> 
+         Search: <input name="search" size="40"> <br>
+         Search: <input name="search" size="40"> <br>
+         Search: <input name="search" size="40"> <br>
+         <br>
+
+         <input type="radio" name="op" value="index"> get regular index of matching keys  <br>
+         <input type="radio" name="op" value="get"> retrieve ascii-armored keys <br>
+         <br>
+
+         <input type="reset" value="Reset">                 
+         <input type="submit">              
+       </form>
+       <br>
+     </td>
+   </tr>
+   <tr>
+     <td valign="top">      
+       <h3>Submit a key</h3>
+       You can update a key by simply pasting in the ASCII-armored version 
+       of the key and clicking on submit.                  
+       <form action="/pks/add" method="post">
+
+         <textarea name="keytext" rows="20" cols="66"></textarea> <br>
+         <input type="reset" value="Reset">                 
+         <input type="submit" value="Submit this key to the keyserver!">             
+       </form>
+     </td>
+   </tr>
+   
+      </tbody>     
+    </table>
+
+      <br>
+      <br>
+
+	  Ludd is the first implementation of a OpenUDC node. <br>
+	  It is so an HTTP server integrating an OpenPGP keyserver and managing
+	  OpenPGP authentications.<br>
+	  It is then the first HTTP to accept and manage the "multipart/msigned"
+	  MIME type.
+	  <br><br>
+	  The original aims of OpenUDC was to develop a decentralized and human based
+	  crypto-currency. &nbsp;You can learn more about OpenUDC at           
+       <a href="http://www.openudc.org/">http://www.openudc.org</a>. &nbsp;<br>
+
+      <br>
+
+  </body>
+
+  
+  <hr>
+</html>
+
+
