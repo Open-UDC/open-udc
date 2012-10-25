@@ -28,8 +28,8 @@ fi
 ((nba)) || exit
 
 # First extract the datas :
-emails=($(sed -n " s,^${yesterday}.*pks/add:accept:.*<\(.\+@.\+\)>:,\1\,,p " /var/log/syslog.1 /var/log/syslog))
-eval news=$(sed -n " s,^${yesterday}.*pks/add:accept:[0-9]*:\([^<]\+\)<.*,\"\1\",p " "$LOGFILE.1" "$LOGFILE")
+emails=($(sed -n " s,^${yesterday}.*pks/add:accept:.*<\([^<>]\+@[^<>]\+\)>:,\1\,,p " /var/log/syslog.1 /var/log/syslog))
+eval news=($(sed -n " s,^${yesterday}.*pks/add:accept:[0-9]*:\([^<]\+\)<.*,\"\1\",p " "$LOGFILE.1" "$LOGFILE"))
 
 # Backup new key(s) to an other (sks) keyserver
 [ "$KEYSERVER" ] && gpg --no-permission-warning --homedir /usr/local/var/ludd/gpgme/ --keyserver "$KEYSERVER" --send-keys ${news[@]%%:*}
@@ -37,21 +37,21 @@ eval news=$(sed -n " s,^${yesterday}.*pks/add:accept:[0-9]*:\([^<]\+\)<.*,\"\1\"
 if ((nba>1)) ; then
 	message="Subject: $nba new individual certificates to join our OpenUDC currency.
 
- We have receveid $nba new certificates which may signifie that new individuals want to join ou OpenUDC Currency.
+ We have received $nba new certificates which may signify that new individuals want to join our OpenUDC Currency.
 
- So we have to check that each person is the real onwer of the certificate and have correctly set their informations.
+ So we have to check that each person is the real onwer of the certificate and have correctly set its informations.
  In other words: owns the secret associated to the certificate, and have the good udid2 in it.
 
  That checking is normaly done during key signing parties http://en.wikipedia.org/wiki/Key_signing_party .
- But if you know personnaly the individuals indicated in new certificates, you also may call them to ask personnaly the fingerprint of their key and a copy of an id card or passport, then check, and sign the certificate if all is right.
+ But if you know personnaly some individuals indicated below, you also may call them to ask personnaly the fingerprint of their key and a copy of an id card or passport, then check, and sign the certificate if all is right.
  
  News certificates:"
 else
 	message="Subject: a new individual certificate to join our OpenUDC currency
 
- We have receveid a new certificate which may signifie that a new individual want to join ou OpenUDC Currency.
+ We have received a new certificate which may signify that a new individual wants to join our OpenUDC Currency.
 
- So we have to check that this person is the real onwer of the certificate and have correctly set their informations.
+ So we have to check that this person is the real onwer of the certificate and have correctly set its informations.
  In other words: owns the secret associated to the certificate, and have the good udid2 in it.
 
  That checking is normaly done during key signing parties http://en.wikipedia.org/wiki/Key_signing_party .
@@ -73,7 +73,6 @@ $list
 
 ----
 If you like to use the first OpenUDC currency, please stay subscribed to the uni currency mailing list.
-$MLIST - http://lists.openudc.org/listinfo/uni
 EOF
 
 # Send subcription for new emails
