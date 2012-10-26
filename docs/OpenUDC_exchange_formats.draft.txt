@@ -80,50 +80,40 @@ Request for Comments:                                      Open-UDC Team
 
 http[s]://Node[:port]/[Root/]...
 |-- udc/
-|   |-- create
-|   `-- validate
+|   |-- validate
+|   |-- database/
+|   |   `-- [CREATION_SHEET_NUM]/
+|   |       |-- 1.bdb
+|   |       |-- ...
+|   |       |-- 1024.bdb
+|   |       `-- ...
+|   `-- transactions/
+|       |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
+|       |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
+|       |   |-- 1.gpg
+|       |   |-- ...
+|       |   `-- 3.gpg
+|       `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
+|           `-- 1.gpg
 |-- udid2/
 |   |-- geolist_FRA.txt.asc
 |   |-- geolist_ITA.txt.asc
 |   |(...)
 |   `-- index.html
 |-- pks/
-|   |-- keyservers
+|   |-- add
 |   `-- lookup
 |-- peers/
 |   |-- self
 |   |-- register
 |   `-- list
-|-- c/
-|   `-- [CREATION_SHEET_NUM]/
-|       |-- [CREATION_SHEET_NUM].env
-|       |-- [CREATION_SHEET_NUM].list
-|       `-- [CREATION_SHEET_NUM].list.diff
-|-- d/
-|   `-- [CREATION_SHEET_NUM]/
-|       |-- 1.bdb
-|       |-- ...
-|       |-- 1024.bdb
-|       `-- ...
-`-- k/
-	|-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
-	|   |-- c/
-	|   `-- t/
-	|-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
-	|   |-- c/
-	|   |   `-- 1.sig
-	|   `-- t/
-	|       |-- 1.gpg
-	|       |-- ...
-	|       `-- 3.gpg
-	`-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
-		|-- c/
-		|   |-- 1.sig
-		|   |-- ...
-		|   `-- 3.sig
-		`-- t/
-			`-- 1.gpg
-
+`-- p_k/
+    |-- update
+    |-- lookup
+    `-- [CREATION_SHEET_NUM]/
+        |-- [CREATION_SHEET_NUM].sheet
+        |-- [CREATION_SHEET_NUM].params
+        `-- [CREATION_SHEET_NUM].keys
 
 5.== Data expected in the tree structure ==
 

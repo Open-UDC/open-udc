@@ -139,7 +139,7 @@ distcleansubdirs:
 	    $(MAKE) $(MFLAGS) distclean \
 	) ; done
 
-thttpd.o:	config.h version.h libhttpd.h fdwatch.h mmc.h timers.h match.h
+thttpd.o:	config.h version.h libhttpd.h fdwatch.h mmc.h timers.h match.h peers.h
 libhttpd.o:	config.h version.h libhttpd.h mime_encodings.h mime_types.h \
 		mmc.h timers.h match.h tdate_parse.h hkp.h
 fdwatch.o:	fdwatch.h

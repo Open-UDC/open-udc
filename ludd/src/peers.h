@@ -14,11 +14,6 @@ typedef enum {
 } peer_status_t;
 
 typedef struct {
-	char kidmin[9];
-	char kidmax[9];
-} keyidrange_t;
-
-typedef struct {
 	unsigned int csetmin; 
 	unsigned int csetmax;
 } csetrange_t;
@@ -28,9 +23,8 @@ typedef struct {
 	peer_status_t status;
 	char * fpr; /* fingerprint */
 	time_t lastatime; /* last active time */
-	keyidrange_t * akeyrange; /* Authoritative for this key range, a NULL value means that peers disabled "pks/add" */
 	csetrange_t * csetrange; /* part of money managed by this peers. A NULL value means that peers only act as key server */
-	char * ehost; /* external adress or name */
+	char * ehost; /* external IP adress or hostname */
 	unsigned short eport; /* external port */
 	char * owner; /* owner udid */
 } peer_t;

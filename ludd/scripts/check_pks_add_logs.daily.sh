@@ -61,7 +61,7 @@ else
 fi
 
 list="$(for i in ${!news[@]} ; do
-	echo -e " * ${news[$i]#*:}\n\t To get it: http://$MYHOST/pks/lookup?op=get&search=0x${news[$i]%%:*}\n\t Or using gpg: $ gpg --keyserver \"hkp://$MYHOST\" --recv-keys ${news[$i]%%:*}\n"
+	echo -e " * ${news[$i]#*:}\n\t To get it: http://$MYHOST/pks/lookup?op=get&search=0x${news[$i]%%:*}\n\t With gpg: $ gpg --keyserver \"hkp://$MYHOST\" --recv-keys ${news[$i]%%:*}\n"
 	done)"
 
 cat <<EOF | sendmail -f "$MLIST" -t

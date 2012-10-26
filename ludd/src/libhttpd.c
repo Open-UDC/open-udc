@@ -3494,6 +3494,20 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 		}
 
+	/* Is it an hidden file ?  ( basename or a parent dir beginning with a '.' ) */
+	/* Note: we have stat expnfilename wich is, if request was on a symlink, the symlink destination */
+	cp=hc->expnfilename;
+	do {
+		if ( cp[0] == '.' && cp[1] != '\0' ) {
+			httpd_send_err(
+				hc, 403, err403title, "",
+				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to an hidden file (an element of its real path began with '.').\n" ),
+				//hc->encodedurl );
+				hc->expnfilename );
+			return -1;
+		}
+	} while ( (cp=strchr(cp, '/')) && cp++ );
+
 	/* Is it a directory? */
 	if ( S_ISDIR(hc->sb.st_mode) )
 		{
@@ -3598,26 +3612,8 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			return -1;
 			}
 		}
-	/* If it is a regular file (or a symlink), forbid acces to those beginning with a '.'  */
-	else if ( S_ISREG(hc->sb.st_mode) || S_ISLNK(hc->sb.st_mode) ) 
-		/* Note: S_ISLNK() should alway been false since we have stat expnfilename wich is the link destination */
-		{
-		cp = strrchr(hc->expnfilename, '/');
-		if ( cp == (char*) 0 )
-			cp=hc->expnfilename;
-		else
-			cp++;
-		if ( *cp == '.' ) 
-			{
-			httpd_send_err(
-				hc, 403, err403title, "",
-				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to an hidden file (beginning with a '.').\n" ),
-				hc->encodedurl );
-			return -1;
-			}
-		}
-	/* If it is not a regular file (or a symlink) or a dir, forbid acces.  */
-	else
+	/* If it is not a regular file or a dir, forbid acces.  */
+	else if ( ! S_ISREG(hc->sb.st_mode) )
 		{
 		syslog(
 			LOG_INFO,
