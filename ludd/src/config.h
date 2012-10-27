@@ -104,14 +104,32 @@
 #define LOG_FACILITY LOG_DAEMON
 
 /* CONFIGURE: The file to use for authentication.  If this is defined then
-** thttpd checks for this file in the local directory before every fetch.
+** ludd checks for this file in the local directory before every fetch.
 ** If the file exists then authentication is done, otherwise the fetch
 ** proceeds as usual.
 **
-** If you undefine this then thttpd will not implement authentication
+** If you undefine this then ludd will not implement authentication
 ** at all and will not check for auth files, which saves a bit of CPU time.
 */
 //#define AUTH_FILE ".htpasswd"
+
+/* NOT WORKING: The file to use for OpenPGP authentication.  If this is defined
+ * then ludd checks for this file in the local directory before every POST to a cgi.
+ * If the file exists then authentication is done, otherwise the fetch
+ * proceeds as usual.
+ *
+ * If authentication succeed, ie if the POST message is a "multipart/msigned" and
+ * the key used to sign is in the file with a level greater or equal than 2 and the
+ * signature is good. Then POST is transmited to cgi without "multipart/msigned"
+ * encapsulation and such string "pgpuid=...&pgpfpr=..." are added to the query string.
+ *
+ * If you undefine this then ludd will not implement authentication
+ * at all and will not check for auth files, which saves a bit of CPU time.
+ * NOTE: That feature is not priority for external cgi. But we use a similar mechanism 
+ * for udc/create or udc/validate.
+*/
+//#define PGPAUTH_FILE ".lookup"
+
 
 /* CONFIGURE: This is required for OpenUDC compatibility : it checks that your bot
  * certificate contain a valid udid2. 

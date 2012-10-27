@@ -3494,16 +3494,15 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 		}
 
-	/* Is it an hidden file ?  ( basename or a parent dir beginning with a '.' ) */
+	/* Is it hidden ?  ( basename or a parent dir beginning with a '.' ) */
 	/* Note: we have stat expnfilename wich is, if request was on a symlink, the symlink destination */
 	cp=hc->expnfilename;
 	do {
 		if ( cp[0] == '.' && cp[1] != '\0' ) {
 			httpd_send_err(
 				hc, 403, err403title, "",
-				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to an hidden file (an element of its real path began with '.').\n" ),
-				//hc->encodedurl );
-				hc->expnfilename );
+				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to something hidden (an element of its real path began with '.').\n" ),
+				hc->encodedurl );
 			return -1;
 		}
 	} while ( (cp=strchr(cp, '/')) && cp++ );
@@ -3639,6 +3638,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 
 	/* Check if the filename is the AUTH_FILE itself - that's verboten. */
+	/* NOTE: such checking is a bit useless since we forbid acces to hidden files (those with a path element begining with '.').*/
 	if ( expnlen == sizeof(AUTH_FILE) - 1 )
 		{
 		if ( strcmp( hc->expnfilename, AUTH_FILE ) == 0 )

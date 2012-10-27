@@ -66,27 +66,45 @@ Request for Comments:                                      Open-UDC Team
   As each Nodes act as an HTTP server, Node Ressources MUST be
   available trough such kind of URL :
 
-    * http://NodeHostame[:port]/[Root/]...
+    * http://NodeHostame[:port]/...
   or
-    * https://NodeIP[:port]/[Root/]...
+    * https://NodeIP[:port]/...
   or
-	* httpgp://NodeIP[:port]/[Root/]...
+    * httpgp://NodeIP[:port]/...
 
-  After a eventual Root depending on the node's configuration, in its
-  URL ; a node MUST provide determined ressources at determined
+  A node MUST provide determined ressources at determined
   location.
 
   Here is an OverView of such tree structure :
 
-http[s]://Node[:port]/[Root/]...
+http[s]://Node[:port]/...
+|-- pks/
+|   |-- add
+|   `-- lookup
 |-- udc/
+|   |-- create
+|   |-- lookup
 |   |-- validate
-|   |-- database/
+|   |-- log
+|   |-- log.1
+|   |-- log...
+|   |-- creations/
+|   |   |-- initkeys
+|   |   |-- last/
+|   |   `-- [CREATION_SHEET_NUM]/
+|   |       |-- [CREATION_SHEET_NUM].sheet
+|   |       |-- [CREATION_SHEET_NUM].params
+|   |       `-- [CREATION_SHEET_NUM].keys
+|   |-- databases/
 |   |   `-- [CREATION_SHEET_NUM]/
 |   |       |-- 1.bdb
 |   |       |-- ...
 |   |       |-- 1024.bdb
 |   |       `-- ...
+|   |-- peer/
+|   |   |-- self
+|   |   |-- register
+|   |   `-- list
 |   `-- transactions/
 |       |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
 |       |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
@@ -95,25 +113,11 @@ http[s]://Node[:port]/[Root/]...
 |       |   `-- 3.gpg
 |       `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
 |           `-- 1.gpg
-|-- udid2/
-|   |-- geolist_FRA.txt.asc
-|   |-- geolist_ITA.txt.asc
-|   |(...)
-|   `-- index.html
-|-- pks/
-|   |-- add
-|   `-- lookup
-|-- peers/
-|   |-- self
-|   |-- register
-|   `-- list
-`-- p_k/
-    |-- update
-    |-- lookup
-    `-- [CREATION_SHEET_NUM]/
-        |-- [CREATION_SHEET_NUM].sheet
-        |-- [CREATION_SHEET_NUM].params
-        `-- [CREATION_SHEET_NUM].keys
+`-- udid2/
+    |-- geolist_FRA.txt.asc
+    |-- geolist_ITA.txt.asc
+    |(...)
+    `-- index.html
 
 5.== Data expected in the tree structure ==
 
@@ -239,7 +243,7 @@ X.  HTTP (multi-)signed data
     stream.
     - a positive value indicate that the signatures will be placed
     after the data.
-	- a negative value indicate that the signatures will be placed
+    - a negative value indicate that the signatures will be placed
     before the data. Thus permit to verify the data in one-pass as the
     digest (also know as MIC: Message Integrity Check) used to sign are
     indicated in each signature (or in their content header for others
