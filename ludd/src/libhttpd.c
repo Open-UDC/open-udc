@@ -1045,7 +1045,9 @@ int strdecode( char* to, char* from ) {
 		if ( from[0] == '%' && (a=hexit(from[1])) >= 0 && (b=hexit(from[2])) >= 0 ) {
 			*to = a* 16 + b;
 			from += 2;
-		} else
+		} else if ( from[0] == '+' )
+			*to = ' ';
+		else
 			*to = *from;
 	}
 	*to = '\0';

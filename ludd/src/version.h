@@ -3,7 +3,7 @@
 #ifndef _VERSION_H_
 #define _VERSION_H_
 
-#define SERVER_SOFTWARE "ludd/0.1.8 23oct2012"
+#define SERVER_SOFTWARE "ludd/0.1.9 28oct2012"
 #define SERVER_ADDRESS "http://www.openudc.org/"
 
 #endif /* _VERSION_H_ */

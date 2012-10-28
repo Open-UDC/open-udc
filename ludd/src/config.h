@@ -219,7 +219,7 @@
 /* CONFIGURE: Seconds between stats syslogs.  If this is undefined then
 ** no stats are accumulated and no stats syslogs are done.
 */
-#define STATS_TIME 3600
+#define STATS_TIME 36000
 
 /* CONFIGURE: The mmap cache tries to keep the total number of mapped
 ** files below this number, so you don't run out of kernel file descriptors.

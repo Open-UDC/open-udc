@@ -91,8 +91,8 @@ int hkp_add( httpd_conn* hc ) {
 	}
 
 
-	if (hc->contentlength < 9) {
-		httpd_send_err(hc, 411, err411title, "", "Content-Length is absent or to short (%.80s)", "9");
+	if (hc->contentlength < 12) {
+		httpd_send_err(hc, 411, err411title, "", "Content-Length is absent or too short (%.80s)", "12");
 		return(-1);
 	}
 	if ( hc->contentlength >= INPUT_MAX ) {
@@ -228,7 +228,7 @@ int hkp_add( httpd_conn* hc ) {
 	if (rcode==202) {
 		send_mime(hc, 202, ok200title, "", "X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
 		httpd_write_response(hc);
-		r=snprintf(buff,buffsize,"<html><head><title>pks/add ?? keys</title></head><body><h2>%s<br>It may happen if a keys is unknow or doesn't contain a valid udid2 (\"udid2;c;...\")</h2></body></html>","X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012");
+		r=snprintf(buff,buffsize,"<html><head><title>pks/add ?? keys</title></head><body><h2>%s</h2><h3>It may happen if a keys is unknow or doesn't contain a valid udid2 (\"udid2;c;...\")</h3></body></html>","X-HKP-Status: 418 some key(s) was rejected as per keyserver policy\015\012");
 	} else {
 		send_mime(hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, hc->sb.st_mtime );
 		httpd_write_response(hc);
