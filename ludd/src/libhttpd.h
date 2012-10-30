@@ -89,7 +89,7 @@ typedef struct {
 	int initialized;
 	int bfield;
 	httpd_server* hs;
-	httpd_sockaddr client_addr;
+	char * client_addr;
 	char* read_buf;
 	size_t read_size, read_idx, checked_idx;
 	int checked_state;
@@ -127,7 +127,7 @@ typedef struct {
 	char* type;				/* not malloc()ed */
 	char* hostname;		/* not malloc()ed */
 	int http_version;   /* default: 10 for HTTP/1.0, 11 means HTTP/1.1 or better */ 
-	char * range; 
+	char * bytesranges;  /* used to manage multi-range */ 
 	int tildemapped;		/* this connection got tilde-mapped */
 	off_t first_byte_index, last_byte_index;
 	struct stat sb;
@@ -139,6 +139,7 @@ typedef struct {
 #define HC_KEEP_ALIVE (1<<2)
 #define HC_SHOULD_LINGER (1<<3)
 #define HC_DETACH_SIGN (1<<4)
+#define HC_LOG_DONE (1<<5)
 
 /* Useless macros. BTW: if u really think it improves readability, u may use them */
 #define HX_SET(hx,mask) { (hx)->bfield |= (mask); }

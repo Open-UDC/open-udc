@@ -286,6 +286,7 @@ int hkp_lookup( httpd_conn* hc ) {
 	char * pchar;
 	interpose_args_t args;
 	pthread_t tparse;
+	int terrno=-1;
 
 	if ( hc->method == METHOD_HEAD ) {
 		send_mime(
@@ -322,7 +323,7 @@ int hkp_lookup( httpd_conn* hc ) {
 	/* Child process. */
 	child_r_start(hc);
 #define HKP_LOOKUP_EXIT(code) {\
-	if (tparse) { \
+	if (terrno == 0) { \
 		close(hc->conn_fd); \
 		pthread_join(tparse, NULL); \
 	} \
@@ -397,7 +398,6 @@ int hkp_lookup( httpd_conn* hc ) {
 	}
 
 	if (hc->bfield & HC_DETACH_SIGN) {
-		int s;
 		if ( pipe( p ) < 0 ) {
 			syslog( LOG_ERR, "pipe - %m" );
 			httpd_send_err( hc, 500, err500title, "", err500form, "p" );
@@ -420,9 +420,9 @@ int hkp_lookup( httpd_conn* hc ) {
 		}
 		close(p[1]);
 
-		s=pthread_create(&tparse, NULL,(void * (*)(void *)) &httpd_parse_resp, &args);
-		if ( s !=0 ) {
-			errno=s;
+		terrno=pthread_create(&tparse, NULL,(void * (*)(void *)) &httpd_parse_resp, &args);
+		if ( terrno !=0 ) {
+			errno=terrno;
 			httpd_send_err( hc, 500, err500title, "", err500form, "c" );
 			exit(EXIT_FAILURE);
 		}

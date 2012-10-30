@@ -162,20 +162,9 @@ static ssize_t fp2fd_gpg_data_rd_cb(struct fp2fd_gpg_data_handle * handle, void 
 static void gpg_data_release_cb(void *handle);
 static void cgi_child( httpd_conn* hc );
 static int cgi( httpd_conn* hc );
-static void make_log_entry( httpd_conn* hc, struct timeval* nowP );
+static void make_log_entry(const httpd_conn* hc, struct timeval* nowP, int status);
 static int sockaddr_check( httpd_sockaddr* saP );
 static size_t sockaddr_len( httpd_sockaddr* saP );
-
-/* This global keeps track of whether we are in the main process or a
-** sub-process.  The reason is that httpd_write_response() can get called
-** in either context; when it is called from the main process it must use
-** non-blocking I/O to avoid stalling the server, but when it is called
-** from a sub-process it wants to use blocking I/O so that the whole
-** response definitely gets written.  So, it checks this variable.  A bit
-** of a hack but it seems to do the right thing.
-*/
-/* UPDATE: that was dirty Jef ! now child_r_start simply call httpd_clear_ndelay() */
-//int sub_process = 0;
 
 static void
 free_httpd_server( httpd_server* hs )
@@ -529,6 +518,9 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 	char buf[1000];
 	int partial_content;
 
+	make_log_entry( hc, NULL, status);
+	hc->bfield |= HC_LOG_DONE;
+
 	hc->status = status;
 	hc->bytes_to_send = length;
 	if ( hc->http_version > 9 )
@@ -536,7 +528,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 		if ( status == 200 && (hc->bfield & HC_GOT_RANGE) &&
 			 ( hc->last_byte_index >= hc->first_byte_index ) &&
 			 ( ( hc->last_byte_index != length - 1 ) ||
-			   ( hc->first_byte_index != 0 ) ) &&
+			   ( hc->first_byte_index > 0 ) ) &&
 			 ( hc->range_if == (time_t) -1 ||
 			   hc->range_if == hc->sb.st_mtime ) )
 			{
@@ -551,6 +543,7 @@ send_mime( httpd_conn* hc, int status, char* title, char* encodings, char* extra
 			}
 
 		now = time( (time_t*) 0 );
+
 		if ( mod == (time_t) 0 )
 			mod = now;
 		(void) strftime( nowbuf, sizeof(nowbuf), rfc1123fmt, gmtime( &now ) );
@@ -918,7 +911,7 @@ auth_check( httpd_conn* hc, char* dirname  )
 		/* The file exists but we can't open it?  Disallow access. */
 		syslog(
 			LOG_ERR, "%.80s auth file %.80s could not be opened - %m",
-			httpd_ntoa( &hc->client_addr ), authpath );
+			hc->client_addr, authpath );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' is protected by an authentication file, but the authentication file cannot be opened.\n" ),
@@ -1354,8 +1347,8 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 		}
 	(void) fcntl( hc->conn_fd, F_SETFD, 1 );
 	hc->hs = hs;
-	(void) memset( &hc->client_addr, 0, sizeof(hc->client_addr) );
-	(void) memmove( &hc->client_addr, &sa, sockaddr_len( &sa ) );
+	if (! (hc->client_addr=httpd_ntoa( &sa )) )
+		hc->client_addr="FAIL";
 	hc->read_idx = 0;
 	hc->checked_idx = 0;
 	hc->checked_state = CHST_FIRSTWORD;
@@ -1385,7 +1378,7 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->remoteuser[0] = '\0';
 	hc->response[0] = '\0';
 	hc->responselen = 0;
-	hc->range = "";
+	hc->bytesranges = "";
 	hc->if_modified_since = (time_t) -1;
 	hc->range_if = (time_t) -1;
 	hc->contentlength = -1;
@@ -1733,7 +1726,7 @@ httpd_parse_request( httpd_conn* hc )
 						{
 						syslog(
 							LOG_ERR, "%.80s way too much Accept: data",
-							httpd_ntoa( &hc->client_addr ) );
+							hc->client_addr );
 						continue;
 						}
 					httpd_realloc_str(
@@ -1756,7 +1749,7 @@ httpd_parse_request( httpd_conn* hc )
 						{
 						syslog(
 							LOG_ERR, "%.80s way too much Accept-Encoding: data",
-							httpd_ntoa( &hc->client_addr ) );
+							hc->client_addr );
 						continue;
 						}
 					httpd_realloc_str(
@@ -1790,35 +1783,35 @@ httpd_parse_request( httpd_conn* hc )
 				}
 			else if ( strncasecmp( buf, "Range:", 6 ) == 0 )
 				{
-				/* Only support %d- and %d-%d, not %d-%d,%d-%d or -%d. */
-				/* Except if "multipart/msigned" is found in HTTP Accept , where embeded action will handle response and parse Range */
+				/* Only support "%d-", "%d-%d" and "-%d" using fdwatch and mmap.
+				 * TODO: support multirange ("%d-%d,%d-%d,%d-") using a fork() */
 				cp = &buf[6];
 				cp += strspn( cp, " \t" );
-				hc->range = cp;
-				
-				if ( strchr( cp, ',' ) == (char*) 0 )
+
+				/* http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.12 */
+				if ( strncasecmp( cp, "bytes", 5 ) == 0
+						&& (cp+=5) && (*cp == '=' || *cp == ' ' || *cp == '\t')
+						&& (cp = strpbrk( cp, "=" )) )
 					{
-					char* cp_dash;
-					cp = strpbrk( buf, "=" );
-					if ( cp != (char*) 0 )
+					cp++;
+					if ( strchr( cp, ',' ) == (char*) 0 )
 						{
-						cp_dash = strchr( cp + 1, '-' );
-						if ( cp_dash != (char*) 0 && cp_dash != cp + 1 )
+						char* cp_dash;
+						cp_dash = strrchr( cp, '-' );
+						if ( cp_dash != (char*) 0 )
 							{
-							*cp_dash = '\0';
+							cp_dash++;
 							hc->bfield |= HC_GOT_RANGE;
-							hc->first_byte_index = atoll( cp + 1 );
-							if ( hc->first_byte_index < 0 )
-								hc->first_byte_index = 0;
-							if ( isdigit( (int) cp_dash[1] ) )
-								{
-								hc->last_byte_index = atoll( cp_dash + 1 );
-								if ( hc->last_byte_index < 0 )
-									hc->last_byte_index = -1;
-								}
+							hc->first_byte_index = atoll( cp );
+							/* (hc->first_byte_index<0) means we are in a "-%d" case */
+							if ( hc->first_byte_index >= 0 && isdigit( (int) *cp_dash ) )
+								hc->last_byte_index = atoll( cp_dash );
 							}
 						}
+					else
+						hc->bytesranges = cp;
 					}
+					
 				}
 			else if ( strncasecmp( buf, "If-Range:", 9 ) == 0 )
 				{
@@ -1981,7 +1974,7 @@ httpd_parse_request( httpd_conn* hc )
 			{
 			syslog(
 				LOG_NOTICE, "%.80s URL \"%.80s\" goes outside the web tree",
-				httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+				hc->client_addr, hc->encodedurl );
 			httpd_send_err(
 				hc, 403, err403title, "",
 				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to a file outside the permitted web server directory tree.\n" ),
@@ -2070,7 +2063,8 @@ de_dotdot( char* file )
 void
 httpd_close_conn( httpd_conn* hc, struct timeval* nowP )
 	{
-	make_log_entry( hc, nowP );
+	if (! (hc->bfield & HC_LOG_DONE) )
+		make_log_entry( hc, nowP , hc->status);
 
 	if ( hc->file_address != (char*) 0 )
 		{
@@ -2089,6 +2083,7 @@ httpd_destroy_conn( httpd_conn* hc )
 	{
 	if ( hc->initialized )
 		{
+		free( (void*) hc->client_addr );
 		free( (void*) hc->read_buf );
 		free( (void*) hc->decodedurl );
 		free( (void*) hc->origfilename );
@@ -2309,6 +2304,8 @@ void drop_child(const char * type,pid_t pid,httpd_conn* hc) {
 	hc->status = 200;
 	hc->bytes_sent = CGI_BYTECOUNT;
 	hc->bfield &= ~HC_SHOULD_LINGER;
+	/* The child should hold the log */
+	hc->bfield |= HC_LOG_DONE;
 }
 
 /*! child_r_start should be call early by the child handling the request */
@@ -2667,7 +2664,7 @@ make_envp( httpd_conn* hc )
 	if ( hc->query[0] != '\0')
 		envp[envn++] = build_env( "QUERY_STRING=%s", hc->query );
 	envp[envn++] = build_env(
-		"REMOTE_ADDR=%s", httpd_ntoa( &hc->client_addr ) );
+		"REMOTE_ADDR=%s", hc->client_addr );
 	if ( hc->referer[0] != '\0' )
 		envp[envn++] = build_env( "HTTP_REFERER=%s", hc->referer );
 	if ( hc->useragent[0] != '\0' )
@@ -2906,7 +2903,11 @@ void httpd_parse_resp(interpose_args_t * args) {
 #define SIG_CACHE_DIR "../sigcache"
 #define HTTP_MAX_CONTENTHEADERS 9
 #define HTTP_MAX_HEADERS 40
+
 #define HTTPD_PARSE_RESP_RETURN(code) { \
+	/* log if not already done */ \
+	if (! (hc->bfield & HC_LOG_DONE) ) \
+		make_log_entry( hc, NULL, (code)>0?code:status); \
 	(fp?fclose(fp):close(args->rfd)); \
 	close(args->wfd); \
 	free(buf); \
@@ -3101,7 +3102,6 @@ void httpd_parse_resp(interpose_args_t * args) {
 			HTTPD_PARSE_RESP_RETURN(500);
 		}
 
-
 		/* Write the headers. */
 		for (i=0;i<n_o_headers;i++) {
 			r=strlen(o_headers[i]);
@@ -3289,7 +3289,9 @@ cgi_child( httpd_conn* hc ) {
 			|| dup2(hc->conn_fd,STDERR_FILENO) < 0 ) {
 		httpd_send_err( hc, 500, err500title, "", err500form, "d" );
 		exit(EXIT_FAILURE);
-	}
+	} else if (!interpose_output)
+		/* Log now as there is no output interposer to do it */
+		make_log_entry(hc, NULL, 200);
 
 	if ( interpose_input || interpose_output ) {
 		/* we will need to create an interposer process */
@@ -3488,7 +3490,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		syslog(
 			LOG_INFO,
 			"%.80s URL \"%.80s\" resolves to a non world-readable file",
-			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+			hc->client_addr, hc->encodedurl );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' resolves to a file that is not world-readable.\n" ),
@@ -3559,7 +3561,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			syslog(
 				LOG_INFO,
 				"%.80s URL \"%.80s\" tried to index a directory with indexing disabled",
-				httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+				hc->client_addr, hc->encodedurl );
 			httpd_send_err(
 				hc, 403, err403title, "",
 				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to a directory that has indexing disabled.\n" ),
@@ -3577,7 +3579,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 #else /* GENERATE_INDEXES */
 		syslog(
 			LOG_INFO, "%.80s URL \"%.80s\" tried to index a directory",
-			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+			hc->client_addr, hc->encodedurl );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' is a directory, and directory indexing is disabled on this server.\n" ),
@@ -3605,7 +3607,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			syslog(
 				LOG_INFO,
 				"%.80s URL \"%.80s\" resolves to a non-world-readable index file",
-				httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+				hc->client_addr, hc->encodedurl );
 			httpd_send_err(
 				hc, 403, err403title, "",
 				ERROR_FORM( err403form, "The requested URL '%.80s' resolves to an index file that is not world-readable.\n" ),
@@ -3619,7 +3621,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		syslog(
 			LOG_INFO,
 			"%.80s URL \"%.80s\" doesn't resolves to a regular file or a directory.",
-			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+			hc->client_addr, hc->encodedurl );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' doesn't resolves to a regular file or a directory.\n" ),
@@ -3648,7 +3650,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			syslog(
 				LOG_NOTICE,
 				"%.80s URL \"%.80s\" tried to retrieve an auth file",
-				httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+				hc->client_addr, hc->encodedurl );
 			httpd_send_err(
 				hc, 403, err403title, "",
 				ERROR_FORM( err403form, "The requested URL '%.80s' is an authorization file, retrieving it is not permitted.\n" ),
@@ -3663,7 +3665,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		syslog(
 			LOG_NOTICE,
 			"%.80s URL \"%.80s\" tried to retrieve an auth file",
-			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+			hc->client_addr, hc->encodedurl );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' is an authorization file, retrieving it is not permitted.\n" ),
@@ -3686,7 +3688,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		{
 		syslog(
 			LOG_NOTICE, "%.80s URL \"%.80s\" is executable but isn't CGI",
-			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+			hc->client_addr, hc->encodedurl );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' resolves to a file which is marked executable but is not a CGI file; retrieving it is forbidden.\n" ),
@@ -3697,7 +3699,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		{
 		syslog(
 			LOG_INFO, "%.80s URL \"%.80s\" has pathinfo but isn't CGI",
-			httpd_ntoa( &hc->client_addr ), hc->encodedurl );
+			hc->client_addr, hc->encodedurl );
 		httpd_send_err(
 			hc, 403, err403title, "",
 			ERROR_FORM( err403form, "The requested URL '%.80s' resolves to a file plus CGI-style pathinfo, but the file is not a valid CGI file.\n" ),
@@ -3705,10 +3707,14 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 		}
 
-	/* Fill in last_byte_index, if necessary. */
-	if ( (hc->bfield & HC_GOT_RANGE) &&
-		 ( hc->last_byte_index == -1 || hc->last_byte_index >= hc->sb.st_size ) )
-		hc->last_byte_index = hc->sb.st_size - 1;
+	/* Fill in last_byte_index and first_byte_index,, if necessary. */
+	if (hc->bfield & HC_GOT_RANGE) {
+		if ( hc->first_byte_index < 0 ) {
+			hc->first_byte_index = MAX(0,hc->sb.st_size + hc->first_byte_index);
+			hc->last_byte_index = hc->sb.st_size - 1;
+		} else if ( hc->last_byte_index == -1 || hc->last_byte_index >= hc->sb.st_size )
+			hc->last_byte_index = hc->sb.st_size - 1;
+	}
 
 	figure_mime( hc );
 
@@ -3774,7 +3780,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 
 
 static void
-make_log_entry( httpd_conn* hc, struct timeval* nowP )
+make_log_entry(const httpd_conn* hc, struct timeval* nowP, int status)
 	{
 	char* ru;
 	char url[305];
@@ -3843,9 +3849,9 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 		/* And write the log entry. */
 		(void) fprintf( hc->hs->logfp,
 			"%.80s - %.80s [%s] \"%.80s %.300s %.80s\" %d %s \"%.200s\" \"%.200s\"\n",
-			httpd_ntoa( &hc->client_addr ), ru, date,
+			hc->client_addr, ru, date,
 			httpd_method_str( hc->method ), url, hc->protocol,
-			hc->status, bytes, hc->referer, hc->useragent );
+			status, bytes, hc->referer, hc->useragent );
 #ifdef FLUSH_LOG_EVERY_TIME
 		(void) fflush( hc->hs->logfp );
 #endif
@@ -3853,35 +3859,28 @@ make_log_entry( httpd_conn* hc, struct timeval* nowP )
 	else
 		syslog( LOG_INFO,
 			"%.80s - %.80s \"%.80s %.200s %.80s\" %d %s \"%.200s\" \"%.200s\"",
-			httpd_ntoa( &hc->client_addr ), ru,
+			hc->client_addr, ru,
 			httpd_method_str( hc->method ), url, hc->protocol,
-			hc->status, bytes, hc->referer, hc->useragent );
+			status, bytes, hc->referer, hc->useragent );
 	}
 
 char*
-httpd_ntoa( httpd_sockaddr* saP )
-	{
+httpd_ntoa( httpd_sockaddr* saP ) {
 #ifdef USE_IPV6
-	static char str[200];
+	char str[200];
 
 	if ( getnameinfo( &saP->sa, sockaddr_len( saP ), str, sizeof(str), 0, 0, NI_NUMERICHOST ) != 0 )
-		{
-		str[0] = '?';
-		str[1] = '\0';
-		}
+		 return strdup("?");
 	else if ( IN6_IS_ADDR_V4MAPPED( &saP->sa_in6.sin6_addr ) && strncmp( str, "::ffff:", 7 ) == 0 )
 		/* Elide IPv6ish prefix for IPv4 addresses. */
-		(void) strcpy( str, &str[7] );
-
-	return str;
+		return strdup(&str[7]);
+	else
+		return strdup(str);
 
 #else /* USE_IPV6 */
-
-	return inet_ntoa( saP->sa_in.sin_addr );
-
+	return strdup(inet_ntoa( saP->sa_in.sin_addr ));
 #endif /* USE_IPV6 */
-	}
-
+}
 
 static int
 sockaddr_check( httpd_sockaddr* saP )
