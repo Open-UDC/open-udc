@@ -120,16 +120,43 @@ AC_ACME_SOCKLENT
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
-ludduser=`uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
-AC_DEFINE_UNQUOTED(DEFAULT_USER, "${ludduser}")
-AC_SUBST(ludduser)
-dnl luddversion=`sed -n ' s,.*"\(ludd/[[^"]]\+\)"$,\1,p ' src/version.h`
-luddversion=`grep -o 'ludd/[[^"]]\+' src/version.h`
-AC_SUBST(luddversion)
+AC_ARG_ENABLE(auth_basic,
+	[
+  --enable-auth_basic	Basic access authentication
+  			(an ".htpasswd" file per directory). ],
+	[ AC_DEFINE_UNQUOTED(AUTH_FILE,".htpasswd") ] )
+
+AC_ARG_ENABLE(check_udid2,
+	[  --enable-check_udid2	Check if OpenPGP certificates contain a valid udid2. ], 
+	[ AC_DEFINE(CHECK_UDID2) ] )
+
+AC_ARG_ENABLE(OpenUDC,
+	[  --enable-OpenUDC	Enable OpenUDC support. It also enable check_udid2, set
+			default port to 11371, and name the output software "ludd".
+  			If disabled the output software will be name "thttpgpd". ],
+	[	AC_DEFINE(OPENUDC)
+		software="ludd"
+		user="_ludd"
+		port=11371
+	] ,
+	[ 	software="thttpgpd"
+		user="_thttpgpd"
+		port=80
+	] )
+
+AC_SUBST(software)
+AC_DEFINE_UNQUOTED(SOFTWARE_NAME, "${software}")
+AC_SUBST(user)
+AC_DEFINE_UNQUOTED(DEFAULT_USER, "${user}")
+AC_SUBST(port)
+AC_DEFINE_UNQUOTED(DEFAULT_PORT, ${port})
+version=`sed -n ' s,#define.*SOFTWARE_VERSION.*"\([^"]\+\)".*,\1,p ' src/version.h`
+dnl luddversion=`grep -o 'ludd/[[^"]]\+' src/version.h`
+AC_SUBST(version)
 AC_SUBST(DEFS)
 AC_SUBST(V_CCOPT)
 AC_SUBST(V_STATICFLAG)
 AC_SUBST(V_NETLIBS)
 
-AC_OUTPUT(Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile src/ludd.8)
 

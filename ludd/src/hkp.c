@@ -256,7 +256,7 @@ static ssize_t gpgdata4export_cb(struct gpgdata4export_handle * h, void *buffer,
 		send_mime(h->hc, 200, ok200title, "", "", "text/html; charset=%s",(off_t) -1, h->hc->sb.st_mtime );
 		httpd_write_response(h->hc);
 		/* dprintf is Posix since 2008 */
-		dprintf(h->hc->conn_fd,"<html><head><title>ludd Public Key Server -- Get: %.80s (%d+)</title></head><body><h1>Public Key Server -- Get: %.80s (%d+)</h1><pre>\n",h->searchs[0],h->nsearchs-1,h->searchs[0],h->nsearchs-1);
+		dprintf(h->hc->conn_fd,"<html><head><title>"SOFTWARE_NAME" Public Key Server -- Get: %.80s (%d+)</title></head><body><h1>Public Key Server -- Get: %.80s (%d+)</h1><pre>\n",h->searchs[0],h->nsearchs-1,h->searchs[0],h->nsearchs-1);
 		export_start=1;
 	}
 

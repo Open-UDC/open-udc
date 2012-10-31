@@ -1,12 +1,13 @@
 #!/bin/bash
 
-LUDDUSER="@ludduser@"
-LUDDVERSION="@luddversion@"
+LUDDUSER="@user@"
+SOFTWARE="@software@"
+LUDDVERSION="@software@/@version@"
 KEYSERVER="hkp://pool.sks-keyservers.net"
 
 helpmsg='Usage: '"${0##*/}"' [options]
 Options:
-	-d, --dir	directory (default: $HOME of user '"$LUDDUSER"' if root, or $HOME/.ludd if not).
+	-d, --dir	directory (default: $HOME of user '"$LUDDUSER"' if root, or $HOME/.'"$SOFTWARE"' if not).
 	-h, --help	this help
 	-V, --version	version'
 
@@ -45,7 +46,7 @@ function ludd_genbotkey {
 				myudid=${myudid%;} #remove last ';' if present.
 				break;
 			else
-				echo "Warning: this id ($myudid) is not a valid udid2 for OpenUDC" >&2
+				echo "Warning: this id ($myudid) is not a valid udid2" >&2
 				read -p "     Will your node join an OpenUDC network ? (y/n) " answer
 				case "$answer" in
 					N* | n* )
@@ -94,7 +95,7 @@ if [[ ! "$refdir" ]] ; then
 fi
 
 if (($(id -u))) ; then
-	dir="$HOME/.ludd"
+	dir="$HOME/.$SOFTWARE"
 else
 	isroot=1
 	dir="$refdir"
@@ -142,7 +143,7 @@ esac
 
 myudid="$(gpg --list-secret-keys --with-colons ${mybotkeys[$bki]} | sed -n ' s/^sec:.*(ubot1;\(udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+\);\?).*/\1/p ' )"
 if [ -z "$myudid" ] ; then 
-	echo "Warning: key ${mybotkeys[$bki]} is not a valid bot key for OpenUDC" >&2
+	echo "Warning: key ${mybotkeys[$bki]} doesn't contain a valid udid2" >&2
 	read -p "     Will your node join an OpenUDC network ? (y/n) " answer
 	case "$answer" in
 		Y* | y* | O* | o* )
@@ -167,12 +168,12 @@ if ! grep "$LUDDVERSION ###" "$dir/gpgme/gpg.conf" > /dev/null 2>&1 ; then
 ### following import-option line has been added $(date -R) by ${0##*/} - $LUDDVERSION ###
 # "import-options" apply on key imported through pks/add or via creation sheets. The most
 # intersting options are import-clean or import-minimal. You should not set merge-only
-# since it it will block retrieving new keys through creation sheet. By default ludd already
+# since it it will block retrieving new keys through creation sheet. By default $SOFTWARE already
 # do a "merge-only" for keys added through pks/add (cf. its -nk option).
 #import-options import-clean
 
 # keyserver to use for retrieving new keys from creation sheet.
-# Note: if the server doesn't answer, ludd may instead request some peers before to fail.
+# Note: if the server doesn't answer, $SOFTWARE may instead request some peers before to fail.
 keyserver $KEYSERVER
 
 EOF
@@ -186,24 +187,24 @@ while true ; do
 done
 
 while true ; do 
-	read -p "port number to listen and to be reach externally [11371] ? " myport
-	[ "$myport" ] || myport=11371
+	read -p "port number to listen and to be reach externally [@port@] ? " myport
+	[ "$myport" ] || myport=@port@
 	((myport)) && break
 done
 
 cd "$dir"
-[ -f "ludd.conf" ] && cp -v ludd.conf ludd.conf.save_$(date +"%F")
+[ -f "$SOFTWARE.conf" ] && cp -v "$SOFTWARE.conf" "$SOFTWARE.conf.save_$(date +"%F")"
 
-cat << EOF > ludd.conf
-# ludd.conf: ludd configuration file
+cat << EOF > "$SOFTWARE.conf"
+# $SOFTWARE.conf: $SOFTWARE configuration file
 
-# Commentaries are based on the ludd(8) manpage.
-# ludd read the configuration file only once. So the default config file is not
-# read if an other config file is passed, with "-C", as an argument to ludd.
+# Commentaries are based on the $SOFTWARE(8) manpage.
+# $SOFTWARE read the configuration file only once. So the default config file is not
+# read if an other config file is passed, with "-C", as an argument to $SOFTWARE.
 
-# Specifies an alternate homedir for ludd.
+# Specifies an alternate homedir for $SOFTWARE.
 # Note: this is ignored for the default config file, which is found in the homedir ! :-D
-#dir=/var/ludd
+#dir=/var/$SOFTWARE
 
 # Specifies the fingerprint of the (secret) key to use for signing.
 fpr=${mybotkeys[$bki]}
@@ -218,7 +219,7 @@ ehost=$myhost
 port=$myport
 
 # Specifies a hostname (and so interface) to bind to. The default is to bind to
-# all hostnames supported on the local machine. See ludd(8) for details.
+# all hostnames supported on the local machine. See $SOFTWARE(8) for details.
 #host=
 
 # Enable new keys to be added through pks/add. Unless you want to store unused or
@@ -227,7 +228,7 @@ port=$myport
 
 # Do a chroot() at initialization time, restricting file access to the program's
 # current directory. If chroot is the compiled-in default, then nochroot disables
-# it. See ludd(8) for details.
+# it. See $SOFTWARE(8) for details.
 #nochroot
 #chroot
 
@@ -236,7 +237,7 @@ port=$myport
 #user=$LUDDUSER
 
 # Specifies a wildcard pattern for CGI programs, for instance "**.cgi" or
-# "/cgi-bin/*". See ludd(8) for details.
+# "/cgi-bin/*". See $SOFTWARE(8) for details.
 #cgipat=""
 
 # Specifies the maximum number of simultaneous requests which need to call fork().
@@ -244,16 +245,16 @@ port=$myport
 #cgilimit=200
 
 # Specifies a file of throttle settings. This feature may be removed in the futur.
-# See ludd(8) for details.
+# See $SOFTWARE(8) for details.
 #throttles=/etc/thttpd/throttle.conf
 
-# Specifies a file for logging. If no logfile option is specified, ludd logs
-# via syslog(). If logfile=/dev/null is specified, ludd doesn't log at all.
-#logfile=/var/log/ludd.log
+# Specifies a file for logging. If no logfile option is specified, $SOFTWARE logs
+# via syslog(). If logfile=/dev/null is specified, $SOFTWARE doesn't log at all.
+#logfile=/var/log/$SOFTWARE.log
 
 # Specifies a file to write the process-id to. If no file is specified, no
-# process-id is written. You can use this file to send signals to ludd. See
-# ludd(8) for details.
+# process-id is written. You can use this file to send signals to $SOFTWARE. See
+# $SOFTWARE(8) for details.
 #pidfile=
 
 EOF
@@ -267,14 +268,14 @@ NOTE: your bot's certificate have to be signed with your own OpenPGP certificate
 
 EOF
 
-read -p "	Start ludd now ? (y/n) " answer
+read -p "	Start $SOFTWARE now ? (y/n) " answer
 case "$answer" in
 	Y* | y* | O* | o* )
-		[ -x /etc/init.d/ludd ] && /etc/init.d/ludd start || ludd ;;
+		[ -x /etc/init.d/$SOFTWARE ] && /etc/init.d/$SOFTWARE start || $SOFTWARE ;;
 	*)
-		echo -e "Ok, you may start it later using:\n\t$ ludd" 
-		[ -x /etc/init.d/ludd ] &&
-			echo -e "or\t# /etc/init.d/ludd start (as root user)"
+		echo -e "Ok, you may start it later using:\n\t$ $SOFTWARE" 
+		[ -x /etc/init.d/$SOFTWARE ] &&
+			echo -e "or\t# /etc/init.d/$SOFTWARE start (as root user)"
 esac
 
 # Import initial keys in the keyring.

@@ -604,8 +604,10 @@ ac_subst_vars='LTLIBOBJS
 V_NETLIBS
 V_STATICFLAG
 V_CCOPT
-luddversion
-ludduser
+version
+port
+user
+software
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -675,6 +677,9 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_largefile
+enable_auth_basic
+enable_check_udid2
+enable_OpenUDC
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1300,6 +1305,13 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-largefile     omit support for large files
+
+  --enable-auth_basic	Basic access authentication
+  			(an ".htpasswd" file per directory).
+  --enable-check_udid2	Check if OpenPGP certificates contain a valid udid2.
+  --enable-OpenUDC	Enable OpenUDC support. It also enable check_udid2, set
+			default port to 11371, and name the output software "ludd".
+  			If disabled the output software will be name "thttpgpd".
 
 Some influential environment variables:
   CC          C compiler command
@@ -4705,20 +4717,61 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
-ludduser=`uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
+# Check whether --enable-auth_basic was given.
+if test "${enable_auth_basic+set}" = set; then :
+  enableval=$enable_auth_basic;  cat >>confdefs.h <<_ACEOF
+#define AUTH_FILE ".htpasswd"
+_ACEOF
+
+fi
+
+
+# Check whether --enable-check_udid2 was given.
+if test "${enable_check_udid2+set}" = set; then :
+  enableval=$enable_check_udid2;  $as_echo "#define CHECK_UDID2 1" >>confdefs.h
+
+fi
+
+
+# Check whether --enable-OpenUDC was given.
+if test "${enable_OpenUDC+set}" = set; then :
+  enableval=$enable_OpenUDC; 	$as_echo "#define OPENUDC 1" >>confdefs.h
+
+		software="ludd"
+		user="_ludd"
+		port=11371
+
+else
+   	software="thttpgpd"
+		user="_thttpgpd"
+		port=80
+
+fi
+
+
+
 cat >>confdefs.h <<_ACEOF
-#define DEFAULT_USER "${ludduser}"
+#define SOFTWARE_NAME "${software}"
 _ACEOF
 
 
-luddversion=`grep -o 'ludd/[^"]\+' src/version.h`
+cat >>confdefs.h <<_ACEOF
+#define DEFAULT_USER "${user}"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define DEFAULT_PORT ${port}
+_ACEOF
+
+version=`sed -n ' s,#define.*SOFTWARE_VERSION.*"\([^"]\+\)".*,\1,p ' src/version.h`
 
 
 
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile src/ludd.8"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5444,6 +5497,7 @@ do
     "src/cgi-src/Makefile") CONFIG_FILES="$CONFIG_FILES src/cgi-src/Makefile" ;;
     "src/pks/Makefile") CONFIG_FILES="$CONFIG_FILES src/pks/Makefile" ;;
     "html_src/Makefile") CONFIG_FILES="$CONFIG_FILES html_src/Makefile" ;;
+    "src/ludd.8") CONFIG_FILES="$CONFIG_FILES src/ludd.8" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

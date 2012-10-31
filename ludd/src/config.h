@@ -1,6 +1,7 @@
 /* config.h - configuration defines for ludd and libhttpd
 **
 ** Copyright © 1995,1998,1999,2000,2001 by Jef Poskanzer <jef@mail.acme.com>.
+** Copyright © 2012 by Jean-Jacques Brucker <open-udc@googlegroups.com>.
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -28,6 +29,7 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+#include "version.h"
 
 /* The following configuration settings are sorted in order of decreasing
 ** likelihood that you'd want to change them - most likely first, least
@@ -38,6 +40,9 @@
 ** The idea here is that you re-enable it by just moving it outside
 ** of the ifdef.
 */
+
+/* CONFIGURE: OpenUDC support ( http://openudc.org ) */
+//#define OPENUDC
 
 /* CONFIGURE: CGI programs must match this pattern to get executed.  It's
 ** a simple shell-style wildcard pattern, with * meaning any string not
@@ -69,7 +74,7 @@
 #define CGI_PATTERN "/*/cgi-bin/*"
 #endif
 
-#define CGI_PATTERN "/in/*"
+#define CGI_PATTERN "/cgi-bin/*"
 
 /* CONFIGURE: How many seconds to allow CGI programs to run before killing
 ** them.  This is in case someone writes a CGI program that goes into an
@@ -90,7 +95,7 @@
 /* CONFIGURE: How many seconds to allow for reading the initial request
 ** on a new connection.
 */
-#define IDLE_READ_TIMELIMIT 30
+#define IDLE_READ_TIMELIMIT 15
 
 /* CONFIGURE: How many seconds before an idle connection gets closed.
 */
@@ -123,13 +128,12 @@
  * signature is good. Then POST is transmited to cgi without "multipart/msigned"
  * encapsulation and such string "pgpuid=...&pgpfpr=..." are added to the query string.
  *
- * If you undefine this then ludd will not implement authentication
- * at all and will not check for auth files, which saves a bit of CPU time.
+ * If you undefine this then ludd will not implement OpenPGP POST authentication
+ * at all and will not check for such files, which saves a bit of CPU time.
  * NOTE: That feature is not priority for external cgi. But we use a similar mechanism 
  * for udc/create or udc/validate.
 */
-//#define PGPAUTH_FILE ".lookup"
-
+//#define PGPAUTH_FILE ".htPOSTpgp"
 
 /* CONFIGURE: This is required for OpenUDC compatibility : it checks that your bot
  * certificate contain a valid udid2. 
@@ -137,7 +141,9 @@
  * Note: If -nk is passed (which means PKS_ADD_MERGE_ONLY unset) it will also checks
  * those added through pks/add.
  */
+#ifdef OPENUDC
 #define CHECK_UDID2
+#endif
 
 /* CONFIGURE: It implies to log keys sended to pks/add (still via syslog).
  */
@@ -151,12 +157,11 @@
 */
 #define DEFAULT_CHARSET "utf-8"
 
-
 /* Most people won't want to change anything below here. */
 
-/* CONFIGURE: Undefine this if you want ludd to hide its specific version
-** when returning into to browsers.  Instead it'll just say "ludd" with
-** no version.
+/* CONFIGURE: Undefine this if you want ludd/thttpgpd to hide its specific
+ * version when returning into to browsers.  Instead it'll just say "ludd"
+ * or "thttpgpd" with no version.
 */
 #define SHOW_SERVER_VERSION
 
@@ -174,14 +179,14 @@
 ** not exist, the program will refuse to run.
 */
 #ifndef DEFAULT_USER
-#define DEFAULT_USER ".ludd"
+#define DEFAULT_USER "_"SOFTWARE_NAME
 #endif
 
-/* CONFIGURE: Default configuration file to search in ludd's homedir
+/* CONFIGURE: Default configuration file to search in the running directory.
  */
-#define DEFAULT_CFILE "ludd.conf"
+#define DEFAULT_CFILE SOFTWARE_NAME".conf"
 
-/* CONFIGURE: data directory (inside the one which should be chrooted)	
+/* CONFIGURE: data directory (inside the running one which should be chrooted)	
  * which contain all public data. It should also be defined in Makefiles
  * because there are things (like cgi programs) to install in it.
  */
@@ -254,9 +259,12 @@
 */
 #define CGI_BYTECOUNT 25000
 
-/* CONFIGURE: The default port to listen on.  80 is the standard HTTP port.
+/* CONFIGURE: The default port to listen on.
+ * 80 is the standard HTTP port, 11371 the standard HKP one.
 */
+#ifndef DEFAULT_PORT
 #define DEFAULT_PORT 11371
+#endif /* DEFAULT_PORT */
 
 /* CONFIGURE: A list of index filenames to check.  The files are searched
 ** for in this order.
@@ -302,12 +310,12 @@
 #define MAXTHROTTLENUMS 10
 
 /* CONFIGURE: Number of file descriptors to reserve for uses other than
-** connections.  Currently this is 10, representing one for the listen fd,
+** connections.  Currently this is 15, representing one for the listen fd,
 ** one for dup()ing at connection startup time, one for reading the file,
 ** one for syslog, and possibly one for the regular log file, which is
-** five, plus a factor of two for who knows what.
+** five, plus some for who knows what (CGIs, parse_response...).
 */
-#define SPARE_FDS 10
+#define SPARE_FDS 15
 
 /* CONFIGURE: How many milliseconds to leave a connection open while doing a
 ** lingering close.

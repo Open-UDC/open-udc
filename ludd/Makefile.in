@@ -36,7 +36,10 @@ BINDIR = @sbindir@
 #MANDIR = @mandir@ # Weirdo autotool bugs here ...
 MANDIR = @datarootdir@/man
 
-HOMEDIR = @localstatedir@/ludd
+# name of output software
+SOFTWARE = @software@
+
+HOMEDIR = @localstatedir@/@software@
 # Pathname of directory available trough internet.
 WEBDIR = pub
 
@@ -44,8 +47,7 @@ WEBDIR = pub
 CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/cgi-bin
 
 # default user to switch to, when running as root
-LUDDUSER =	@ludduser@
-#LUDDUSER = `uname -r | grep ARCH > /dev/null && echo ludd || echo .ludd`
+LUDDUSER =	@user@
 
 # You shouldn't need to edit anything below here.
 
@@ -76,7 +78,7 @@ subdirs:
 
 
 install:	installsubdirs
-	useradd -r -c "system user for ludd" -d "$(HOMEDIR)" -s /sbin/nologin $(LUDDUSER) || true
+	useradd -r -c "system user for $(SOFTWARE)" -d "$(HOMEDIR)" -s /sbin/nologin $(LUDDUSER) || true
 	chown -R $(LUDDUSER) "$(HOMEDIR)"
 
 installsubdirs:

@@ -46,7 +46,7 @@ SRC =		thttpd.c libhttpd.c fdwatch.c mmc.c timers.c match.c tdate_parse.c hkp.c
 
 OBJ =		$(SRC:.c=.o) @LIBOBJS@
 
-ALL =		ludd
+ALL =		@software@
 
 GENHDR =	mime_encodings.h mime_types.h
 
@@ -57,7 +57,7 @@ SUBDIRS =	cgi-src pks
 all:		this subdirs
 this:		$(ALL)
 
-ludd: $(OBJ)
+@software@: $(OBJ)
 	@rm -f $@
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LIBS) $(NETLIBS)
 
@@ -87,12 +87,12 @@ install:	installthis install-man installsubdirs
 
 installthis:
 	-mkdir -p $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 555 ludd $(DESTDIR)$(BINDIR)
-	$(INSTALL) -m 555 ludd_init.sh $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 555 @software@ $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 555 ludd_init.sh $(DESTDIR)$(BINDIR)/@software@_init.sh
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
-	$(INSTALL) -m 444 -g man ludd.8 $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -m 444 -g man ludd.8 $(DESTDIR)$(MANDIR)/man8/@software@.8
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -106,11 +106,11 @@ installsubdirs:
 uninstall:	uninstallthis uninstall-man uninstallsubdirs
 
 uninstallthis:
-	rm -f $(DESTDIR)$(BINDIR)/ludd
-	rm -f $(DESTDIR)$(BINDIR)/ludd_init.sh
+	rm -f $(DESTDIR)$(BINDIR)/@software@
+	rm -f $(DESTDIR)$(BINDIR)/@software@_init.sh
 
 uninstall-man:
-	rm -f $(DESTDIR)$(MANDIR)/man8/ludd.8
+	rm -f $(DESTDIR)$(MANDIR)/man8/@software@.8
 
 uninstallsubdirs:
 	for i in $(SUBDIRS) ; do ( \
@@ -125,7 +125,7 @@ clean:		cleansubdirs
 	rm -f $(CLEANFILES)
 
 distclean:	distcleansubdirs
-	rm -f $(CLEANFILES) Makefile ludd_init.sh
+	rm -f $(CLEANFILES) Makefile ludd_init.sh ludd.8
 
 cleansubdirs:
 	for i in $(SUBDIRS) ; do ( \

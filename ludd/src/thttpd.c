@@ -479,7 +479,7 @@ main( int argc, char** argv )
 	else
 		logfp = (FILE*) 0;
 
-	/* Switch directory : the one in parameters, or the $HOME of the user(setuid) if root, or $HOME/.ludd  */
+	/* Switch directory : the one in parameters, or the $HOME of the user(setuid) if root, or $HOME/.@software@  */
 	if ( dir == (char*) 0 ) {
 		if ( getuid() == 0 ) 
 			dir=(pwd->pw_dir?pwd->pw_dir:".");
@@ -492,7 +492,7 @@ main( int argc, char** argv )
 	}
 
 	if ( chdir( dir ) < 0 )
-		DIE(1,"chdir %s - %m %s",dir,"(forget ludd_init.sh ?)");
+		DIE(1,"chdir %s - %m %s",dir,"(forget "SOFTWARE_NAME"_init.sh ?)");
 
 	if (read_config(DEFAULT_CFILE) < 2)
 		/* if read_config does something: re-parse args which override it */
@@ -605,7 +605,7 @@ main( int argc, char** argv )
 
 	/* Switch to the web (public) directory. */
 	if ( chdir(WEB_DIR) < 0 )
-		DIE(1,"chdir %s - %m %s",WEB_DIR,"(forget ludd_init.sh ?)");
+		DIE(1,"chdir %s - %m %s",WEB_DIR,"(forget "SOFTWARE_NAME"_init.sh ?)");
 
 	/* Set up to catch signals. */
 #ifdef HAVE_SIGSET
@@ -740,7 +740,7 @@ main( int argc, char** argv )
 
 	/* get the bot  key */
 	if ( ! myself.fpr || strlen(myself.fpr) != 40 ) 
-		DIE( 1, "Invalid fingerprint %s","(forget ludd_init.sh ?)");
+		DIE( 1, "Invalid fingerprint %s","(forget "SOFTWARE_NAME"_init.sh ?)");
 
 	gpgerr = gpgme_get_key (main_gpgctx,myself.fpr,&mygpgkey,1);
 	if ( gpgerr != GPG_ERR_NO_ERROR ) {
@@ -954,7 +954,7 @@ parse_args( int argc, char** argv )
 		{
 		if ( !strcmp( argv[argn], "-V" ) || !strcmp( argv[argn], "--version" ) ) 
 			{
-			(void) printf( "%s\n", SERVER_SOFTWARE );
+			(void) printf( "%s\n", SOFTWARE_NAME"/"SOFTWARE_VERSION );
 			exit( 0 );
 			}
 		else if ( strcmp( argv[argn], "-C" ) == 0 && argn + 1 < argc )
@@ -1052,7 +1052,7 @@ usage( void )
 			    "	-C FILE     config file to use (default: "DEFAULT_CFILE" in running directory)\n" \
 			    "	-p PORT     listenning port (default: %d)\n" \
 			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
-			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/.ludd/)\n" \
+			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/."SOFTWARE_NAME"/)\n" \
 			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n" \
 			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
 			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
@@ -1062,7 +1062,7 @@ usage( void )
 			    "	-nk         new (unknow) keys may be added in our keyring through \"pks/add\"\n" \
 			    "	-e PORT     external port (to be reach by peers, default: listenning port)\n" \
 			    "	-E HOST     external host name or IP adress (default: default hostname)\n" \
-			    "	-f FPR      fingerprint of the ludd's OpenPGP key (no default, MANDATORY)\n" \
+			    "	-f FPR      fingerprint of the "SOFTWARE_NAME"'s OpenPGP key (no default, MANDATORY)\n" \
 			    "	-V          show version and exit\n" \
 			    "	-D          stay in foreground\n"
 			    , argv0, DEFAULT_PORT );
@@ -1089,7 +1089,7 @@ static int read_config( char* filename )
 
 	fp = fopen( filename, "r" );
 	if ( fp == (FILE*) 0 )
-		DIE(1,"%s: %m :-( %s",filename,"(forget ludd_init.sh ?)");
+		DIE(1,"%s: %m :-( %s",filename,"(forget "SOFTWARE_NAME"_init.sh ?)");
 
 	while ( fgets( line, sizeof(line), fp ) != (char*) 0 )
 		{

@@ -34,9 +34,9 @@
 #endif
 
 #ifdef SHOW_SERVER_VERSION
-#define EXPOSED_SERVER_SOFTWARE SERVER_SOFTWARE
+#define EXPOSED_SERVER_SOFTWARE SOFTWARE_NAME"/"SOFTWARE_VERSION
 #else /* SHOW_SERVER_VERSION */
-#define EXPOSED_SERVER_SOFTWARE "ludd"
+#define EXPOSED_SERVER_SOFTWARE SOFTWARE_NAME
 #endif /* SHOW_SERVER_VERSION */
 
 #include <ctype.h>
@@ -268,11 +268,11 @@ httpd_initialize(
 	/* Done initializing. */
 	if ( hs->binding_hostname == (char*) 0 )
 		syslog(
-			LOG_NOTICE, "%.80s starting on port %d", SERVER_SOFTWARE,
+			LOG_NOTICE, "%.80s starting on port %d", EXPOSED_SERVER_SOFTWARE,
 			(int) hs->port );
 	else
 		syslog(
-			LOG_NOTICE, "%.80s starting on %.80s, port %d", SERVER_SOFTWARE,
+			LOG_NOTICE, "%.80s starting on %.80s, port %d", EXPOSED_SERVER_SOFTWARE,
 			httpd_ntoa( hs->listen4_fd != -1 ? sa4P : sa6P ),
 			(int) hs->port );
 	return hs;
@@ -631,7 +631,7 @@ send_response_tail( httpd_conn* hc )
 <ADDRESS><A HREF=\"%s\">%s</A></ADDRESS>\n\
 </BODY>\n\
 </HTML>\n",
-		SERVER_ADDRESS, EXPOSED_SERVER_SOFTWARE );
+		SOFTWARE_ADDRESS, EXPOSED_SERVER_SOFTWARE );
 	add_response( hc, buf );
 	}
 
@@ -706,7 +706,7 @@ httpd_send_err( httpd_conn* hc, int status, char* title, char* extraheads, const
 
 static void httpd_send_err2(int fd, int status, char* title, const char* form)
 	{
-	dprintf(fd,"HTTP/1.1 %d %s\015\012Server: %s\015\012Content-Type: text/html\015\012Accept-Ranges: bytes\015\012Connection: close\015\012\015\012", status, title, SERVER_SOFTWARE);
+	dprintf(fd,"HTTP/1.1 %d %s\015\012Server: %s\015\012Content-Type: text/html\015\012Accept-Ranges: bytes\015\012Connection: close\015\012\015\012", status, title, EXPOSED_SERVER_SOFTWARE);
 	dprintf(fd,"\
 <HTML>\n\
 <HEAD><TITLE>%d %s</TITLE></HEAD>\n\
@@ -718,7 +718,7 @@ static void httpd_send_err2(int fd, int status, char* title, const char* form)
 <ADDRESS><A HREF=\"%s\">%s</A></ADDRESS>\n\
 </BODY>\n\
 </HTML>\n",
-		SERVER_ADDRESS, EXPOSED_SERVER_SOFTWARE );
+		SOFTWARE_ADDRESS, EXPOSED_SERVER_SOFTWARE );
 }
 
 #ifdef AUTH_FILE
@@ -2634,7 +2634,7 @@ make_envp( httpd_conn* hc )
 #ifdef CGI_LD_LIBRARY_PATH
 	envp[envn++] = build_env( "LD_LIBRARY_PATH=%s", CGI_LD_LIBRARY_PATH );
 #endif /* CGI_LD_LIBRARY_PATH */
-	envp[envn++] = build_env( "SERVER_SOFTWARE=%s", SERVER_SOFTWARE );
+	envp[envn++] = build_env( "SERVER_SOFTWARE=%s", EXPOSED_SERVER_SOFTWARE );
 	/* server-name */
 	cp = hc->hs->server_hostname;
 	if ( cp != (char*) 0 )

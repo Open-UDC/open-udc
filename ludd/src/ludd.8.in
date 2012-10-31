@@ -1,8 +1,10 @@
-.TH ludd 8 "29 February 2000"
+.TH @software@ 8 "@version@"
 .SH NAME
-ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC validation node
+ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC validation node.
+.PP
+thttpgpd is a tiny/turbo/throttling HTTP server with OpenPGP features.
 .SH SYNOPSIS
-.B ludd
+.B @software@
 .RB [ -C
 .IR configfile ]
 .RB [ -p
@@ -34,12 +36,13 @@ ludd (Libre Universal Dividend Deamon) is the first implementation of an OpenUDC
 .SH DESCRIPTION
 .PP
 .B ludd
-is the first OpenUDC node implementation. OpenUDC protocol aims to manage distributed
-crypto-currencies.
+is the first OpenUDC node implementation. It is so an http server with OpenUDC support. OpenUDC protocol manage decentralized and human based crypto-currencies.
 .PP
-The
-.B ludd
-HTTP engine come from thttpd which is a simple, small, fast, and secure HTTP server.
+.B thttpgpd
+is the http server without OpenUDC support, but only OpenPGP ones. It supports hkp (Public Key Server), OpenPGP signatures through the MIME type "multipart/msigned", and should support RFC6091 (TLS with OpenPGP) one day.
+.PP
+.B thttpgpd
+is a fork/update of thttpd-2.25b (unmaintained since 2002) which was a simple, small, fast, and secure HTTP server.
 .SH OPTIONS
 .TP
 .B -C
@@ -49,19 +52,19 @@ See below for details.
 .TP
 .B -p
 Specifies an alternate port number to listen on.
-The default is 11371.
+The default is @port@.
 The config-file option name for this flag is "port",
 and the config.h option is DEFAULT_PORT.
 .TP
 .B -e
 Specifies the external port to be reach by other peers.
-The default to try listenning port.
+The default is to try listenning port.
 The config-file option name for this flag is "eport".
 .TP
 .B -d
 Specifies a directory to chdir() to at startup.
-This is merely a convenience - you could just as easily
-do a cd in the shell script that invokes the program.
+If root, the default is to chdir to the home of the user switched to,
+else the default dir is $HOME/.@software@.
 The config-file option name for this flag is "dir",
 the directory should contain expected arborescense (pub dir, gpg keyrings...).
 .TP
@@ -75,13 +78,13 @@ and the config.h option is ALWAYS_CHROOT.
 .TP
 .B -u
 Specifies what user to switch to after initialization when started as root.
-The default is ".ludd".
+The default is "@user@".
 The config-file option name for this flag is "user",
 and the config.h option is DEFAULT_USER.
 .TP
 .B -c
 Specifies a wildcard pattern for CGI programs, for instance "**.cgi"
-or "/in/*".
+or "/cgi-bin/*".
 See below for details.
 The config-file option name for this flag is "cgipat",
 and the config.h option is CGI_PATTERN.
@@ -103,14 +106,14 @@ The config-file option name for this flag is "ehost".
 .TP
 .B -l
 Specifies a file for logging.
-If no -l argument is specified, ludd logs via syslog().
-If "-l /dev/null" is specified, ludd doesn't log at all.
+If no -l argument is specified, @software@ logs via syslog().
+If "-l /dev/null" is specified, @software@ doesn't log at all.
 The config-file option name for this flag is "logfile".
 .TP
 .B -i
 Specifies a file to write the process-id to.
 If no file is specified, no process-id is written.
-You can use this file to send signals to ludd.
+You can use this file to send signals to @software@.
 See below for details.
 The config-file option name for this flag is "pidfile".
 .TP
@@ -122,10 +125,10 @@ Unless you want to store unused or unknow keys in your keyring, you shouldn't us
 The config-file option name for this flag is "newkeys".
 .TP
 .B -f
-Specifies the fingerprint of the OpenPGP key to use.
+Specifies the fingerprint of the OpenPGP key used to identify your server.
 This parameter is mandatory. The secret part of the key must be available
-in the gpgme homedir. It must be a valid udbot key.
-To be accepted by other peers, the udbot key must also being signed by
+in the gpgme homedir. It should be a valid "ubot1" key.
+To be accepted by other peers, the key should also being signed by
 its owner, and the owner accepted in a creation sheet.
 The config-file option name for this flag is "fpr".
 .TP
@@ -134,16 +137,16 @@ Shows the current version info and exit.
 .TP
 .B -D
 This was originally just a debugging flag, however it's worth mentioning
-because one of the things it does is prevent ludd from making itself
+because one of the things it does is prevent @software@ from making itself
 a background daemon.
 Instead it runs in the foreground like a regular program.
-This is necessary when you want to run ludd wrapped in a little shell
+This is necessary when you want to run @software@ wrapped in a little shell
 script that restarts it if it exits.
 .SH "CONFIG-FILE"
 .PP
 All the command-line options can also be set in a config file.
 One advantage of using a config file is that the file can be changed,
-and ludd will pick up the changes with a restart.
+and @software@ will pick up the changes with a restart.
 .PP
 The syntax of the config file is simple, a series of "option" or
 "option=value" separated by whitespace.
@@ -171,8 +174,9 @@ scripts are available in the chroot.
 If you have CGI disabled, or if you make a policy that all CGI programs
 must be written in a compiled language such as C and statically linked,
 then you probably don't have to do any setup at all.
-But that is not the case for CGI sripts that ludd need is this earlier versions,
-.B So CHROOT will make ludd unusable (Do not use it yet).
+.PP
+.B TO TEST:
+does OpenPGP features works in a chrooted environnement ?
 .PP
 However, one thing you should do is tell syslogd about the chroot tree,
 so that thttpd can still generate syslog messages.
@@ -189,7 +193,7 @@ In Linux the flag is -a instead of -l, and there may be other differences.
 Relevant config.h option: ALWAYS_CHROOT.
 .SH "CGI"
 .PP
-ludd supports the CGI 1.1 spec.
+@software@ supports the CGI 1.1 spec.
 .PP
 In order for a CGI program to be run, its name must match the pattern
 specified either at compile time or on the command line with the -c flag, or
@@ -275,11 +279,11 @@ There is also no provision for throttling the number of simultaneous
 connections on a per-URL basis.
 However you can control the overall number of connections for the whole
 server very simply, by setting the operating system's per-process file
-descriptor limit before starting ludd.
+descriptor limit before starting @software@.
 Be sure to set the hard limit, not the soft limit.
 .SH SYMLINKS
 .PP
-ludd is very picky about symbolic links.
+@software@ is very picky about symbolic links.
 Before delivering any file, it first checks each element in the path
 to see if it's a symbolic link, and expands them all out to get the final
 actual filename.
@@ -300,21 +304,22 @@ treated as a regular file and returned to the client, instead of getting run.
 This could be confusing.
 .SH PERMISSIONS
 .PP
-ludd is also picky about file permissions.
-It wants data files (HTML, images) to be world readable.
-Readable by the group that the ludd process runs as is not enough - ludd
-checks explicitly for the world-readable bit.
+@software@ is also picky about file permissions.
+It wants data files (HTML, images...) to not being maked as hidden (having an
+element of its path starting with a '.') and to be world readable.
+Readable by the group that the @software@ process runs as is not enough -
+@software@ checks explicitly for the world-readable bit.
 This is so that no one ever gets surprised by a file that's not set
 world-readable and yet somehow is readable by the HTTP server and
 therefore the *whole* world.
 .PP
 The same logic applies to directories.
-As with the standard Unix "ls" program, ludd will only let you
+As with the standard Unix "ls" program, @software@ will only let you
 look at the contents of a directory if its read bit is on; but
 as with data files, this must be the world-read bit, not just the
 group-read bit.
 .PP
-ludd also wants the execute bit to be *off* for data files.
+@software@ also wants the execute bit to be *off* for data files.
 A file that is marked executable but doesn't match the CGI pattern
 might be a script or program that got accidentally left in the
 wrong directory.
@@ -329,19 +334,19 @@ directories should be 755 (rwxr-xr-x) if you want to allow indexing and
 755 (rwxr-xr-x) or 711 (rwx--x--x).
 .SH LOGS
 .PP
-ludd does all of its logging via syslog(3).
+@software@ does all of its logging via syslog(3).
 The facility it uses is configurable.
 Aside from error messages, there are only a few log entry types of interest,
 all fairly similar to CERN Common Log Format:
 .nf
-  Aug  6 15:40:34 acme ludd[583]: 165.113.207.103 - - "GET /file" 200 357
-  Aug  6 15:40:43 acme ludd[583]: 165.113.207.103 - - "HEAD /file" 200 0
-  Aug  6 15:41:16 acme ludd[583]: referer http://www.acme.com/ -> /dir
-  Aug  6 15:41:16 acme ludd[583]: user-agent Mozilla/1.1N
+  Aug  6 15:40:34 acme @software@[583]: 165.113.207.103 - - "GET /file" 200 357
+  Aug  6 15:40:43 acme @software@[583]: 165.113.207.103 - - "HEAD /file" 200 0
+  Aug  6 15:41:16 acme @software@[583]: referer http://www.acme.com/ -> /dir
+  Aug  6 15:41:16 acme @software@[583]: user-agent Mozilla/1.1N
 .fi
 The package includes a script for translating these log entries info
 CERN-compatible files.
-Note that ludd does not translate numeric IP addresses into domain names.
+Note that @software@ does not translate numeric IP addresses into domain names.
 This is both to save time and as a minor security measure (the numeric
 address is harder to spoof).
 .PP
@@ -351,26 +356,26 @@ If you'd rather log directly to a file, you can use the -l command-line
 flag.  But note that error messages still go to syslog.
 .SH SIGNALS
 .PP
-ludd handles a couple of signals, which you can send via the
+@software@ handles a couple of signals, which you can send via the
 standard Unix kill(1) command:
 .TP
 .B INT,TERM
-These signals tell ludd to shut down immediately.
+These signals tell @software@ to shut down immediately.
 Any requests in progress get aborted.
 .TP
 .B USR1
-This signal tells ludd to shut down as soon as it's done servicing
+This signal tells @software@ to shut down as soon as it's done servicing
 all current requests.
 In addition, the network socket it uses to accept new connections gets
-closed immediately, which means a fresh ludd can be started up
+closed immediately, which means a fresh @software@ can be started up
 immediately.
 .TP
 .B USR2
-This signal tells ludd to generate the statistics syslog messages
+This signal tells @software@ to generate the statistics syslog messages
 immediately, instead of waiting for the regular hourly update.
 .TP
 .B HUP
-This signal tells ludd to close and re-open its (non-syslog) log file,
+This signal tells @software@ to close and re-open its (non-syslog) log file,
 for instance if you rotated the logs and want it to start using the
 new one.
 This is a little tricky to set up correctly, for instance if you are using
@@ -378,7 +383,7 @@ chroot() then the log file must be within the chroot tree, but it's
 definitely doable.
 .SH FILES
 From its running directory:
-.B ludd.conf gpgme/gpg.conf
+.B @software@.conf gpgme/gpg.conf
 .SH "SEE ALSO"
 lud(1), OpenUDC(8)
 .SH THANKS
