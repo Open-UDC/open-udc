@@ -4771,7 +4771,7 @@ version=`sed -n ' s,#define.*SOFTWARE_VERSION.*"\([^"]\+\)".*,\1,p ' src/version
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile src/ludd.8"
+ac_config_files="$ac_config_files Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile src/ludd.8 src/pks/index.html"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5498,6 +5498,7 @@ do
     "src/pks/Makefile") CONFIG_FILES="$CONFIG_FILES src/pks/Makefile" ;;
     "html_src/Makefile") CONFIG_FILES="$CONFIG_FILES html_src/Makefile" ;;
     "src/ludd.8") CONFIG_FILES="$CONFIG_FILES src/ludd.8" ;;
+    "src/pks/index.html") CONFIG_FILES="$CONFIG_FILES src/pks/index.html" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

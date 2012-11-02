@@ -64,5 +64,5 @@ clean:
 	rm -f $(CLEANFILES)
 
 distclean:
-	rm -f $(CLEANFILES) Makefile
+	rm -f $(CLEANFILES) Makefile index.html
 

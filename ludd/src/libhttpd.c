@@ -142,7 +142,7 @@ static int hexit( char c );
 #ifdef GENERATE_INDEXES
 static void strencode( char* to, int tosize, char* from );
 #endif /* GENERATE_INDEXES */
-static char* expand_symlinks( char* path, char** restP, int no_symlink_check, int tildemapped );
+static char* expand_symlinks( char* path, char** restP, int no_symlink_check );
 static char* bufgets( httpd_conn* hc );
 static void de_dotdot( char* file );
 static void init_mime( void );
@@ -1082,7 +1082,7 @@ strencode( char* to, int tosize, char* from )
 ** without excessive mallocs.
 */
 static char*
-expand_symlinks( char* path, char** restP, int no_symlink_check, int tildemapped )
+expand_symlinks( char* path, char** restP, int no_symlink_check )
 	{
 	static char* checked;
 	static char* rest;
@@ -1134,13 +1134,12 @@ expand_symlinks( char* path, char** restP, int no_symlink_check, int tildemapped
 	restlen = strlen( path );
 	httpd_realloc_str( &rest, &maxrest, restlen );
 	(void) strcpy( rest, path );
-	if ( ! tildemapped )
-		/* Remove any leading slashes. */
-		while ( rest[0] == '/' )
-			{
-			(void) strcpy( rest, &(rest[1]) );
-			--restlen;
-			}
+	/* Remove any leading slashes. */
+	while ( rest[0] == '/' )
+		{
+		(void) strcpy( rest, &(rest[1]) );
+		--restlen;
+		}
 	r = rest;
 	nlinks = 0;
 
@@ -1385,7 +1384,6 @@ httpd_get_conn( httpd_server* hs, int listen_fd, httpd_conn* hc )
 	hc->type = "";
 	hc->hostname = (char*) 0;
 	hc->http_version=10;
-	hc->tildemapped = 0;
 	hc->first_byte_index = 0;
 	hc->last_byte_index = -1;
 	hc->bfield=0;
@@ -1932,7 +1930,7 @@ httpd_parse_request( httpd_conn* hc )
 	/* Expand all symbolic links in the filename.  This also gives us
 	** any trailing non-existing components, for pathinfo.
 	*/
-	cp = expand_symlinks( hc->expnfilename, &pi, (hc->hs->bfield & HS_NO_SYMLINK_CHECK), hc->tildemapped );
+	cp = expand_symlinks( hc->expnfilename, &pi, (hc->hs->bfield & HS_NO_SYMLINK_CHECK));
 	if ( cp == (char*) 0 )
 		{
 		httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );
@@ -3591,7 +3589,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		/* Got an index file.  Expand symlinks again.  More pathinfo means
 		** something went wrong.
 		*/
-		cp = expand_symlinks( indexname, &pi, (hc->hs->bfield & HS_NO_SYMLINK_CHECK), hc->tildemapped );
+		cp = expand_symlinks( indexname, &pi, (hc->hs->bfield & HS_NO_SYMLINK_CHECK));
 		if ( cp == (char*) 0 || pi[0] != '\0' )
 			{
 			httpd_send_err( hc, 500, err500title, "", err500form, hc->encodedurl );

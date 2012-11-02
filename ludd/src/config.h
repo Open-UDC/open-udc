@@ -118,7 +118,7 @@
 */
 //#define AUTH_FILE ".htpasswd"
 
-/* NOT WORKING: The file to use for OpenPGP authentication.  If this is defined
+/* NOT WORKING: The file to use for OpenPGP POST authentication.  If this is defined
  * then ludd checks for this file in the local directory before every POST to a cgi.
  * If the file exists then authentication is done, otherwise the fetch
  * proceeds as usual.
@@ -126,7 +126,7 @@
  * If authentication succeed, ie if the POST message is a "multipart/msigned" and
  * the key used to sign is in the file with a level greater or equal than 2 and the
  * signature is good. Then POST is transmited to cgi without "multipart/msigned"
- * encapsulation and such string "pgpuid=...&pgpfpr=..." are added to the query string.
+ * encapsulation and such string "pgpuid=...&pgpfpr=...&pgpdate=" are added to the query string.
  *
  * If you undefine this then ludd will not implement OpenPGP POST authentication
  * at all and will not check for such files, which saves a bit of CPU time.

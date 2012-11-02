@@ -128,7 +128,6 @@ typedef struct {
 	char* hostname;		/* not malloc()ed */
 	int http_version;   /* default: 10 for HTTP/1.0, 11 means HTTP/1.1 or better */ 
 	char * bytesranges;  /* used to manage multi-range */ 
-	int tildemapped;		/* this connection got tilde-mapped */
 	off_t first_byte_index, last_byte_index;
 	struct stat sb;
 	int conn_fd;
