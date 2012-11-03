@@ -1,0 +1,232 @@
+Network Working Group                                       J.J. Brucker
+Request for Comments:                                      Open-UDC Team
+
+
+  == HTTP Authentication: OpenPGP Data and Access Authentication  ==
+
+ === Abstract ===
+
+ === Status of This Memo ===
+
+ (Today 1st November 2012, it is still a draft).
+
+ === Copyright Notice ===
+
+ === Table of Contents ===
+
+ 1. Introduction ....................................................
+ 2. Conventions Used in This Document ...............................
+ 3. Validation Nodes act as HTTP Servers ..........................
+ 4. Tree Structure of Validation Nodes ............................
+ 5. Data expected in the tree structure .............................
+    5.1 Formats used for creation sheets
+    5.2 Formats used for transactions
+    5.3 Formats used for authentication
+    5.4 Formats encapsulation.
+
+1.== Introduction ==
+
+  section 5.1 of [RFC2046] (http://www.bortzmeyer.org/2046.html).
+
+  [RFC2617] (Basic and Digest HTTP Authentication)
+  section 15 in [RFC2543] (deprecated/removed by [RFC3261]).
+  [RFC3156] : http://www.ietf.org/rfc/rfc3156.txt
+  OpenPGP standard [RFC4880].
+  HKP protocol (widely used but still specified by a draft).
+
+  https://grepular.com/FireGPG_on_Firefox_5
+
+  Example of some approach to avoid:
+  http://www.w3.org/Conferences/WWW4/Papers2/245.html
+
+2.== Conventions Used in This Document ==
+
+  The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+  "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+  document are to be interpreted as described in [RFC2119].
+
+3.== HTTP (multi-)signed data ==
+
+   HTTP (multi-)signed messages are denoted by the "multipart/msigned"
+   content type, with an optional "nsigs" parameter.
+   This content type is inspired by the "multipart/signed" defined in
+   the [RFC3156] and dedicated for sending signed email.
+
+   The multipart/msigned body MUST consist of at least two parts. One
+   part contains the signed data in MIME canonical format, including a
+   set of appropriate content headers describing the data.
+
+   Other parts MUST contain each one a digital signature. For OpenPGP
+   signatures, it MUST be labeled with a content type of
+   "application/pgp-signature".
+
+   If present, the "nsigs" parameter MUST contain a signed integer.
+   The "nsigs" parameter indicated the number of detached
+   signatures, as well as there position inside the "multipart/msigned"
+   stream:
+    - integer value indicate the number of signatures. The absolute
+    value MUST be equal to the effective number of signatures in the
+    stream.
+    - a positive value indicate that the signatures will be placed
+    after the data.
+    - a negative value indicate that the signatures will be placed
+    before the data. Thus permit to verify the data in one-pass as the
+    digest (also know as MIC: Message Integrity Check) used to sign are
+    indicated in each signature (or in their content header for others
+    signature than OpenPGP).
+    - The absence of the "nsigs" parameter MUST be treated as it have
+    had a value of "1".
+
+     Notes:
+    - The "nsigs" parameter should not have a value of "0".
+    Reading implementations may return an error in this case.
+    - OpenPGP signatures SHOULD be ASCII armored.
+     
+
+    Example of an HTTP request with signed response:
+
+      > GET /in/example HTTP/1.1
+      > Host: example.org
+      > Accept: multipart/msigned 
+      >
+
+      < HTTP/1.0 200 OK
+      < Content-Type: multipart/msigned; boundary=HRuNvorp; nsigs=1
+      <  
+      < --HRuNvorp
+      < Content-Type: application/octet-stream
+      <
+     &<
+     &< The use "<CR><LF>" (on some system...) instead of just
+     &< "<LF>" was really a bad idea.
+     &<
+     &< It is then incrusted inside the HTTP protocol :-(.
+     &<
+     &< Take care than the signed message so: 
+     &<  - starts after the "<CR><LF><CR><LF>" characters which
+     &<  should terminating the header.
+     &<  - ends before the "<CR><LF>" characters preceding the
+     &<  dash-boundary (eg: "--boudary").
+     &<
+     &< And so does the signature.
+     &<
+     &< As such tricks may easily produce implementation errors,
+     &< it is recommend to use ASCII armored signatures, which
+     &< are more ... armored ! ;-)
+     &<
+      <
+      < --HRuNvorp
+      < Content-Type: application/pgp-signature
+      < Content-Length: 490
+      <
+      < -----BEGIN PGP SIGNATURE-----
+      < Version: GnuPG v1.4.12 (GNU/Linux)
+      <
+      < iQEcBAABCAAGBQJQWaIQAAoJEEIpCDWL9j3OmsYH/0rA0PEDRYwiBiKZD7o/tR9n
+      < g7/Nubwd++Oea0RKyRrmUi6FEjpdYn2cqbGlKKtvLc3rd4Fz9nz7B16SYuU8dubv
+      < QVLju/Czf+1VRhhB86sCvWbjQO6Z2SUGBcPUqtEkDZWdkxoeTdLq7aMxj0YbP2zR
+      < fJoeFgC+4vywOp90NKXcDi22cS7y4zSyrrYkZEyDAmcrIbRzHPqpqpCmFBkTSMI2
+      < D2BBC/jDS1ZpzCISjJ0Q4dYMo5HB2d0xiTTcF9BB0sYwnC5RElOOXTPY0y3gwcc/
+      < NWNFJBkGXHI23fKjGth2sBmSvTsz5aPIkonwkSk/QRk6j5hXLTG+1VkTEikpfZk=
+      < =paY0
+      < -----END PGP SIGNATURE-----
+      <
+      < --HRuNvorp--
+
+   The "&"s in the previous example indicate the portion of the data
+   over which the signature was calculated.
+
+3.== OpenPGP acces Authorization  ==
+
+
+Example :
+
+> GET /dir/index.html HTTP/1.1
+> Host: example.org
+> 
+< HTTP/1.1 401 Unauthorized
+< Server: thttpgpd/2.25b 29dec2003
+< Content-Type: text/html; charset=utf-8
+< Date: Sat, 03 Nov 2012 07:55:07 GMT
+< WWW-Authenticate: OpenPGP realm="dir", nonce="1351929617"
+< 
+
+Required:
+  realm:
+    A string to be displayed to client so they know which key(s) to
+    use. (If they hold many ones).
+  nonce: managed by the server to avoid replay vulnerabilty. MAY be
+    set to an empty string, but that is not recomended.
+
+
+Note: a basic implementation is to use the number of second since epoch
+  as the nounce. Then the client MAY try first request with such
+  nounce, if both server and client have a synchronized time (by using ntp
+  for example), it make them avoid 401 responses.
+
+> GET /dir/index.html HTTP/1.1
+> Host: example.org
+> Authorization: OpenPGP version="GnuPG v1.4.12 (GNU/Linux)",
+                     realm="dir",
+                     nonce="1351929617",
+                     uri="/dir/index.html",
+                     signature="iQEcBAABCAAGBQJQlOZhAAoJEICx309/5mldHFgH/A1fFxsDcHN/E0qVpdHkL/ujlOHQA3dmScZWlPstvMwWJUwGlz8v+JG8YlmB8adJABHaH99PK822lS+F6zJVzhbWwC16kLQ0UFIh3aU+dMjQLY/afVzyp2fZQErojvFWeQezQdytp0hbYP0+9+VnMTxR5vCoXK9xSyWPupTp1QX5cUTPMpvpGpK2mU6AuIY+xYv8gSWr+xibMBDR+ysLY7/uiLCzh74/OffhjcB1EFESYi7RcCXVe6eOaFcmrKP3uswKel448cGK11yIiaaPDjSby6GMKlJxW+QcWqokb4cUr0acw+5Mvd5HONvwIVvBynfGNgKc0hLixL7i+iqap0Q==/h9P"
+
+Optionnal:
+  version: The software and version used by the client.
+  realm: the realm were the key used for the signature is recognized.
+    SHOULD be equal to the realm given by the server. 
+
+Required:
+  nonce: As given by the server.
+  uri: The URI from Request-URI of the Request-Line; duplicated here
+     because proxies are allowed to change the Request-Line in transit.
+     It have to correspond excatly to the requested uri for the server
+     doing authentication.
+  signature: The OpenPGP ASCII-armored detached signature [], as it
+        appears between the "BEGIN PGP MESSAGE" and "END PGP MESSAGE"
+        delimiters, without the version indication. The signature is
+        included without any linebreaks.
+
+   The signature is computed across the request method, the requested
+   uri, and the nonce as follow:
+
+   signature=sig( "GET:/dir/index.html:1351929617" )
+
+
+As with Digest Authentication, server MAY return such Header in a
+succesfull (2XX) response:
+
+< Authentication-Info: nextnonce="47364c23432d2e131a5fb210812c"
+
+And the client SHOULD use it for next request, to maybe avoid
+a 401 response.
+
+
+====
+References
+
+   [1]   Callas, J., Donnerhacke, L., Finney, H. and R. Thayer, "OpenPGP
+         Message Format", RFC 2440, November 1998.
+
+   [2]   Galvin, J., Murphy, G., Crocker, S. and N. Freed, "Security
+         Multiparts for MIME: Multipart/Signed and Multipart/Encrypted",
+         RFC 1847, October 1995.
+
+   [3]   Freed, N. and N. Borenstein, "Multipurpose Internet Mail
+         Extensions (MIME) Part Two: Media Types", RFC 2046, November
+         1996.
+
+   [4]   Galvin, J., Murphy, G., Crocker, S. and N. Freed, "MIME Object
+         Security Services", RFC 1848, October 1995.
+
+   [5]   Atkins, D., Stallings, W. and P. Zimmermann, "PGP Message
+         Exchange Formats", RFC 1991, August 1996.
+
+   [6]   Elkins, M., "MIME Security with Pretty Good Privacy (PGP)", RFC
+         2015, October 1996.
+
+   [7]   Freed, N., "Gateways and MIME Security Multiparts", RFC 2480,
+         January 1999.
+
+
