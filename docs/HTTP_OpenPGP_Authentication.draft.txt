@@ -48,7 +48,7 @@ Request for Comments:                                      Open-UDC Team
 3.== HTTP (multi-)signed data ==
 
    HTTP (multi-)signed messages are denoted by the "multipart/msigned"
-   content type, with an optional "nsigs" parameter.
+   content type, with two optional "nsigs" and "realm" parameters.
    This content type is inspired by the "multipart/signed" defined in
    the [RFC3156] and dedicated for sending signed email.
 
@@ -81,7 +81,9 @@ Request for Comments:                                      Open-UDC Team
     - The "nsigs" parameter should not have a value of "0".
     Reading implementations may return an error in this case.
     - OpenPGP signatures SHOULD be ASCII armored.
-     
+
+    If present, the "realm" parameter MUST contain a string give
+    indication to found the public key used to sign.
 
     Example of an HTTP request with signed response:
 
