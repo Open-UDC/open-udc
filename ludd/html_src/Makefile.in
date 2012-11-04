@@ -33,6 +33,7 @@ LDFLAGS =	@LDFLAGS@
 LIBS =		@LIBS@
 NETLIBS =	@V_NETLIBS@
 INSTALL =	@INSTALL@
+SOFTWARE = 	@software@
 
 CLEANFILES =
 
@@ -48,7 +49,7 @@ install:	all
 	-mkdir -p $(HOMEDIR)/$(WEBDIR)/udid2
 	$(INSTALL) -m 444 udid2.html $(HOMEDIR)/$(WEBDIR)/udid2/index.html
 	$(INSTALL) -m 444 robots.txt $(HOMEDIR)/$(WEBDIR)
-	$(INSTALL) -m 444 favicon.ico $(HOMEDIR)/$(WEBDIR)
+	$(INSTALL) -m 444 $(SOFTWARE).ico $(HOMEDIR)/$(WEBDIR)/favicon.ico
 
 uninstall:
 	rm -rf $(HOMEDIR)/$(WEBDIR)/udid2

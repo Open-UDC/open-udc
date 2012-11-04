@@ -55,6 +55,7 @@ hqx	application/mac-binhex40
 htm	text/html; charset=%s
 html	text/html; charset=%s
 ice	x-conference/x-cooltalk
+ico	image/x-icon
 ief	image/ief
 iges	model/iges
 igs	model/iges
