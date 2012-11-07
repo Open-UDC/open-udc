@@ -16,13 +16,8 @@ Request for Comments:                                      Open-UDC Team
 
  1. Introduction ....................................................
  2. Conventions Used in This Document ...............................
- 3. Validation Nodes act as HTTP Servers ..........................
- 4. Tree Structure of Validation Nodes ............................
- 5. Data expected in the tree structure .............................
-    5.1 Formats used for creation sheets
-    5.2 Formats used for transactions
-    5.3 Formats used for authentication
-    5.4 Formats encapsulation.
+ 3. Data authentication through "Content-Type: multipart/msigned" ...
+ 4. Request Authentication through "Authorization: OpenPGP" .........
 
 1.== Introduction ==
 
@@ -138,8 +133,12 @@ Request for Comments:                                      Open-UDC Team
    The "&"s in the previous example indicate the portion of the data
    over which the signature was calculated.
 
-3.== OpenPGP acces Authorization  ==
+4.== OpenPGP acces Authorization  ==
 
+
+This method is inspired from what already exist for Digest or basic
+Authentication. The server MAY have something like .htacces file to
+list the fingerprint of Authorized keys.
 
 Example :
 
