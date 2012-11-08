@@ -3496,6 +3496,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 		}
 
+#ifdef FORBID_HIDDEN_RESSOURCE
 	/* Is it hidden ?  ( basename or a parent dir beginning with a '.' ) */
 	/* Note: we have stat expnfilename wich is, if request was on a symlink, the symlink destination */
 	cp=hc->expnfilename;
@@ -3508,6 +3509,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			return -1;
 		}
 	} while ( (cp=strchr(cp, '/')) && cp++ );
+#endif
 
 	/* Is it a directory? */
 	if ( S_ISDIR(hc->sb.st_mode) )
@@ -3640,7 +3642,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 
 	/* Check if the filename is the AUTH_FILE itself - that's verboten. */
-	/* NOTE: such checking is a bit useless since we forbid acces to hidden files (those with a path element begining with '.').*/
+	/* NOTE: such checking is a bit useless if we forbid acces to hidden files (those with a path element begining with '.').*/
 	if ( expnlen == sizeof(AUTH_FILE) - 1 )
 		{
 		if ( strcmp( hc->expnfilename, AUTH_FILE ) == 0 )

@@ -142,6 +142,7 @@
  * those added through pks/add.
  */
 #ifdef OPENUDC
+#define FORBID_HIDDEN_RESSOURCE
 #define CHECK_UDID2
 #endif
 
@@ -191,6 +192,11 @@
  * because there are things (like cgi programs) to install in it.
  */
 #define WEB_DIR "pub"
+
+/* CONFIGURE: Forbid acces to hidden ressource
+ * (those with an element of its path begining with a ".")
+ */
+//#define FORBID_HIDDEN_RESSOURCE
 
 /* CONFIGURE: required (at least) version of gpgme
  */
