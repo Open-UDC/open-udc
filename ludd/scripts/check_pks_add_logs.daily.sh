@@ -9,7 +9,7 @@ MYHOST="$(hostname):11371"
 #KEYSERVER="hkp://pool.sks-keyservers.net"
 
 yesterday=$(($(date +"%s")-86400))
-yesterday=$(LC_ALL=C date -d@$yesterday +"%b %d")
+yesterday=$(LC_ALL=C date -d@$yesterday +"%b %_d")
 
 nba=$(grep -h "^${yesterday}.*pks/add:accept:" "$LOGFILE.1" "$LOGFILE" | wc -l)
 
