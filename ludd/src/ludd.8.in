@@ -18,6 +18,8 @@ thttpgpd is a tiny/turbo/throttling HTTP server with OpenPGP features.
 .IR user ]
 .RB [ -c
 .IR cgipat ]
+.RB [ -s
+.IR sigpat ]
 .RB [ -t
 .IR throttles ]
 .RB [ -H
@@ -88,6 +90,14 @@ or "/cgi-bin/*".
 See below for details.
 The config-file option name for this flag is "cgipat",
 and the config.h option is CGI_PATTERN.
+.TP
+.B -s
+Specifies a wildcard exclusion pattern for requests which should not implie
+signed response (even if asked through an "Accept: multipart/msigned" in
+the header of client's request).
+See below for details.
+The config-file option name for this flag is "sigpat",
+and the config.h option is SIG_PATTERN.
 .TP
 .B -t
 Specifies a file of throttle settings.
@@ -216,13 +226,38 @@ directories too.
 If no CGI pattern is specified, neither here nor at compile time,
 then CGI programs cannot be run at all.
 If you want to disable CGI as a security measure, that's how you do it, just
-comment out the patterns in the config file and don't run with the -c flag.
+comment out the patterns in the config.h and recompile (-c flag or "cgipat=..."
+ will be ignored).
 .PP
-Note: the current working directory when a CGI program gets run is
+.IR Note:
+the current working directory when a CGI program gets run is
 the directory that the CGI program lives in.
 This isn't in the CGI 1.1 spec, but it's what most other HTTP servers do.
 .PP
 Relevant config.h options: CGI_LIMIT, CGI_PATTERN, CGI_TIMELIMIT, CGI_NICE, CGI_PATH, CGI_LD_LIBRARY_PATH, CGIBINDIR.
+.SH "OpenPGP"
+.PP
+@software@ support signed response as defined in
+https://github.com/Open-UDC/open-udc/blob/master/docs/HTTP_OpenPGP_Authentication.draft.txt.
+.PP
+Signed response is asked by the client by specifying the "multipart/msigned"
+type in its "Accept:" request header.
+.PP
+Using the -s flag on the command line or "sigpat=..." in the configuration
+file, you may specifie ressources which should NOT answer to such request,
+which may save a lot of CPU if signature cache is not used (CGI), or
+disk space if you serve a bunch of little files.
+.PP
+It use the same, simple shell-style pattern, that cgipat (see above).
+Relevant config.h options are SIG_EXCLUDE_PATTERN and SIG_CACHEDIR.
+.PP
+If you want to disable completely signed response comment out the SIG_EXCLUDE_PATTERN in
+config.h and recompile, or specify "/**" with -s flag or "sigpat=...".
+.PP
+.IR Note:
+Unlike CGI checking which follow first symlink destination (see below),
+signature exclusion pattern is check on the asked filename in the URL, thus permit
+to restrict also signing done by embedded actions (like "pks/lookup").
 .SH "THROTTLING"
 .PP
 The throttle file lets you set maximum byte rates on URLs or URL groups.

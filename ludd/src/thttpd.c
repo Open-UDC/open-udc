@@ -99,6 +99,11 @@ static char * cgi_pattern = CGI_PATTERN;
 #else /* CGI_PATTERN */
 static char * cgi_pattern = (char*) 0;
 #endif /* CGI_PATTERN */
+#ifdef SIG_EXCLUDE_PATTERN
+static char * sig_pattern = SIG_EXCLUDE_PATTERN;
+#else /* SIG_EXCLUDE_PATTERN */
+static char * sig_pattern = (char*) 0;
+#endif /* SIG_EXCLUDE_PATTERN */
 static unsigned short port = DEFAULT_PORT;
 static char* logfile = (char*) 0;
 static char* throttlefile = (char*) 0;
@@ -644,7 +649,7 @@ main( int argc, char** argv )
 	hs = httpd_initialize(
 		hostname,
 		gotv4 ? &sa4 : (httpd_sockaddr*) 0, gotv6 ? &sa6 : (httpd_sockaddr*) 0,
-		port, cgi_pattern, cgi_limit, cwd, hsbfield, logfp);
+		port, cgi_pattern, sig_pattern, cgi_limit, cwd, hsbfield, logfp);
 	if ( hs == (httpd_server*) 0 )
 		DIE(1,"Could not perform httpd initialization (%m). Exiting");
 
@@ -992,11 +997,20 @@ parse_args( int argc, char** argv )
 			++argn;
 			user = argv[argn];
 			}
+#ifdef CGI_PATTERN
 		else if ( strcmp( argv[argn], "-c" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
 			cgi_pattern = argv[argn];
 			}
+#endif /* CGI_PATTERN */
+#ifdef SIG_EXCLUDE_PATTERN
+		else if ( strcmp( argv[argn], "-s" ) == 0 && argn + 1 < argc )
+			{
+			++argn;
+			sig_pattern = argv[argn];
+			}
+#endif /* SIG_EXCLUDE_PATTERN */
 		else if ( strcmp( argv[argn], "-t" ) == 0 && argn + 1 < argc )
 			{
 			++argn;
@@ -1047,23 +1061,28 @@ static void
 usage( void )
 	{
 	    (void) fprintf( stderr,
-			    "Usage: %s [options]\n" \
-			    "Options:\n" \
-			    "	-C FILE     config file to use (default: "DEFAULT_CFILE" in running directory)\n" \
-			    "	-p PORT     listenning port (default: %d)\n" \
-			    "	-H HOST     host or hostname to bind to (default: all available)\n" \
-			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/."SOFTWARE_NAME"/)\n" \
-			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n" \
-			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n" \
-			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n" \
-			    "	-t FILE     file of throttle settings (default: no throtlling)\n" \
-			    "	-l LOGFILE  file for logging (default: via syslog())\n" \
-			    "	-i PIDFILE  file to write the process-id to\n" \
-			    "	-nk         new (unknow) keys may be added in our keyring through \"pks/add\"\n" \
-			    "	-e PORT     external port (to be reach by peers, default: listenning port)\n" \
-			    "	-E HOST     external host name or IP adress (default: default hostname)\n" \
-			    "	-f FPR      fingerprint of the "SOFTWARE_NAME"'s OpenPGP key (no default, MANDATORY)\n" \
-			    "	-V          show version and exit\n" \
+			    "Usage: %s [options]\n"
+			    "Options:\n"
+			    "	-C FILE     config file to use (default: "DEFAULT_CFILE" in running directory)\n"
+			    "	-p PORT     listenning port (default: %d)\n"
+			    "	-H HOST     host or hostname to bind to (default: all available)\n"
+			    "	-d DIR      running directory (default: "DEFAULT_USER"'s home or $HOME/."SOFTWARE_NAME"/)\n"
+			    "	-u USER     user to switch to (when started as root, default: "DEFAULT_USER")\n"
+			    "	-r|-nor     enable/disable chroot (default: disable to make cgi works)\n"
+#ifdef CGI_PATTERN
+			    "	-c CGIPAT   pattern for CGI programs (default: "CGI_PATTERN")\n"
+#endif /* CGI_PATTERN */
+#ifdef SIG_EXCLUDE_PATTERN
+			    "	-s SIG!PAT  pattern disabling signed responses (default: "SIG_EXCLUDE_PATTERN")\n"
+#endif /* SIG_EXCLUDE_PATTERN */
+			    "	-t FILE     file of throttle settings (default: no throtlling)\n"
+			    "	-l LOGFILE  file for logging (default: via syslog())\n"
+			    "	-i PIDFILE  file to write the process-id to\n"
+			    "	-nk         new (unknow) keys may be added in our keyring through \"pks/add\"\n"
+			    "	-e PORT     external port (to be reach by peers, default: listenning port)\n"
+			    "	-E HOST     external host name or IP adress (default: default hostname)\n"
+			    "	-f FPR      fingerprint of the "SOFTWARE_NAME"'s OpenPGP key (no default, MANDATORY)\n"
+			    "	-V          show version and exit\n"
 			    "	-D          stay in foreground\n"
 			    , argv0, DEFAULT_PORT );
 	    exit( 1 );
@@ -1152,11 +1171,13 @@ static int read_config( char* filename )
 				value_required( name, value );
 				user = e_strdup( value );
 				}
+#ifdef CGI_PATTERN
 			else if ( strcasecmp( name, "cgipat" ) == 0 )
 				{
 				value_required( name, value );
 				cgi_pattern = e_strdup( value );
 				}
+#endif /* CGI_PATTERN */
 			else if ( strcasecmp( name, "cgilimit" ) == 0 )
 				{
 				value_required( name, value );
@@ -1194,6 +1215,13 @@ static int read_config( char* filename )
 				value_required( name, value );
 				myself.eport = (unsigned short) atoi( value );
 			}
+#ifdef SIG_EXCLUDE_PATTERN
+			else if ( strcasecmp( name, "sigpat" ) == 0 )
+				{
+				value_required( name, value );
+				sig_pattern = e_strdup( value );
+				}
+#endif /* SIG_EXCLUDE_PATTERN */
 			else
 				{
 				(void) fprintf(

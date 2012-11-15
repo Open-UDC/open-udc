@@ -175,6 +175,8 @@ free_httpd_server( httpd_server* hs )
 		free( (void*) hs->cwd );
 	if ( hs->cgi_pattern != (char*) 0 )
 		free( (void*) hs->cgi_pattern );
+	if ( hs->sig_pattern != (char*) 0 )
+		free( (void*) hs->sig_pattern );
 	free( (void*) hs );
 	}
 
@@ -182,8 +184,8 @@ free_httpd_server( httpd_server* hs )
 httpd_server*
 httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
-	unsigned short port, char* cgi_pattern, int cgi_limit,
-	char* cwd, int bfield, FILE* logfp )
+	unsigned short port, char* cgi_pattern, char* sig_pattern,
+	int cgi_limit, char* cwd, int bfield, FILE* logfp )
 	{
 	httpd_server* hs;
 	static char ghnbuf[256];
@@ -230,6 +232,23 @@ httpd_initialize(
 			}
 		/* Nuke any leading slashes in the cgi pattern. */
 		while ( ( cp = strstr( hs->cgi_pattern, "|/" ) ) != (char*) 0 )
+			(void) strcpy( cp + 1, cp + 2 );
+		}
+	if ( sig_pattern == (char*) 0 )
+		hs->sig_pattern = (char*) 0;
+	else
+		{
+		/* Nuke any leading slashes. */
+		if ( sig_pattern[0] == '/' )
+			++sig_pattern;
+		hs->sig_pattern = strdup( sig_pattern );
+		if ( hs->sig_pattern == (char*) 0 )
+			{
+			syslog( LOG_CRIT, "out of memory copying sig_pattern" );
+			return (httpd_server*) 0;
+			}
+		/* Nuke any leading slashes in the sig pattern. */
+		while ( ( cp = strstr( hs->sig_pattern, "|/" ) ) != (char*) 0 )
 			(void) strcpy( cp + 1, cp + 2 );
 		}
 	hs->cgi_limit = cgi_limit;
@@ -1899,11 +1918,13 @@ httpd_parse_request( httpd_conn* hc )
 		}
 
 	/* Detach sign asked, response inspired from rfc3156 (which is for emails) */
+	if ( hc->hs->sig_pattern != (char*) 0
 #ifdef HAVE_STRCASESTR
-	if ( strcasestr(hc->accept,"multipart/msigned"))
+		&& strcasestr(hc->accept,"multipart/msigned")
 #else
-	if ( strstr(hc->accept,"multipart/msigned")) /* won't work if client use funny upper cases :'-( :-p */
+		&& strstr(hc->accept,"multipart/msigned") /* won't work if client use funny upper cases :'-( :-p */
 #endif
+		&& !match( hc->hs->sig_pattern, hc->origfilename ) )
 			hc->bfield |= HC_DETACH_SIGN;
 
 	/* Ok, the request has been parsed.  Now we resolve stuff that
@@ -2693,6 +2714,7 @@ make_envp( httpd_conn* hc )
 	if ( getenv( "TZ" ) != (char*) 0 )
 		envp[envn++] = build_env( "TZ=%s", getenv( "TZ" ) );
 	envp[envn++] = build_env( "CGI_PATTERN=%s", hc->hs->cgi_pattern );
+	envp[envn++] = build_env( "SIG_EXCLUDE_PATTERN=%s", hc->hs->sig_pattern );
 
 	envp[envn] = (char*) 0;
 	return envp;
@@ -2898,7 +2920,7 @@ static const char * chdir_path(const char * path) {
 void httpd_parse_resp(interpose_args_t * args) {
 	const httpd_conn * hc=args->hc;
 	int cgi=args->option;
-#define SIG_CACHE_DIR "../sigcache"
+#define SIG_CACHE_DIR "../"SIG_CACHEDIR
 #define HTTP_MAX_CONTENTHEADERS 9
 #define HTTP_MAX_HEADERS 40
 
@@ -3044,6 +3066,7 @@ void httpd_parse_resp(interpose_args_t * args) {
 			snprintf(o_headers[0],100, "HTTP/1.0 %d %s\015\012", status, title );
 		}
 	} else {
+#ifdef SIG_CACHEDIR
 		if ( stat(SIG_CACHE_DIR,&sts) < 0 || !S_ISDIR(sts.st_mode) ) {
 			syslog( LOG_ERR,"invalid cache dir %s - %m",SIG_CACHE_DIR);
 		} else if ( snprintf(fcache,MAXPATHLEN,"%s/%s",SIG_CACHE_DIR,hc->expnfilename) >= MAXPATHLEN ) {
@@ -3060,6 +3083,9 @@ void httpd_parse_resp(interpose_args_t * args) {
 					use_cache=1; /* just use it */
 			}
 		}
+#else /* SIG_CACHEDIR */
+		use_cache=0;
+#endif /* SIG_CACHEDIR */
 	}
 
 	if (do_sign && status>=200 && status<300) {

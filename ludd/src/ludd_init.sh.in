@@ -236,9 +236,13 @@ port=$myport
 # It also change the homedir to this user's \$HOME if "dir" is not specified.
 #user=$LUDDUSER
 
+# Specifies a wildcard exclusion pattern for ressources which should NOT be signed.
+# See $SOFTWARE(8) for details.
+#sigpat="/cgi-bin/*"
+
 # Specifies a wildcard pattern for CGI programs, for instance "**.cgi" or
 # "/cgi-bin/*". See $SOFTWARE(8) for details.
-#cgipat=""
+#cgipat="/cgi-bin/*"
 
 # Specifies the maximum number of simultaneous requests which need to call fork().
 # Suchs requests are: the CGI programs and the embedded actions (pks/add, pks/lookup ...).

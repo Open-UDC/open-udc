@@ -60,7 +60,7 @@
 ** If no CGI pattern is specified, neither here nor on the command line,
 ** then CGI programs cannot be run at all.  If you want to disable CGI
 ** as a security measure that's how you do it, just don't define any
-** pattern here and don't run with the -c flag.
+** pattern here and -c flag or "cgipat=..." will be ignored.
 */
 #ifdef notdef
 /* Some sample patterns.  Allow programs only in one central directory: */
@@ -74,7 +74,47 @@
 #define CGI_PATTERN "/*/cgi-bin/*"
 #endif
 
-#define CGI_PATTERN "/cgi-bin/*"
+#define CGI_PATTERN "/cgi-bin/*.cgi"
+
+/* CONFIGURE: Requested file or CGI must NOT match this pattern to get signed.
+** It's a simple shell-style wildcard pattern, with * meaning any string
+** not containing a slash, ** meaning any string at all, and ? meaning any
+** single character; or multiple such patterns separated by |.  The
+** patterns get checked against the filename part of the incoming URL.
+**
+** Signed response is asked by the client by specifying the "multipart/msigned"
+** type in its "Accept:" request header.
+** Here you may restrict the range of ressources which should answer to such
+** request, which may save a lot of CPU if not caching the signature, or disk
+** space if your server serve a bunch of little files.
+**
+** You can also specify this exclusion pattern on the command line, with the
+** -s flag. Such a pattern overrides this compiled-in default.
+**
+** If no exclusion SIG pattern is specified, neither here nor on the command line,
+** then nothing may be signed by the server (no "Content-Type: multpart/msigned"
+** may be responded). If you want to disable signed responses, just don't define
+** any pattern here (and "sigpat=..." or -s flag won't be read),
+** or use the pattern "**".
+**
+** Note: Unlike CGI checking which follow first symlink destination,
+** SIG checking is done with the asked filename in the URL, thus permit to
+** restrict also signing done by embedded actions (like "pks/lookup").
+*/
+#define SIG_EXCLUDE_PATTERN "none"
+
+/* CONFIGURE: sigcache directory (inside the running one which should be chrooted)	
+ * which contain all the cached signatures. If a "multipart/msigned" is asked
+ * through the "Accept:" request header, and requested ressource match SIG_PATTERN ;
+ * then it check if the expanded file is older than the cached signature.
+ *
+ * If the cached signature does not exist or is older than the file, then the
+ * server will generate it into this dir (writing in must be enabled), else it
+ * will use the cached signature to sign the requested file.
+ *
+ * You may undefine this to disable signatures caching, but that's not recommanded !
+ */
+#define SIG_CACHEDIR "sigcache"
 
 /* CONFIGURE: How many seconds to allow CGI programs to run before killing
 ** them.  This is in case someone writes a CGI program that goes into an

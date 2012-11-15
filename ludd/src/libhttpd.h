@@ -73,6 +73,7 @@ typedef struct {
 	char* server_hostname;
 	unsigned short port;
 	char* cgi_pattern;
+	char* sig_pattern;
 	int cgi_limit, cgi_count;
 	char* cwd;
 	int listen4_fd, listen6_fd;
@@ -184,8 +185,8 @@ extern int strdecode( char* to, char* from );
 */
 extern httpd_server* httpd_initialize(
 	char* hostname, httpd_sockaddr* sa4P, httpd_sockaddr* sa6P,
-	unsigned short port, char* cgi_pattern, int cgi_limit,
-	char* cwd, int bfield, FILE* logfp);
+	unsigned short port, char* cgi_pattern, char* sig_pattern,
+	int cgi_limit, char* cwd, int bfield, FILE* logfp);
 
 /* Change the log file. */
 extern void httpd_set_logfp( httpd_server* hs, FILE* logfp );
