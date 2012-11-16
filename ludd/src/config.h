@@ -43,6 +43,10 @@
 
 /* CONFIGURE: OpenUDC support ( http://openudc.org ) */
 //#define OPENUDC
+#ifdef OPENUDC
+#define FORBID_HIDDEN_RESSOURCE
+#define CHECK_UDID2
+#endif
 
 /* CONFIGURE: CGI programs must match this pattern to get executed.  It's
 ** a simple shell-style wildcard pattern, with * meaning any string not
@@ -181,10 +185,7 @@
  * Note: If -nk is passed (which means PKS_ADD_MERGE_ONLY unset) it will also checks
  * those added through pks/add.
  */
-#ifdef OPENUDC
-#define FORBID_HIDDEN_RESSOURCE
-#define CHECK_UDID2
-#endif
+//#define CHECK_UDID2
 
 /* CONFIGURE: It implies to log keys sended to pks/add (still via syslog).
  */

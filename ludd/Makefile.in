@@ -78,6 +78,7 @@ subdirs:
 
 
 install:	installsubdirs
+	[ "$(SOFTWARE)" == ludd ] && install -m 444 uni_init.sh "$(HOMEDIR)/openudc_init.sh" || true
 	useradd -r -c "system user for $(SOFTWARE)" -d "$(HOMEDIR)" -s /sbin/nologin $(LUDDUSER) || true
 	chown -R $(LUDDUSER) "$(HOMEDIR)"
 
