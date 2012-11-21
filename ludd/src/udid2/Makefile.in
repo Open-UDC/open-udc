@@ -47,7 +47,7 @@ all:
 
 install:	all
 	-mkdir -p $(HOMEDIR)/$(WEBDIR)/udid2
-	$(INSTALL) -m 444 udid2.html $(HOMEDIR)/$(WEBDIR)/udid2/index.html
+	$(INSTALL) -b -m 444 udid2.html $(HOMEDIR)/$(WEBDIR)/udid2/index.html
 	$(INSTALL) -m 444 geolist_*.txt.asc $(HOMEDIR)/$(WEBDIR)/udid2
 
 uninstall:

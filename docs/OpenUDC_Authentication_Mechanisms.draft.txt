@@ -289,9 +289,10 @@ Request for Comments:                                      Open-UDC Team
 
 4.4= Explicit living trust level =
 
-    Also OpenUDC define four notations to be recognized inside a
+    Also OpenUDC define five notations to be recognized inside a
     certificate signature:
         _alive@-=YYYY-mm-dd
+        _OBJECT_vouch@-=YYYY-mm-dd
         _dead@-=YYYY-mm-dd
         _birth@-=YYYY-mm-dd
         _death@-=YYYY-mm-dd
@@ -305,12 +306,21 @@ Request for Comments:                                      Open-UDC Team
     indicate when the signatorie have checked the identity and the life
     of the certificate's owner.
 
-    Note: The "_birth@..." and "_death@..." notations are reserved for
+    The "_OBJECT_vouch@..." notations imply the "_alive@..." notation:
+    It means that the person designated by the signed udid2 is alive
+    AND that signator vouch for him in the OBJECT context.
+    "OBJECT" SHOULD so be rennamed to a particular currency, or any
+    other specific context which may need vouching.
+
+    The "_birth@..." and "_death@..." notations are reserved for
     witnesses to such events.
 
     OpenUDC defines as "explicit living trust level" those relying on
-    this 4 notations. If the "alive" status is not updated regularly,
-    individual may supposed to be dead.
+    this 5 notations.
+
+    If the "alive" status is not updated regularly, individual may
+    supposed to be dead.
+
     
 4.5= Proof of life =
 
