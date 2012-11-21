@@ -1,4 +1,4 @@
-# Makefile for pks (scripts to run hkp server)
+# Makefile for udid2 (ressource to generate valid udid2)
 #
 # Copyright © 1995 by Jef Poskanzer <jef@mail.acme.com>.
 # All rights reserved.

@@ -52,8 +52,6 @@ GENHDR =	mime_encodings.h mime_types.h
 
 CLEANFILES =	$(ALL) $(OBJ) $(GENSRC) $(GENHDR)
 
-# Old thttpd's cgi are no more compiled or installed.
-#SUBDIRS =	cgi-src pks @extrasubdirs@
 SUBDIRS =	pks @extrasubdirs@
 
 all:		this subdirs
