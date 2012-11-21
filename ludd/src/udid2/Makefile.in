@@ -1,4 +1,4 @@
-# Makefile for cgi-src
+# Makefile for pks (scripts to run hkp server)
 #
 # Copyright © 1995 by Jef Poskanzer <jef@mail.acme.com>.
 # All rights reserved.
@@ -24,9 +24,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-# CONFIGURE: Directory for CGI executables.
-CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/cgi-bin
-
 CC =		@CC@
 CCOPT =		@V_CCOPT@
 DEFS =		@DEFS@
@@ -36,8 +33,9 @@ LDFLAGS =	@LDFLAGS@
 LIBS =		@LIBS@
 NETLIBS =	@V_NETLIBS@
 INSTALL =	@INSTALL@
+SOFTWARE = 	@software@
 
-CLEANFILES =	*.o redirect ssi phf
+CLEANFILES =
 
 @SET_MAKE@
 
@@ -45,47 +43,19 @@ CLEANFILES =	*.o redirect ssi phf
 	@rm -f $@
 	$(CC) $(CFLAGS) -c $*.c
 
-all:		redirect ssi phf
+all:
 
-redirect:	redirect.o
-	$(CC) $(LDFLAGS) redirect.o $(LIBS) -o redirect
-
-ssi:		ssi.o ../match.o
-	$(CC) $(LDFLAGS) ssi.o ../match.o $(LIBS) -o ssi
-
-ssi.o:		../match.h
-
-phf:		phf.o
-	$(CC) $(LDFLAGS) phf.o $(LIBS) -o phf
-
-strerror.o:
-	@rm -f strerror.o
-	@ln -s ../strerror.o
-	cd .. ; $(MAKE) $(MFLAGS) strerror.o
-
-installthis:	all
-	-mkdir -p $(CGIBINDIR)
-	rm -f $(CGIBINDIR)/redirect
-	cp redirect $(CGIBINDIR)/redirect
-	rm -f $(MANDIR)/man8/redirect.8
-	cp redirect.8 $(MANDIR)/man8/redirect.8
-	rm -f $(CGIBINDIR)/ssi
-	cp ssi $(CGIBINDIR)/ssi
-	rm -f $(MANDIR)/man8/ssi.8
-	cp ssi.8 $(MANDIR)/man8/ssi.8
-	rm -f $(CGIBINDIR)/phf
-	cp phf $(CGIBINDIR)/phf
-	$(INSTALL) -m 555 printenv.sh $(CGIBINDIR)
-
-install: installthis
+install:	all
+	-mkdir -p $(HOMEDIR)/$(WEBDIR)/udid2
+	$(INSTALL) -m 444 udid2.html $(HOMEDIR)/$(WEBDIR)/udid2/index.html
+	$(INSTALL) -m 444 geolist_*.txt.asc $(HOMEDIR)/$(WEBDIR)/udid2
 
 uninstall:
-	rm -rf $(CGIBINDIR)
-	rm -f $(MANDIR)/man8/redirect.8
-	rm -f $(MANDIR)/man8/ssi.8
+	rm -rf $(HOMEDIR)/$(WEBDIR)/udid2
 	
 clean:
-	rm -f $(CLEANFILES)
+#	rm -f $(CLEANFILES)
 
-distclean:
-	rm -f $(CLEANFILES) Makefile
+distclean: clean
+	rm -f Makefile
+

@@ -601,6 +601,7 @@ ac_includes_default="\
 
 ac_header_list=
 ac_subst_vars='LTLIBOBJS
+extrasubdirs
 V_NETLIBS
 V_STATICFLAG
 V_CCOPT
@@ -677,6 +678,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_largefile
+enable_jef_cgi
 enable_auth_basic
 enable_forbid_hidden
 enable_check_udid2
@@ -1307,14 +1309,17 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-largefile     omit support for large files
 
+  --enable-jef_cgi	Compile and install Jef Poskanzer cgi scripts
+  			(ssi, redirect, phf and printenv.sh in /cgi-bin/)
   --enable-auth_basic	Basic access authentication
-  			(an ".htpasswd" file per directory).
-  --enable-forbid_hidden	Forbid Acces to ressource with basename or
-	 		a parent dir beginning with a '.'.
+			(an ".htpasswd" file per directory).
+  --enable-forbid_hidden   Forbid Acces to ressource with basename
+	 		or a parent dir beginning with a '.'.
   --enable-check_udid2	Check if OpenPGP certificates contain a valid udid2.
+
   --enable-OpenUDC	Enable OpenUDC support. It also enable forbid_hidden and check_udid2,
 	 		set default port to 11371, and name the output software "ludd".
-			If disabled the output software will be name "thttpgpd".
+			If disabled the output software will be named "thttpgpd".
 
 Some influential environment variables:
   CC          C compiler command
@@ -4720,6 +4725,17 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
 
+extrasubdirs=""
+output="Makefile src/Makefile src/ludd_init.sh src/pks/Makefile html_src/Makefile src/ludd.8 src/pks/index.html"
+
+# Check whether --enable-jef_cgi was given.
+if test "${enable_jef_cgi+set}" = set; then :
+  enableval=$enable_jef_cgi; 	extrasubdirs="${extrasubdirs} cgi-src"
+		output="${output} src/cgi-src/Makefile"
+
+fi
+
+
 # Check whether --enable-auth_basic was given.
 if test "${enable_auth_basic+set}" = set; then :
   enableval=$enable_auth_basic;  cat >>confdefs.h <<_ACEOF
@@ -4738,15 +4754,24 @@ fi
 
 # Check whether --enable-check_udid2 was given.
 if test "${enable_check_udid2+set}" = set; then :
-  enableval=$enable_check_udid2;  $as_echo "#define CHECK_UDID2 1" >>confdefs.h
+  enableval=$enable_check_udid2; 	$as_echo "#define CHECK_UDID2 1" >>confdefs.h
+
+		checkudid2="yes"
 
 fi
 
 
 # Check whether --enable-OpenUDC was given.
 if test "${enable_OpenUDC+set}" = set; then :
-  enableval=$enable_OpenUDC; 	$as_echo "#define OPENUDC 1" >>confdefs.h
+  enableval=$enable_OpenUDC; 	$as_echo "#define FORBID_HIDDEN_RESSOURCE 1" >>confdefs.h
 
+		$as_echo "#define CHECK_UDID2 1" >>confdefs.h
+
+		checkudid2="yes"
+		$as_echo "#define OPENUDC 1" >>confdefs.h
+
+		extrasubdirs="${extrasubdirs} udc"
+		output="${output} src/udc/Makefile"
 		software="ludd"
 		user="_ludd"
 		port=11371
@@ -4758,6 +4783,11 @@ else
 
 fi
 
+
+if [ "$checkudid2" ] ; then
+	extrasubdirs="${extrasubdirs} udid2"
+	output="${output} src/udid2/Makefile"
+fi
 
 
 cat >>confdefs.h <<_ACEOF
@@ -4781,7 +4811,8 @@ version=`sed -n ' s,#define.*SOFTWARE_VERSION.*"\([^"]\+\)".*,\1,p ' src/version
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/ludd_init.sh src/cgi-src/Makefile src/pks/Makefile html_src/Makefile src/ludd.8 src/pks/index.html"
+
+ac_config_files="$ac_config_files ${output}"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5501,14 +5532,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "src/ludd_init.sh") CONFIG_FILES="$CONFIG_FILES src/ludd_init.sh" ;;
-    "src/cgi-src/Makefile") CONFIG_FILES="$CONFIG_FILES src/cgi-src/Makefile" ;;
-    "src/pks/Makefile") CONFIG_FILES="$CONFIG_FILES src/pks/Makefile" ;;
-    "html_src/Makefile") CONFIG_FILES="$CONFIG_FILES html_src/Makefile" ;;
-    "src/ludd.8") CONFIG_FILES="$CONFIG_FILES src/ludd.8" ;;
-    "src/pks/index.html") CONFIG_FILES="$CONFIG_FILES src/pks/index.html" ;;
+    "${output}") CONFIG_FILES="$CONFIG_FILES ${output}" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -5962,5 +5986,4 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: unrecognized options: $ac_unrecognized_opts" >&5
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
-
 

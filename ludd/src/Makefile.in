@@ -52,7 +52,9 @@ GENHDR =	mime_encodings.h mime_types.h
 
 CLEANFILES =	$(ALL) $(OBJ) $(GENSRC) $(GENHDR)
 
-SUBDIRS =	cgi-src pks
+# Old thttpd's cgi are no more compiled or installed.
+#SUBDIRS =	cgi-src pks @extrasubdirs@
+SUBDIRS =	pks @extrasubdirs@
 
 all:		this subdirs
 this:		$(ALL)
@@ -79,7 +81,7 @@ subdirs:
 	    cd $$i ; \
 	    $(MAKE) $(MFLAGS) \
 		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
-		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) \
 	) ; done
 
 
@@ -99,7 +101,7 @@ installsubdirs:
 	    cd $$i ; \
 	    $(MAKE) $(MFLAGS) \
 		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
-		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) \
 		install \
 	) ; done
 
@@ -117,7 +119,7 @@ uninstallsubdirs:
 	    cd $$i ; \
 	    $(MAKE) $(MFLAGS) \
 		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
-		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) \
 		uninstall \
 	) ; done
 

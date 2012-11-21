@@ -43,10 +43,16 @@
 
 /* CONFIGURE: OpenUDC support ( http://openudc.org ) */
 //#define OPENUDC
+
+/* such cflags SHOULD be set by the cmake/configure OpenUDC options, but if not let's define them here */
 #ifdef OPENUDC
+#ifndef FORBID_HIDDEN_RESSOURCE
 #define FORBID_HIDDEN_RESSOURCE
+#endif /* FORBID_HIDDEN_RESSOURCE */
+#ifndef CHECK_UDID2
 #define CHECK_UDID2
-#endif
+#endif /* CHECK_UDID2 */
+#endif /* OPENUDC */
 
 /* CONFIGURE: CGI programs must match this pattern to get executed.  It's
 ** a simple shell-style wildcard pattern, with * meaning any string not
@@ -78,7 +84,7 @@
 #define CGI_PATTERN "/*/cgi-bin/*"
 #endif
 
-#define CGI_PATTERN "/cgi-bin/*.cgi"
+#define CGI_PATTERN "/cgi-bin/*"
 
 /* CONFIGURE: Requested file or CGI must NOT match this pattern to get signed.
 ** It's a simple shell-style wildcard pattern, with * meaning any string

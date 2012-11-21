@@ -40,11 +40,9 @@ MANDIR = @datarootdir@/man
 SOFTWARE = @software@
 
 HOMEDIR = @localstatedir@/@software@
+
 # Pathname of directory available trough internet.
 WEBDIR = pub
-
-# CONFIGURE: Directory for CGI executables.
-CGIBINDIR =	$(HOMEDIR)/$(WEBDIR)/cgi-bin
 
 # default user to switch to, when running as root
 LUDDUSER =	@user@
@@ -73,13 +71,12 @@ subdirs:
 	    cd $$i ; \
 	    $(MAKE) $(MFLAGS) \
 		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
-		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) \
 	) ; done
 
 
 install:	installsubdirs
-	[ "$(SOFTWARE)" == ludd ] && install -m 444 uni_init.sh "$(HOMEDIR)/openudc_init.sh" || true
-	useradd -r -c "system user for $(SOFTWARE)" -d "$(HOMEDIR)" -s /sbin/nologin $(LUDDUSER) || true
+	-useradd -r -c "system user for $(SOFTWARE)" -d "$(HOMEDIR)" -s /sbin/nologin $(LUDDUSER)
 	chown -R $(LUDDUSER) "$(HOMEDIR)"
 
 installsubdirs:
@@ -87,12 +84,12 @@ installsubdirs:
 	    cd $$i ; \
 	    $(MAKE) $(MFLAGS) \
 		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
-		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) \
 		install \
 	) ; done
 
 uninstall:	uninstallsubdirs
-	userdel $(LUDDUSER)
+	-userdel $(LUDDUSER)
 	rm -rf "$(HOMEDIR)"
 
 uninstallsubdirs:
@@ -100,7 +97,7 @@ uninstallsubdirs:
 	    cd $$i ; \
 	    $(MAKE) $(MFLAGS) \
 		BINDIR=$(BINDIR) MANDIR=$(MANDIR) \
-		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) CGIBINDIR=$(CGIBINDIR) \
+		HOMEDIR=$(HOMEDIR) WEBDIR=$(WEBDIR) \
 		uninstall \
 	) ; done
 

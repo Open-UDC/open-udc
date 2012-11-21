@@ -110,7 +110,6 @@ for ((i=0;$#;)) ; do
 done
 
 mkdir -p  "$dir/gpgme" "$dir/sigcache"
-((OPENUDC)) && mkdir -p "$dir/pub/udc/creations" "$dir/pub/udc/databases" "$dir/pub/udc/peer" "$dir/pub/udc/transactions"
 if ((isroot)) ; then
 	chown -R "$LUDDUSER" "$dir/sigcache"
 	((OPENUDC)) && chown -R "$LUDDUSER" "$dir/pub/udc"
@@ -121,7 +120,7 @@ if [[ "$dir" != "$refdir" ]] ; then
 	cp -avf "$refdir/pub/pks" "$dir/pub"
 	if ((OPENUDC)) ; then 
 		cp -avf "$refdir/openudc_init.sh" "$dir"
-		#cp -avf "$refdir/pub/udc" "$dir/pub"
+		cp -avf "$refdir/pub/udc" "$dir/pub"
 	fi
 fi
 
@@ -161,6 +160,9 @@ echo "Your own (personnal) certificate ?"
 gpg --keyserver "$KEYSERVER" --search-keys "$myudid" 2> /dev/null
 gpg --export "($myudid" | gpg --import --homedir "$dir/gpgme" 2> /dev/null
 gpg --export-secret-keys "${mybotkeys[$bki]}" | gpg --import --homedir "$dir/gpgme" 2> /dev/null
+
+# Set and Export initial keys for OpenUDC
+((OPENUDC)) && [ -f "$dir/openudc_init.sh" ] && sh "$dir/openudc_init.sh" $LUDDUSER
 
 if ((isroot)) ; then
 	chown -R "$LUDDUSER" "$dir/gpgme"
@@ -275,8 +277,6 @@ NOTE: your bot's certificate have to be signed with your own OpenPGP certificate
          $ gpg --keyserver "hkp://$myhost:$myport" --send-keys "0x${mybotkeys[$bki]}"
 
 EOF
-
-((OPENUDC)) && [ -f "$dir/openudc_init.sh" ] && sh "$dir/openudc_init.sh" $LUDDUSER
 
 read -p "	Start $SOFTWARE now ? (y/n) " answer
 echo
