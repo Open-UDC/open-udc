@@ -3668,7 +3668,10 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 		return -1;
 
 	/* Check if the filename is the AUTH_FILE itself - that's verboten. */
-	/* NOTE: such checking is a bit useless if we forbid acces to hidden files (those with a path element begining with '.').*/
+	/* WARNING: If AUTH_FILE doesn't expand to something hidden (those with a path element begining with '.')
+	 *			and program is compiled with FORBID_HIDDEN_RESSOURCE cflag,
+	 *			then AUTH_FILE is readable !!! */
+#ifndef FORBID_HIDDEN_RESSOURCE
 	if ( expnlen == sizeof(AUTH_FILE) - 1 )
 		{
 		if ( strcmp( hc->expnfilename, AUTH_FILE ) == 0 )
@@ -3698,6 +3701,7 @@ httpd_start_request( httpd_conn* hc, struct timeval* nowP ) {
 			hc->encodedurl );
 		return -1;
 		}
+#endif /* FORBID_HIDDEN_RESSOURCE */
 #endif /* AUTH_FILE */
 
 	/* Is it world-executable and in the CGI area? */
