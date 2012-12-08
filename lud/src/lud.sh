@@ -77,8 +77,9 @@ while true ; do
 			eval keylist=("$keylist") # put the different keys/certs in a array.
 			lud_utils_chooseinlist "Which certificate you want to sign ?" 1 "${keylist[@]}"
 			itspub=$( echo "${keylist[$(($?-1))]}" | sed -n 's,^pub:\([^:]*\).*,\1,p' )
-			$lud_gpg --recv-keys "$itspub"
+			$lud_gpg --keyserver "${KeyServList[0]}" --recv-keys "$itspub"
 			$lud_gpg --sign-key "$itspub"
+			$lud_gpg --keyserver "${KeyServList[0]}" --send-keys "$itspub"
 		fi
 		# When did you see this individual last time ?
 		# Was she/he dead or alive ?
