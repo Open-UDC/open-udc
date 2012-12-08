@@ -92,7 +92,7 @@ installthis:
 
 install-man:
 	-mkdir -p $(DESTDIR)$(MANDIR)/man8
-	$(INSTALL) -m 444 -g man ludd.8 $(DESTDIR)$(MANDIR)/man8/@software@.8
+	$(INSTALL) -m 444 ludd.8 $(DESTDIR)$(MANDIR)/man8/@software@.8
 
 installsubdirs:
 	for i in $(SUBDIRS) ; do ( \
