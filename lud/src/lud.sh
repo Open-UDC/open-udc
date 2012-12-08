@@ -24,7 +24,7 @@ while true ; do
 					 "Register your udid2 for Universal Monetary Dividend" \
 					 "Change registered key for Universal Monetary Dividend" \
 					 "Generate/Check an udid2" \
-					 "Vouch (or no longer vouch) for someone else" \
+					 "Sign or Vouch someone else" \
 					 "Synchronyse Monetary creation" \
 					 "Check the local balance of your account(s)" \
 					 "Make and send a transaction file" \
@@ -42,12 +42,35 @@ while true ; do
 		read -t 5
 		;;
 	  3)
-		
 		. lud_generator.env
 		lud_generator_udid
 		read -t 5
 		;;
 	  4)
+		while true ; do
+			read -p " Do you know exactly its udid2 (y/n) ? " rep
+			case "$rep" in
+			[yYoO]*)
+				read -p "What is it ? (udid2;c;...) ? " itsudid
+				if grep "^udid2;c;[A-Z]\{1,20\};[A-Z-]\{1,20\};[0-9-]\{10\};[0-9.e+-]\{14\};[0-9]\+;\?$" <(echo $itsudid) > /dev/null ; then
+					itsudid=${itsudid%;} #remove last ';' if present.
+					break;
+				else
+					echo "Warning: this id ($myudid) is not a valid udid2" >&2
+				fi
+				;;
+			[nN]*)
+				. lud_generator.env
+				itsudid="$(lud_generator_udid | sed -n 1p )"
+				itsudid=${itsudid%;} #remove last ';' 
+				;;
+			*) echo "  please answer \"yes\" or \"no\"" >&2 ;;
+			esac
+		done
+
+
+
+
 		# What is its udid2 ?
 		# When did you see this individual last time ?
 		# Was she/he dead or alive ?
