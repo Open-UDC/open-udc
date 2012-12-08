@@ -73,7 +73,7 @@ while true ; do
 			echo "Error: \"$itsudid\" not found on the keyserver ${KeyServList[0]}"
 			continue
 		else
-			keylist=$( echo "$keylist" | awk ' { if (NR==1)  { print gensub("^pub:","\"pub:",1) } else  { print gensub("^pub:","\" \"pub:",1) } } END { print "\"" } ' )
+			keylist=$( echo "$keylist" | awk ' { if (NR==1)  { sub("^pub:","\"pub:") } else  { sub("^pub:","\" \"pub:") } ; print } END { print "\"" } ' )
 			eval keylist=("$keylist") # put the different keys/certs in a array.
 			lud_utils_chooseinlist "Which certificate you want to sign ?" 1 "${keylist[@]}"
 			itspub=$( echo "${keylist[$(($?-1))]}" | sed -n 's,^pub:\([^:]*\).*,\1,p' )
