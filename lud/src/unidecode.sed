@@ -3,11 +3,11 @@
 # Copyright © 2012 by Jean-Jacques Brucker <open-udc@googlegroups.com>
 #
 # Convert unicode (UTF-8) to it's closer US-ascii representation.
-# version 0.2
+# version 0.3
 # Feel free to add missing unicode characters.
 # (It miss for example special combinations for greek...)
 
-s/[áàâäãªαа]/a/g
+s/[áàâäãªαа@]/a/g
 s/[ÁÀÂÄÃΑА]/A/g
 s/[б]/b/g
 s/[Б]/B/g

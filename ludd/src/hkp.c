@@ -136,7 +136,6 @@ int hkp_add( httpd_conn* hc ) {
 			{
 			struct timespec tim={0, 300000000}; /* 300 ms */
 			nanosleep(&tim, NULL);
-			//sleep( 1 );
 			continue;
 			}
 		if ( r <= 0 ) {
