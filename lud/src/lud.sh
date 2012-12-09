@@ -78,7 +78,12 @@ while true ; do
 			lud_utils_chooseinlist "Which certificate you want to sign ?" 1 "${keylist[@]}"
 			itspub=$( echo "${keylist[$(($?-1))]}" | sed -n 's,^pub:\([^:]*\).*,\1,p' )
 			$lud_gpg --keyserver "${KeyServList[0]}" --recv-keys "$itspub"
-			$lud_gpg --sign-key "$itspub"
+			if [ "${mymainkeys[1]}" ] ; then
+				lud_utils_chooseinlist "Using which of your keys ?" 1 "${mymainkeys[@]}"
+				$lud_gpg --sign-key -u "${mymainkeys[$?]}"\! "$itspub" 
+			else
+				$lud_gpg --sign-key -u "${mymainkeys[0]}"\! "$itspub" 
+			fi
 			$lud_gpg --keyserver "${KeyServList[0]}" --send-keys "$itspub"
 		fi
 		# When did you see this individual last time ?
