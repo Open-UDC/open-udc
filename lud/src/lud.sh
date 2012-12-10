@@ -80,7 +80,7 @@ while true ; do
 			$lud_gpg --keyserver "${KeyServList[0]}" --recv-keys "$itspub"
 			if [ "${mymainkeys[1]}" ] ; then
 				lud_utils_chooseinlist "Using which of your keys ?" 1 "${mymainkeys[@]}"
-				$lud_gpg --sign-key -u "${mymainkeys[$?]}"\! "$itspub" 
+				$lud_gpg --sign-key -u "${mymainkeys[$(($?-1))]}"\! "$itspub" 
 			else
 				$lud_gpg --sign-key -u "${mymainkeys[0]}"\! "$itspub" 
 			fi
