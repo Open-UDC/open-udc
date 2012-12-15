@@ -1,16 +1,16 @@
-OpenUDC is an experimental implementation of an open monetary system.
-It permit :
- - To create a currency and control its monetary mass.
- - To exchange money in this currency between individuals.
- - To apply Universal monetary Dividend to the individuals that accept to use the currency.
-And all of that with best efforts on security and anonymity preservation.
 
-About Universal monetary Dividend, please read the Theory of Money Relativity from Stephane Laborde
-(in french: http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html) or at
-least other studies about Social Credit  (http://en.wikipedia.org/wiki/Social_Credit).
+*OpenUDC* is an open protocol for creating and exchanging currencies.
+It aims to be secure, reliable and to solve some debt, crisis or globalization issues.
+It notably permits to apply Universal monetary Dividend to the individuals that accept to use the currency.
+It is based upon the OpenPGP protocol [RFC4880] (http://tools.ietf.org/html/rfc4880).
 
+About Universal monetary Dividend, please read the
+[Theory of Money Relativity from Stephane Laborde] (http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html) (in french)
+or at least other studies about [Social Credit] (http://en.wikipedia.org/wiki/Social_Credit).
 
-Copyright (c) 2010 The open-udc.org team.
+-----
+
+Copyright (c) 2010-2012 The open-udc.org team.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -28,5 +28,4 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 The file 'geolist_ITA' is available under the Creative Commons
 Attribution 3.0 License.   It was generated from the IT.zip database
-from geonames.org, using the script published in
-<https://bitbucket.org/rev22/geolist-ita-openudc>.
+from geonames.org, using the script published [here] (https://bitbucket.org/rev22/geolist-ita-openudc).

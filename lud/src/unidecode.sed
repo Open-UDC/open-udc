@@ -7,7 +7,7 @@
 # Feel free to add missing unicode characters.
 # (It miss for example special combinations for greek...)
 
-s/[áàâäãªαа@]/a/g
+s/[áàâäãªαа]/a/g
 s/[ÁÀÂÄÃΑА]/A/g
 s/[б]/b/g
 s/[Б]/B/g

@@ -86,8 +86,8 @@ while true ; do
 			fi
 			$lud_gpg --keyserver "${KeyServList[0]}" --send-keys "$itspub"
 		fi
-		# When did you see this individual last time ?
-		# Was she/he dead or alive ?
+		# Have you been in contact with this individual recently (y/n) ? # when ?
+		# Is she/he passed away (deceased) [no] ?
 		# gpg --sign-key -N _dead@-=2011-10-24 -u mykey\! it's_udid2
 		read -t 3
 		;;
