@@ -1,5 +1,7 @@
 
-**OpenUDC** is an open protocol for creating and exchanging currencies.  
+**[OpenUDC] (http://openudc.org)** is an open protocol for creating
+and exchanging currencies.
+
 It aims to be secure, reliable and to solve some debt, crisis or
 globalization issues.  
 It notably permits to apply Universal monetary Dividend to the
@@ -12,7 +14,7 @@ or at least other studies about [Social Credit] (http://en.wikipedia.org/wiki/So
 
 -----
 
-Copyright (c) 2010-2012 The open-udc.org team.
+Copyright (c) 2010-2012 The openudc.org team.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
