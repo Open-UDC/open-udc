@@ -1,0 +1,3 @@
+[submodule "lud"]
+	path = lud
+	url = git@github.com:Open-UDC/lud.git
