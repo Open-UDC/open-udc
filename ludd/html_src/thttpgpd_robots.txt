@@ -1,5 +1,0 @@
-# This is a web server.
-
-User-agent: *
-Allow: /
-

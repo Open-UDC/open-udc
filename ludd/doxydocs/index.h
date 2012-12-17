@@ -1,2 +1,0 @@
-/** @mainpage Welcome to LUDD
- */
