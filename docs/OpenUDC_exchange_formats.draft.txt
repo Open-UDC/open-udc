@@ -121,7 +121,47 @@ http[s]://Node[:port]/...
 
 5.== Data expected in the tree structure ==
 
-5.1= Formats used for creation sheets =
+5.1= Propagation mechanism =
+
+  This section describe how POST data which have to be spread
+  immediately in the network are propagated to other nodes.
+
+  This concern especially "udc/create", "udc/validate" and
+  "udc/peer/register" url interfaces.
+
+  This mechanism required that each nodes know accurately the (same)
+  pool of other nodes.
+
+  The pool synchronization is also done when using "udc/peer/register"
+  url interface (so almost "recursively").
+
+  Each node MUST declare and use the same peer list. The list is
+  sorted by alphabetical order of the node's OpenPGP fingerprint.
+
+  (It may change in the futur by considering the node's network
+  topology to reduce the time of propagation - TODO. )
+
+  Propagation is done using specific parameters in the query string.
+
+  example:
+  POST "udc/create?pdeep=2&porigin=27DF2AB5CA52B6D7A5A61974009AE2968C8F5FDA
+  
+
+5.2= Formats used for creation sheets =
+
+  The "udc/create" url is used to POST the creation sheet with at
+  least the minimum number of required signatures. Signatures MUST by
+  done by differents voters in the previous creation sheet.
+
+  POST data MUST have the content-type multipart/msigned, as described
+  in [...].
+
+  After being validated by a node, the new creation sheet is propagated
+  through other nodes. This is done in 2 steps :
+	- The node signs also the creation sheet and add its signature to
+      the POST data.
+    - Then it propagate it using the mechanism described above. 
+ 
 5.3= Formats used for authentication =
 5.4= Formats encapsulation =
 
