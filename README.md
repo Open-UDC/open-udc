@@ -1,7 +1,7 @@
 What does OpenUDC mean ?
 ------------------------
 
-**[OpenUDC] (http://openudc.org)** stands for Open Universal Dividend Currency. In other words, it is an open protocol for creating
+**[OpenUDC] (http://openudc.org)** means Open Universal Dividend Currency. In other words, it is an open protocol for creating
 and exchanging currencies.
 
 It aims to be secure, reliable and to solve some debt, crisis or globalization issues.  
