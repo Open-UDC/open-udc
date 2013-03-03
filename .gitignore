@@ -1,0 +1,100 @@
+# https://help.github.com/articles/ignoring-files
+
+# https://github.com/github/gitignore/blob/master/C++.gitignore
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# https://github.com/github/gitignore/blob/master/C.gitignore
+
+# Object files
+*.o
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# https://raw.github.com/github/gitignore/master/Autotools.gitignore
+
+# http://www.gnu.org/software/automake
+
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+
+# https://github.com/github/gitignore/blob/master/CMake.gitignore
+
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# https://raw.github.com/github/gitignore/master/Python.gitignore
+
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
