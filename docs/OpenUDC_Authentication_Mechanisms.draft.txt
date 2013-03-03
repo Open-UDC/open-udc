@@ -374,6 +374,17 @@ Request for Comments:                                      Open-UDC Team
   Note: take care that private key(s) of bots are often not protected
   by a passphrase.
 
+5.1= Formats used for creation sheets =
+
+  There are 5 levels of users :
+   * 0 - UNKNOWN
+   * 1 - KNOWN or REJECTED
+   * 2 - ACCEPTED or ACTIVE (accepted in a previous creation sheet and not revoked or rejected since)
+   * 3 - ALLRIGHT or ALIVE (accepted in last creation sheet)
+   * 4 - VOTER or ADMIN (accepted in last creation sheet and which may vote for next one)
+
+_VERSION_FORMAT_
+
 6.== Pool Authentication ==
 
     As long as a single network will be enough to trade efficiently in
