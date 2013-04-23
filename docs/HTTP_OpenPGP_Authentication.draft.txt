@@ -30,6 +30,7 @@ Request for Comments:                                      Open-UDC Team
   HKP protocol (widely used but still specified by a draft).
 
   https://grepular.com/FireGPG_on_Firefox_5
+  http://webpg.org
 
   Example of some approach to avoid:
   http://www.w3.org/Conferences/WWW4/Papers2/245.html
