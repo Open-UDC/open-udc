@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="2.1 24Apr2013"
+Version="2.2 24Apr2013"
 
 HelpMsg="
  Usage: ${0##*/} logpath #channel [[#channel2] ...] server [port]
@@ -113,8 +113,8 @@ while true ; do
 			JOIN|PART)
 				SrcNick="${src%%\!*}"
 				logfile="$(date "+%Y/%m/%d").$FileExt"
-				#To remove f..k.ng \0x0d char ...
-				target=${target//$'\r'}
+				target=${target//$'\r'} # To remove f..k.ng \x0d char ...
+				target="#${target#*#}" # To remove also sometime f..k.ng mess before channel's name
 				tdir=${target,,}
 				mkdir -p "$Irclogdir/$tdir/${logfile%/*}"
 				echo "$I$(date "+%X%z"): $B$SrcNick$B_ $command $target $args$I_" >> "$Irclogdir/$tdir/$logfile"
