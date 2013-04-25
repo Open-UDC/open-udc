@@ -21,8 +21,8 @@ Request for Comments:                                      Open-UDC Team
  5. Data expected in the tree structure .............................
     5.1 Formats used for creation sheets
     5.2 Formats used for transactions
-    5.3 Formats used for authentication
-    5.4 Formats encapsulation.
+    5.3 Propagation mechanism
+    5.4 MIME types (a priori deprecated)
 
 1.== Introduction ==
 
@@ -121,33 +121,11 @@ http[s]://Node[:port]/...
 
 5.== Data expected in the tree structure ==
 
-5.1= Propagation mechanism =
+  OpenUDC application use the Content-Type "multipart/msigned",
+  specified in the "HTTP OpenPGP Authentication" draft, to exchange
+  signed data.
 
-  This section describe how POST data which have to be spread
-  immediately in the network are propagated to other nodes.
-
-  This concern especially "udc/create", "udc/validate" and
-  "udc/peer/register" url interfaces.
-
-  This mechanism required that each nodes know accurately the (same)
-  pool of other nodes.
-
-  The pool synchronization is also done when using "udc/peer/register"
-  url interface (so almost "recursively").
-
-  Each node MUST declare and use the same peer list. The list is
-  sorted by alphabetical order of the node's OpenPGP fingerprint.
-
-  (It may change in the futur by considering the node's network
-  topology to reduce the time of propagation - TODO. )
-
-  Propagation is done using specific parameters in the query string.
-
-  example:
-  POST "udc/create?pdeep=2&porigin=27DF2AB5CA52B6D7A5A61974009AE2968C8F5FDA
-  
-
-5.2= Formats used for creation sheets =
+5.1= Formats used for creation sheets =
 
   The "udc/create" url is used to POST the creation sheet with at
   least the minimum number of required signatures. Signatures MUST by
@@ -161,53 +139,6 @@ http[s]://Node[:port]/...
 	- The node signs also the creation sheet and add its signature to
       the POST data.
     - Then it propagate it using the mechanism described above. 
- 
-5.3= Formats used for authentication =
-5.4= Formats encapsulation =
-
-This document describe the MIME-types used in to described the
-  different datas which need are exchanged in OpenUDC implementations.
-cf: [RFC2046] : http://www.bortzmeyer.org/2046.html
-[RFC3156] : http://www.ietf.org/rfc/rfc3156.txt
-MIME types used by OpenUDC Nodes and Clients
-
-    text/udc-report
-
-contain status code of the transaction, and a status string.
-
-5.2= Formats used for transactions =
-
-    application/udc-t-cheque ("cheque")
-
-_VERSION_FORMAT_
-si _VERSION_FORMAT_ == "d=tt2"
-_CURRENCY_NAME_
-_FINGERPRINT_SOURCE_
-_FINGERPRINT_DESTINATION_
-_BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_+_EXCHANGE_COUNTER_ _FINGERPRINT_PREVIOUS_OWNER_ _BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_ _EXCHANGE_COUNTER_ 
-...
-Example:
-d=tt2
-test2
-20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD
-5FDA8373344F3868D24D8ED280B1DF4F7FE6695D
-4-3-1 1
-32-2-8 2 D8ED280B1DF4F7FE669520D11AC53DAE0E19DFE  4-1-2 3
-64-2-0 1
-
-    application/pgp-signature ("receipt of the cheque")
-
-contain detached signature (ASCII-armored or not) of the application/udc-t-cheque content by the receipt.
-
-    application/udc-t-validation
-
-contain detached signature (ASCII-armored or not), signed by a validation node of :
-
-    the application/udc-t-cheque content
-
-    and the status code of the transaction.
-
-    application/udc-c-env
 
 [VERSION_FORMAT]
 [CURCODE]
@@ -239,6 +170,77 @@ AB49FC7C3EC6D4A2259B0508FB29CDDA17A7E2AE:-:udid2;h;e29e9cd71ee03702c8a51b37380cc
 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D:-:udid2;c;BRUCKER;JEAN-JACQUES;1980-05-12;e+48.83+002.33;0:i:
 18F938BD3BBBF9190B77EABB57A135297E9DF1BF:-:udid2;c;LABORDE;STEPHANE;1969-04-26;e+44.84-000.58;0;::
 
+
+5.2= Formats used for transactions =
+
+    application/udc-t-cheque ("cheque")
+
+_VERSION_FORMAT_
+si _VERSION_FORMAT_ == "d=tt2"
+_CURRENCY_NAME_
+_FINGERPRINT_SOURCE_
+_FINGERPRINT_DESTINATION_
+_BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_+_EXCHANGE_COUNTER_ _FINGERPRINT_PREVIOUS_OWNER_ _BINARY_VALUE (POWER ?)_-_CREATION_SHEET_ID_-_JOB_ID_ _EXCHANGE_COUNTER_ 
+...
+Example:
+d=tt2
+test2
+20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD
+5FDA8373344F3868D24D8ED280B1DF4F7FE6695D
+4-3-1 1
+32-2-8 2 D8ED280B1DF4F7FE669520D11AC53DAE0E19DFE  4-1-2 3
+64-2-0 1
+
+5.3= Propagation mechanism =
+
+  This section describe how POST data which have to be spread
+  immediately in the network are propagated to other nodes.
+
+  This concern especially "udc/create", "udc/validate" and
+  "udc/peer/register" url interfaces.
+
+  This mechanism required that each nodes know accurately the (same)
+  pool of other nodes.
+
+  The pool synchronization is also done when using "udc/peer/register"
+  url interface (so almost "recursively").
+
+  Each node MUST declare and use the same peer list. The list is
+  sorted by alphabetical order of the node's OpenPGP fingerprint.
+
+  (It may change in the futur by considering the node's network
+  topology to reduce the time of propagation - TODO. )
+
+  Propagation is done using specific parameters in the query string.
+
+  example:
+  POST "udc/create?pdeep=2&porigin=27DF2AB5CA52B6D7A5A61974009AE2968C8F5FDA
+ 
+ 
+5.4= MIME types (a priori deprecated) =
+
+cf: [RFC2046] : http://www.bortzmeyer.org/2046.html
+[RFC3156] : http://www.ietf.org/rfc/rfc3156.txt
+MIME types used by OpenUDC Nodes and Clients
+
+    text/udc-report
+
+contain status code of the transaction, and a status string.
+
+    application/pgp-signature ("receipt of the cheque")
+
+contain detached signature (ASCII-armored or not) of the application/udc-t-cheque content by the receipt.
+
+    application/udc-t-validation
+
+contain detached signature (ASCII-armored or not), signed by a validation node of :
+
+    the application/udc-t-cheque content
+
+    and the status code of the transaction.
+
+    application/udc-c-env
+
     application/udc-c-ldiff
 
     application/pgp-signature ("vote of the creation sheet")
@@ -254,14 +256,4 @@ MIME types for other applications (like mail client) :
     application/udc-transaction
 
     application/udc-creation
-
-
-https://grepular.com/FireGPG_on_Firefox_5
-
-
-X.  HTTP (multi-)signed data
-
-  OpenUDC application use the Content-Type "multipart/msigned",
-  specified in the "HTTP OpenPGP Authentication" draft, to exchange
-  signed data.
 
