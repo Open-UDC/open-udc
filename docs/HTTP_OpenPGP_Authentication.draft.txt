@@ -139,7 +139,7 @@ Request for Comments:                                      Open-UDC Team
 
 This method is inspired from what already exist for Digest or basic
 Authentication. The server MAY have something like .htacces file to
-list the fingerprint of Authorized keys.
+list the fingerprints of authorized keys.
 
 Example :
 
@@ -162,7 +162,7 @@ Required:
 
 
 Note: a basic implementation is to use the number of second since epoch
-  as the nounce. Then the client MAY try first request with such
+  as a default nounce. Then the client MAY try first request with such
   nounce, if both server and client have a synchronized time (by using ntp
   for example), it make them avoid 401 responses.
 
@@ -191,9 +191,9 @@ Required:
         included without any linebreaks.
 
    The signature is computed across the request method, the requested
-   uri, and the nonce as follow:
+   Host (if present), the requested uri and the nonce as follow:
 
-   signature=sig( "GET:/dir/index.html:1351929617" )
+   signature=sig( "GETexample.org/dir/index.html1351929617" )
 
 
 As with Digest Authentication, server MAY return such Header in a
