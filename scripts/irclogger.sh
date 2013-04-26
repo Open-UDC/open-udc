@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Version="2.2 24Apr2013"
+Version="2.3 26Apr2013"
 
 HelpMsg="
  Usage: ${0##*/} logpath #channel [[#channel2] ...] server [port]
@@ -10,7 +10,9 @@ HelpMsg="
 	(Don't forget to escape or protect the sharp character '#')
 "
 
-IrcComment="logs: http://domesticserver.org/logs/irc/"
+IrcComment="I am a tiny bash irc logger, I may easily become a real bot. My DNA (source code): https://github.com/Open-udc/open-udc/blob/master/scripts/irclogger.sh ."
+
+export IFS="$IFS"$'\r' # add f..k.ng \x0d char to the list of field separators ...
 
 FileExt="txt"
 # Bold frontiers
@@ -76,14 +78,13 @@ while true ; do
 
 	while read -t 510 src command target args <&11 ; do
 		# Uncomment following to TRACE INPUT
-		#echo "$(date -R)<- $src $command $target $args"
+		#echo "$(date -R)<- $src $command $target $args" # >> "/tmp/irc_$IrcNick.trace"
 		case "$src" in
 			"PING") echo "PONG $command" >&10 ; continue ;;
 			"ERROR") break ;;
 		esac
 		src="${src:1}" # Remove 1st char ':' 
 		case "$command" in
-			#NOTICE) echo >&10 ;;
 			332) # Topic
 				args=($args)
 				chan="${args[0]}"
@@ -113,8 +114,7 @@ while true ; do
 			JOIN|PART)
 				SrcNick="${src%%\!*}"
 				logfile="$(date "+%Y/%m/%d").$FileExt"
-				target=${target//$'\r'} # To remove f..k.ng \x0d char ...
-				target="#${target#*#}" # To remove also sometime f..k.ng mess before channel's name
+				target="#${target#*#}" # To remove sometime f..k.ng mess before channel's name
 				tdir=${target,,}
 				mkdir -p "$Irclogdir/$tdir/${logfile%/*}"
 				echo "$I$(date "+%X%z"): $B$SrcNick$B_ $command $target $args$I_" >> "$Irclogdir/$tdir/$logfile"
@@ -128,7 +128,7 @@ while true ; do
 					echo "$I$(date "+%X%z"): $B$SrcNick$B_ is now know as $B$target$B_$I_" >> "$Irclogdir/$tdir/$logfile"
 				done
 				;;
-			PRIVMSG)
+			PRIVMSG|NOTICE)
 				SrcNick="${src%%\!*}"
 				if [[ "$target" == $IrcNick ]] ; then
 					((!(RANDOM%4))) && echo "$(fortune)" | while read line ; do echo "PRIVMSG $SrcNick :$line" ; done >&10
