@@ -28,13 +28,13 @@ Request for Comments:                                      Open-UDC Team
 
 1.== Introduction ==
 
-  The OpenUDC project aims to provide a open, democratic and secure
-  monetary system, compatible with universal dividend.
+  The OpenUDC project aims to provide an open, democratic and secure
+  monetary system, compatible with the Universal Dividend.
 
   This document describe the authentication mechanisms used in the
   OpenUDC implementations.
 
-  This authentication mechanisms use and are compliant with the OpenPGP
+  These authentication mechanisms use and are compliant with the OpenPGP
   standard [RFC4880].
 
 2.== Conventions Used in This Document ==
@@ -47,12 +47,13 @@ Request for Comments:                                      Open-UDC Team
 
 3.1= specific uid =
 
-  OpenUDC use widely OpenPGP standards for all authentications.
+  OpenUDC employs widely used OpenPGP standards for all authentications.
 
   An OpenUDC certificate is an OpenPGP certificate on which the comment
-  field of one of its uid begin with the special string know as "udid2".
+  field of one of its uids begins with the special string know as
+  "udid2".
 
-  As the OpenUDC characterization only use uid in an OpenPGP certifcate
+  As the OpenUDC characterization only uses uid in an OpenPGP certifcate
   it is more accurate to speak about OpenUDC uid (inside an OpenPGP
   certificate) instead of OpenUDC certificate.
 
@@ -79,38 +80,38 @@ Request for Comments:                                      Open-UDC Team
         Used for Pool Authentication.
 
   The charaters after the last recognized field in the string SHOULD be
-  ignored and MAY use other charset (UTF-8...). They MAY be use to add
-  informations in a non-universal language.
+  ignored and MAY use other charset (UTF-8...). They MAY be used to add
+  information in a non-universal language.
 
 3.2= Key Types =
 
-    We recommended to use a big main key of for the OpenPGP certificate,
-    and at least 2 subkeys in it :
-    - 1 for encryption.
-    - 1 for signing OpenUDC transactions and so to be use as nominative
+    We recommend to use one big main key of for the OpenPGP certificate,
+    and at least two subkeys in it :
+    - one for encryption.
+    - one for signing OpenUDC transactions and so to be use as nominative
       account.
 
-    As smallest keys implie smallest signatures, it is recommended to
+    As smallest keys imply smallest signatures, it is recommended to
     use ECC Keys to improve performance of OpenUDC networks.
 
 3.3= Exporting =
 
-    Certificates MUST be exported to some well-know sks key servers.
+    Certificates MUST be exported to some well-known sks key servers.
 
-    Sks servers MAY be enhanced to register only OpenUDC certificate,
-    and to unregister automatically OpenUDC certificate wich are not
+    Sks servers MAY be enhanced to register only OpenUDC certificates,
+    and to unregister automatically OpenUDC certificates which are not
     validated periodically by some other certificate.
 
 3.4= Expiration =
 
-    The main key of the OpenPGP certificate should expired in less than
+    The main key of the OpenPGP certificate should expire in less than
     11 years after its creation.
 
 4.== Human Authentication ==
 
-  Each human which want to use an OpenUDC currency and receive a
-  Universal Dividende (or an other basic income) MUST have a OpenPGP
-  certificate in accordance with the following specification.
+  Each human wanting to use an OpenUDC currency and to receive the
+  Universal Dividend (or another basic income) MUST have a OpenPGP
+  certificate in accordance with the following specifications.
 
 4.1.= OpenUDC Unique identification string =
 
@@ -134,11 +135,11 @@ Request for Comments:                                      Open-UDC Team
 
     2- The fornames of the individual, separated by a comma.
 
-    3- The date of birth, formated as number of seconds since
+    3- The date of birth, as the number of seconds since
        00:00:00 UTC on Thursday, 1 January 1970.
        For people born before this date, the string will indicate a
        negative number prefixed with a charater '-'.
-       If the hour of birth is unknow, it SHOULD be fixed at
+       If the hour of birth is unknown, it SHOULD be fixed at
        12:00:00 UTC.
 
     4- The location of birth, defined as terrestrial coordinates.
@@ -170,9 +171,9 @@ Request for Comments:                                      Open-UDC Team
     The hashed version is obtained by applying the SHA1 algorithm on
     the clear version.
 
-    Because now we can hash the udid, we have no more place for
-    fuzziness in it, and so the rules of the clear version are very
-    strict :
+    Since we can now hash the udid, there is no more place for
+    fuzziness in it, and so the rules of the clear version are
+    more stringent:
 
     The clear version "udid2;c;" MUST be followed by 5 fields:
 
@@ -199,7 +200,7 @@ Request for Comments:                                      Open-UDC Team
        form: "YYYY-mm-dd".
 
     4- The location of birth. As long as individuals are born on
-       earth, it should be prefixed by a 'e' (lower case) character.
+       Earth, it should be prefixed by a 'e' (lower case) character.
        Then following is defined as terrestrial coordinates.
 
        The first number MUST be the latitude and MUST be a 4 digits
@@ -216,53 +217,55 @@ Request for Comments:                                      Open-UDC Team
 
        For a given place of birth, only one coordinate is allowed.
        It should correspond to the coordinate of the office which
-       write the birth certificate. And so in general to the
-       coordinate that indicate almost all map tools (like
-       googlemap).
+       wrote the birth certificate. And so, in general, to the
+       coordinate that almost all map tools (like Google Maps)
+       indicate.
 
-    5- A number wich may increase in the case of more than one
-       children born with the same last name and first name at the
+    5- A number which may increase in the case of more than one
+       child born with the same last name and first name at the
        same place at the same date.
-       This number should so be equal to 0 for almost every one.
+       This number should therefore be equal to 0 for almost every
+       one.
 
     The hashed version "udid2;h;" MUST be followed by 2 fields:
 
     1- The SHA1 of the string composed by the fields "1;2;3;4"
        of the clear version (with the three ';' delimiters).
 
-    2- A number wich may increase in the case of more than one
-       children born with the same last name and first name at the
+    2- A number which may increase in the case of more than one
+       child born with the same last name and first name at the
        same place at the same date, or if SHA1 collision.
        (2^63 operations are needed to meet an SHA1 collision, and
        there is today less than 2^33 humans on earth...)
-       This number should so be equal to 0 for almost every one.
+       Therefore this number should be equal to 0 for almost every
+       one.
 
-  example: if a individual is registered as
+  Example: if a individual is registered as
          - first names: François-Xavier-Robert,Lucien
          - last name: DE CLÉREL-DE-TOCQUEVILLE
          - birth date: 14 July 1989
          - birthplace: Paris 15
 
-    its clear udid2 will be :
+   their clear udid2 will be :
 
    udid2;c;TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14;e+48.84+002.30;0;
 
-    and its hashed udid2 will be :
+    and their hashed udid2 will be :
 
    udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
 
    Note1: the SHA1 can be calculated with the sha1sum tool on almost
     all recent Unix systems.
 
-   Note2: to transpose some europeans characters to US-ASCII charset,
+   Note2: to transpose some European characters to US-ASCII charset,
      uni2ascii tool may help.
      (http://billposer.org/Software/uni2ascii.html)
 
 4.2= Proof of identity =
 
-    The identity is trusted by using the OpenPGP web of trust. It means
-    signing an OpenUDC uid is something to do seriously and imply to
-    check ID of the individuals to sign.
+    The identity is trusted by using the OpenPGP web of trust. This
+    means that signing an OpenUDC uid is something to consider
+    seriously and implies checkig the ID of the individuals to sign.
 
     If a cheat is discovered, eg.:
      - signing a person which doesn't exist.
@@ -284,8 +287,8 @@ Request for Comments:                                      Open-UDC Team
     OpenUDC defines as "implicit living trust level" those where the
     "age of signatures" parameter may do it collapse.
 
-    But that implies that people don't sign for dead one, wich is not
-    forbidden. So this living trust level is not (enough) reliable.
+    But that implies that people would not sign for dead one, which is
+    not impossible. So this living trust level is not (enough) reliable.
 
 4.4= Explicit living trust level =
 
@@ -297,13 +300,13 @@ Request for Comments:                                      Open-UDC Team
         _birth@-=YYYY-mm-dd
         _death@-=YYYY-mm-dd
     
-    Were the '-' character may be replaced by a string with any
+    Where the '-' character may be replaced by a string with any
     characters except the character '@' and the character '='. This
-    string may be use to indicate a place and so may contain, for
+    string may be used to indicate a place and so may contain, for
     example, a name or a coordinate.
 
-    And were "YYYY-mm-dd" is a date, as specified by the ISO-8601, which
-    indicate when the signatorie have checked the identity and the life
+    And where "YYYY-mm-dd" is a date, as specified by the ISO-8601, which
+    indicates when the signatorie have checked the identity and the life
     of the certificate's owner.
 
     The "_OBJECT_vouch@..." notations imply the "_alive@..." notation:
@@ -321,32 +324,31 @@ Request for Comments:                                      Open-UDC Team
     If the "alive" status is not updated regularly, individual may
     supposed to be dead.
 
-    
 4.5= Proof of life =
 
     The proof of life is related with the money creation and the
     explicit living trust level: if someone in the web of trust does not
-    create the share of new money which is reserved for him before a
+    create the share of new money which is reserved for them before a
     given date, or if its explicit living trust level become lower than
-    a minimal required. He will be presumed "dead" and will be remove
-    for the calculation of the next money set.
+    a minimal required. They will be presumed "dead" and will be excluded
+    form the calculation of the next money set.
 
     The share of money which "dead" people have not created however is
     counted in the monetary mass, and anyone who obtains the private key
     (eg: his heirs) may create that share, thereafter.
 
-    If a cheat is discovered, eg. if someone or something (a robot) use
+    If a cheat is discovered, eg. if someone or something (a robot) uses
     the private secret of somebody else or somebody dead (without being
-    noticed as such), then:
-    investigation ("Cui prodest scelus is fecit"), prosecution, etc ...
+    noticed as such), then investigation ("Cui prodest scelus is
+    fecit"), prosecution, etc., may follow.
 
 5.== Bot Authentication ==
 
   Only humans may be trusted and held responsible. But humans like to
-  build and use tool to improve their productivity and comfort.
+  build and use tools to improve their productivity and comfort.
 
   Today science, mechanics and computer progress make the tools more
-  complex and independants. Humans may programm such tools to take
+  complex and independent. Humans may programm such tools to take
   important decisions and make important actions.
 
   This news tools are named robots or simply bots.
@@ -354,7 +356,7 @@ Request for Comments:                                      Open-UDC Team
   In OpenUDC networks there are bots to validate transactions. But
   bots may be programmed to do nasty things, or to lie. 
 
-  To prevent that, each bot are authenticated as a human's minion:
+  To prevent that, each bot is authenticated as a human's minion:
 
   Each bots have their own OpenPGP certificate, and one of the uid
   comment field MUST begin with the special string "ubot1;" ,
@@ -365,10 +367,10 @@ Request for Comments:                                      Open-UDC Team
 
   ubot1;udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
 
-  And this OpenPGP uid MUST be signed by the human master to proove
-  she/he recognized this minion.
+  And this OpenPGP uid MUST be signed by the human master to prove
+  they recognized this minion.
 
-  The bot certificate SHOULD design a key of it human master as
+  The bot certificate SHOULD design a key of their human master as
   revocation key.
 
   Note: take care that private key(s) of bots are often not protected
