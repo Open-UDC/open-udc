@@ -80,7 +80,13 @@ Request for Comments:                                      Open-UDC Team
 http[s]://Node[:port]/...
 |-- pks/
 |   |-- add
-|   `-- lookup
+|   |-- lookup
+|   |-- keylist
+|   `-- .peer/
+|       |-- self
+|       |-- register
+|       |-- list
+|       `-- list.sig
 |-- udc/
 |   |-- create
 |   |-- lookup
@@ -154,7 +160,7 @@ http[s]://Node[:port]/...
 [FACTORS]
 [ Total NUMBERS of FPR by STATUS (since the first creation sheet)]
 [MINIMAL NUMBER OF ADMIN's SIGNATURES for next creation sheets]
-[list of new FINGERPRINTS or if There status  STATUS number]
+[list of new FINGERPRINTS or which status have change STATUS number]
 
 Example:
 42
