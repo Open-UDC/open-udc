@@ -1,5 +1,9 @@
+=======
+OpenUDC
+=======
+
 What does OpenUDC mean ?
-------------------------
+========================
 
 **[OpenUDC] (http://openudc.org)** means Open Universal Dividend Currency. In other words, it is an open protocol for creating
 and exchanging currencies.
@@ -11,8 +15,55 @@ It is based upon the OpenPGP protocol ([RFC4880] (http://tools.ietf.org/html/rfc
 About Universal monetary Dividend, please read the [Theory of Money Relativity from Stephane Laborde] (http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html) (in french)
 or at least other studies about [Social Credit] (http://en.wikipedia.org/wiki/Social_Credit).
 
+
+Quickstart
+==========
+
+Dependences on Debian :
+
+::
+
+    $ sudo apt-get install build-essential git gnupg2
+
+
+Get source code :
+
+::
+
+    $ git clone https://github.com/Open-UDC/open-udc.git
+    $ cd open-udc
+    $ git submodule init
+    $ git submodule update
+
+
+Install *lud* :
+
+::
+
+    $ cd lud
+    $ sudo make install
+
+
+Now ``/usr/local/bin/lud.sh`` is installed.
+
+::
+
+    $ /usr/local/bin/lud.sh
+    lud.sh:Warning: Using versions 2.x of GnuPG is recommanded (only "1.4.12" is installed here).
+    gpg: directory `/home/vagrant/.gnupg' created
+    gpg: new configuration file `/home/vagrant/.gnupg/gpg.conf' created
+    gpg: WARNING: options in `/home/vagrant/.gnupg/gpg.conf' are not yet active during this run
+    gpg: keyring `/home/vagrant/.gnupg/secring.gpg' created
+    gpg: keyring `/home/vagrant/.gnupg/pubring.gpg' created
+    gpg: /home/vagrant/.gnupg/trustdb.gpg: trustdb created
+
+    lud.sh:Warning: No private key found here.
+
+     Have you already an OpenPGP certificate to import on this machine (y/n) ?
+
 Licenses
---------
+========
+
 Copyright (c) 2010-2012 The openudc.org team.
 
 This program is free software; you can redistribute it and/or modify
