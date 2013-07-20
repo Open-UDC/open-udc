@@ -19,6 +19,15 @@ or at least other studies about [Social Credit] (http://en.wikipedia.org/wiki/So
 Quickstart
 ==========
 
+Dependences on Debian :
+
+::
+
+    $ sudo apt-get install build-essential git gnupg2
+
+
+Get source code :
+
 ::
 
     $ git clone https://github.com/Open-UDC/open-udc.git
@@ -33,6 +42,7 @@ Install *lud* :
 
     $ cd lud
     $ sudo make install
+
 
 Now ``/usr/local/bin/lud.sh`` is installed.
 
