@@ -1,6 +1,6 @@
 [submodule "lud"]
 	path = lud
-	url = git@github.com:Open-UDC/lud.git
+	url = git://github.com/Open-UDC/lud.git
 [submodule "ludd"]
 	path = ludd
-	url = git@github.com:Open-UDC/thttpgpd.git
+	url = git://github.com/Open-UDC/thttpgpd.git
