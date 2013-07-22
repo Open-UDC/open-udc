@@ -19,47 +19,31 @@ or at least other studies about [Social Credit] (http://en.wikipedia.org/wiki/So
 Quickstart
 ==========
 
-Dependences on Debian :
-
-::
-
-    $ sudo apt-get install build-essential git gnupg2
+The OpenUDC repository contain the documentation, a lot of obsolete files to be cleaned, and as git submodules:
+ * ludc, an OpenUDC client (previously known as lud).
+ * thttpgpd/ludd, an HTTP server with OpenPGP features, wich may also become an OpenUDC node (cf. configure options).
 
 
-Get source code :
-
+To get all this from our git repository:
 ::
 
     $ git clone https://github.com/Open-UDC/open-udc.git
     $ cd open-udc
-    $ git submodule init
-    $ git submodule update
+    $ git submodule update --init
 
 
-Install *lud* :
+Note: By default this won't take the last versions of the git submodules ludc/lud and thttpgpd/ludd.
 
+Please read also the README files of the client (lud or ludc directory) and of the node (ludd directory) if you want to use them.
+
+
+To get only lud/ludc (last developpement version) :
 ::
+    $ git clone https://github.com/Open-UDC/lud
 
-    $ cd lud
-    $ sudo make install
-
-
-Now ``/usr/local/bin/lud.sh`` is installed.
-
+To get only thttpgpd/ludd (last developpement version) :
 ::
-
-    $ /usr/local/bin/lud.sh
-    lud.sh:Warning: Using versions 2.x of GnuPG is recommanded (only "1.4.12" is installed here).
-    gpg: directory `/home/vagrant/.gnupg' created
-    gpg: new configuration file `/home/vagrant/.gnupg/gpg.conf' created
-    gpg: WARNING: options in `/home/vagrant/.gnupg/gpg.conf' are not yet active during this run
-    gpg: keyring `/home/vagrant/.gnupg/secring.gpg' created
-    gpg: keyring `/home/vagrant/.gnupg/pubring.gpg' created
-    gpg: /home/vagrant/.gnupg/trustdb.gpg: trustdb created
-
-    lud.sh:Warning: No private key found here.
-
-     Have you already an OpenPGP certificate to import on this machine (y/n) ?
+    $ git clone https://github.com/Open-UDC/thttpgpd
 
 Licenses
 ========
