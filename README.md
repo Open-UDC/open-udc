@@ -12,7 +12,7 @@ It aims to be secure, reliable and to solve some debt, crisis or globalization i
 It notably permits to apply Universal monetary Dividend to the individuals that accept to use the currency.  
 It is based upon the OpenPGP protocol ([RFC4880] (http://tools.ietf.org/html/rfc4880)).  
 
-About Universal monetary Dividend, please read the [Theory of Money Relativity from Stephane Laborde] (http://www.creationmonetaire.info/2011/06/theorie-relative-de-la-monnaie-20.html) (in french)
+About Universal monetary Dividend, please read the [Theory of Money Relativity from Stephane Laborde] (http://www.creationmonetaire.info/2012/11/theorie-relative-de-la-monnaie-2-718.html) (in french)
 or at least other studies about [Social Credit] (http://en.wikipedia.org/wiki/Social_Credit).
 
 
