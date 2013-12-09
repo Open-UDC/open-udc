@@ -19,7 +19,7 @@ Request for Comments:                                      Open-UDC Team
  3. Validation Nodes act as HTTP Servers ..........................
  4. Tree Structure of Validation Nodes ............................
  5. Data expected in the tree structure .............................
-    5.1 Formats used for creation sheets
+    5.1 Formats used for parameters update
     5.2 Formats used for transactions
     5.3 Propagation mechanism
     5.4 MIME types (a priori deprecated)
@@ -59,7 +59,7 @@ Request for Comments:                                      Open-UDC Team
   specified by the protocol HTTP/1.1, cf. [rfc2616].
 
   Validation Nodes MUST manage the MIME types defined in this document
-  (cf sections ..) and send them them in the "Content-Type" parameter.
+  (cf sections ..) and send them in the "Content-Type" parameter.
 
 4.== Tree Structure of Validation Nodes
 
@@ -88,37 +88,37 @@ http[s]://Node[:port]/...
 |       |-- list
 |       `-- list.sig
 |-- udc/
-|   |-- create
-|   |-- lookup
+|   |-- update
 |   |-- validate
 |   |-- log
 |   |-- log.1
 |   |-- log...
-|   |-- creations/
-|   |   |-- initkeys
-|   |   |-- last/
-|   |   `-- [CREATION_SHEET_NUM]/
-|   |       |-- [CREATION_SHEET_NUM].sheet
-|   |       |-- [CREATION_SHEET_NUM].params
-|   |       `-- [CREATION_SHEET_NUM].keys
-|   |-- databases/
-|   |   `-- [CREATION_SHEET_NUM]/
-|   |       |-- 1.bdb
-|   |       |-- ...
-|   |       |-- 1024.bdb
-|   |       `-- ...
-|   |-- peer/
-|   |   |-- self
-|   |   |-- register
-|   |   `-- list
-|   `-- transactions/
-|       |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
-|       |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
-|       |   |-- 1.gpg
-|       |   |-- ...
-|       |   `-- 3.gpg
-|       `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
-|           `-- 1.gpg
+|   `-- [currency_code]/
+|       |-- keys
+|       |-- synthesis
+|       |-- databases/
+|       |   `-- [PARAMETERS_NUM]/
+|       |       |-- 1.bdb
+|       |       |-- ...
+|       |       |-- 1024.bdb
+|       |       `-- ...
+|       |-- params/
+|       |   |-- synthesis
+|       |   `-- [PARAMETERS_NUM]/
+|       |       |-- [PARAMETERS_NUM].sheet
+|       |       `-- [PARAMETERS_NUM]_[FPR].sig
+|       |-- peer/
+|       |   |-- self
+|       |   |-- register
+|       |   `-- list
+|       `-- transactions/
+|          |-- 20D11AC53DAE0E19DFEEE14657A135297E9DF1BF/
+|          |-- 1B0C7D91A7A1A833C32D4E156AEEFE2C96193F28/
+|          |   |-- 1.gpg
+|          |   |-- ...
+|          |   `-- 3.gpg
+|          `-- 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D/
+|              `-- 1.gpg
 `-- udid2/
     |-- geolist_FRA.txt.asc
     |-- geolist_ITA.txt.asc
@@ -131,51 +131,52 @@ http[s]://Node[:port]/...
   specified in the "HTTP OpenPGP Authentication" draft, to exchange
   signed data.
 
-5.1= Formats used for creation sheets =
+5.1= Formats used for parameters update =
 
-  The "udc/create" url is used to POST the creation sheet with at
+  The "udc/update" url is used to POST parameters update with at
   least the minimum number of required signatures. Signatures MUST by
-  done by differents voters in the previous creation sheet.
+  done by differents keys known in the previous parameters.
 
   POST data MUST have the content-type multipart/msigned, as described
   in [...].
 
-  After being validated by a node, the new creation sheet is propagated
+  After being validated by a node, the parameters update is propagated
   through other nodes. This is done in 2 steps :
-	- The node signs also the creation sheet and add its signature to
+    - The node signs also the parameters update and add its signature to
       the POST data.
     - Then it propagate it using the mechanism described above. 
 
   There are 5 levels of fingerprints_status :
    * 0 - UNKNOWN (Reserved for eventual futur use)
-   * 1 - REJECTED
-   * 2 - ACCEPTED or ACTIVE (accepted in a previous creation sheet and not revoked or rejected since)
-   * 3 - ALLRIGHT or ALIVE (accepted in last creation sheet)
-   * 4 - VOTER or ADMIN (accepted in last creation sheet and which may vote for next one)
+   * 1 - DELETE (Reserved for eventual futur use)
+   * 2 - REJECTED (Reserved for eventual futur use)
+   * 3 - ACTIVE (accepted in previous parameters and not revoked or rejected since)
+   * 4 - ALIVE (will receive a part of the new currency units)
+   * 5 - VOTER (ALIVE and which may vote for next one)
 
 
 [VERSION_FORMAT]
 [SETNUM]
-[HASH(PREVIOUS_CREATION_SHEET)]
+[CURRENCY CODE]
 [FACTORS]
-[ Total NUMBERS of FPR by STATUS (since the first creation sheet)]
-[MINIMAL NUMBER OF ADMIN's SIGNATURES for next creation sheets]
+[ Total NUMBERS of FPR by STATUS (since the first parameters update)]
+[MINIMAL NUMBER OF ADMIN's SIGNATURES for next parameters update]
 [list of new FINGERPRINTS or which status have change STATUS number]
 
 Example:
 42
 1
-01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+uni
 2 1 3 0 1 3 0 1 3 2 0 1
-0 0 16 15 5
+0 0 0 16 15 5
 3
-FD289C703E2E54C8BBED7CD08BAA38841BA5F17B:3
-05AA4007A3428EBE6BF3B751D403380F6656CBEC:3
-6089A78D77BC6C7A1A2EC7F097E9443A0AA85FA4:2
-20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD:4
-AB49FC7C3EC6D4A2259B0508FB29CDDA17A7E2AE:3
-5FDA8373344F3868D24D8ED280B1DF4F7FE6695D:4
-18F938BD3BBBF9190B77EABB57A135297E9DF1BF:4
+FD289C703E2E54C8BBED7CD08BAA38841BA5F17B:4
+05AA4007A3428EBE6BF3B751D403380F6656CBEC:4
+6089A78D77BC6C7A1A2EC7F097E9443A0AA85FA4:3
+20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD:5
+AB49FC7C3EC6D4A2259B0508FB29CDDA17A7E2AE:4
+5FDA8373344F3868D24D8ED280B1DF4F7FE6695D:5
+18F938BD3BBBF9190B77EABB57A135297E9DF1BF:5
 
 
 5.2= Formats used for transactions =
@@ -246,21 +247,13 @@ contain detached signature (ASCII-armored or not), signed by a validation node o
 
     and the status code of the transaction.
 
-    application/udc-c-env
-
-    application/udc-c-ldiff
-
     application/pgp-signature ("vote of the creation sheet")
 
     application/pgp-keys
-
-    application/udc-a-request
-
-    application/udc-a-response
 
 MIME types for other applications (like mail client) :
 
     application/udc-transaction
 
-    application/udc-creation
+    application/udc-update
 
