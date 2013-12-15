@@ -1,0 +1,22 @@
+read first "docs/OpenUDC_exchange_formats.draft.txt" and keep it under your hand.
+
+ludd's boot:
+
+step 1 (peer/self status: 1, booting).
+First check each peer/list of other peer in my peer/list : are they responding, it their time OK, are theire signature correct, have they the same peer list ?
+(Note: also identify myself in my peer list).
+
+Then update my peer list to the maximum of valid peers.
+(If some peers answer a list with some missing or extra incorrect peers, will tell them to update their list later).
+
+Step 2 (peer/self status: 2, initializing).
+
+First use the peer/register to tell I am ready to receive and propagate transaction, but my status is initializing, ie : I am updating my databases, and not able to validate transaction.
+
+The peer/register actions is propagated trough active node, and each one now check my peer/list and update their one.
+
+Once registration is fully validated, I may start myselve a propagation mechanism.
+
+Step 3 (peer/self status: 3, ready).
+
+Start a propagation to tell to other peer that i am ready.

@@ -80,13 +80,7 @@ Request for Comments:                                      Open-UDC Team
 http[s]://Node[:port]/...
 |-- pks/
 |   |-- add
-|   |-- lookup
-|   |-- keylist
-|   `-- .peer/
-|       |-- self
-|       |-- register
-|       |-- list
-|       `-- list.sig
+|   `-- lookup
 |-- udc/
 |   |-- update
 |   |-- validate
@@ -106,6 +100,7 @@ http[s]://Node[:port]/...
 |       |   |-- synthesis
 |       |   `-- [PARAMETERS_NUM]/
 |       |       |-- [PARAMETERS_NUM].sheet
+|       |       |-- [PARAMETERS_NUM].fprs
 |       |       `-- [PARAMETERS_NUM]_[FPR].sig
 |       |-- peer/
 |       |   |-- self
