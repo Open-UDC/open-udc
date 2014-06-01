@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.1 01Jun2014."
+version="0.2 01Jun2014."
 
 hlpmsg="
 ${0##*/} permit to verify the OpenPGP signature(s) inside a multipart/msigned HTTP response.
@@ -9,25 +9,40 @@ ${0##*/} permit to verify the OpenPGP signature(s) inside a multipart/msigned HT
 	-k|--keep       keep all the parts or the received response inside a temporary directory.
 	-h|--help       print this help and exit.
 	-V|--version    show version and exit.
+	--              separator to end options ; usefull if the url begin with a dash \"-\".
+
+Note: Due to a bash limitation, it doesn't parse correctly binary data work and should crash in such case.
 "
-#-f|--fetch      If a signature is done by an unkown OpenPGP keys, get it for your favorite keyserver.
+	#-f|--fetch      If a signature is done by an unkown OpenPGP keys, get it from your favorite keyserver.
 
 x0d="$(printf "\x0d")"
 
-case "$1" in 
-	-k|--keep)
-		keep="yes"
-		shift
-		;;
-	-h|--help)
-		echo "$hlpmsg"
-		exit
-		;;
-	-V|--version)
-		echo "$0/$version ."
-		exit
-		;;
-esac
+while [ "${1::1}" == "-" ] ; do
+	case "$1" in 
+		-k|--keep)
+			keep="yes"
+			;;
+		-f|--fetch)
+			fetch="yes"
+			;;
+		-h|--help)
+			echo "$hlpmsg"
+			exit
+			;;
+		-V|--version)
+			echo "$0/$version ."
+			exit
+			;;
+		--)
+			shift
+			break
+			;;
+		-*)
+			echo -e "Warning: Unkown option \"$1\" try: $0 --help\n" >&2
+			;;
+	esac
+	shift
+done
 
 if (($# !=1 )) ; then
 	echo "$hlpmsg"
@@ -44,7 +59,7 @@ function quit {
 	fi
 }
 
-tmpdir="$(mktemp -d)" || exit
+tmpdir="$(mktemp -d --tmpdir verify_msigned.XXXX)" || exit
 trap quit EXIT
 
 cd "$tmpdir"
@@ -137,7 +152,7 @@ function extract {
 		else
 			while read line ; do
 				((i++))
-				if [ "$line" == "--$bound$x0d" -o  "$line" == "--${bound}--$x0d" ] &&  [ "${pline: -1}" == "$x0d" ] ; then
+				if [[ "$line" == "--$bound$x0d" ||  "$line" == "--${bound}--$x0d" ]] &&  [[ "${pline: -1}" == "$x0d" ]] ; then
 					echo -n "${pline:: -1}" >> "$1"
 					stat -c "%s bytes -> %n" "$1" 
 					shift
@@ -154,7 +169,11 @@ function extract {
 	if [ "$line" == "--${bound}--$x0d" ] && [ -z "$1" ] ; then
 		echo "OK: closing boundary in its expected position."
 	elif [ "$1" ] ; then 
-		echo "Warning: data ended prematurely, before retreiving completely $@"
+		echo "Error: data ended prematurely, before retreiving completely $@"
+		echo "       (It may also happen with unsupported binary data)"
+		return 250
+#		echo "$pline" | hexdump -C
+#		echo "$line" | hexdump -C
 	else
 		echo "Warning: after line $i: there are much data than expected"
 	fi
@@ -172,10 +191,10 @@ else
 	order="$order message"
 fi
 
-extract "$boundary" $order < content
+extract "$boundary" $order < content || exit
 
-for sig in sig* ; do 
+for sig in sig* ; do
 	echo -e "\ngpg --verify $sig message ->"
-	gpg --verify $sig message
+	gpg --verify "$sig" message
 done
 
