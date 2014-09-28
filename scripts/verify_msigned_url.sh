@@ -1,5 +1,5 @@
 #!/bin/bash
-version="0.2 01Jun2014."
+version="0.3 13Jun2014."
 
 hlpmsg="
 ${0##*/} permit to verify the OpenPGP signature(s) inside a multipart/msigned HTTP response.
@@ -11,7 +11,7 @@ ${0##*/} permit to verify the OpenPGP signature(s) inside a multipart/msigned HT
 	-V|--version    show version and exit.
 	--              separator to end options ; usefull if the url begin with a dash \"-\".
 
-Note: Due to a bash limitation, it doesn't parse correctly binary data work and should crash in such case.
+Note: with binary data: Due to a bash limitation, it should crash if content-length is absent.
 "
 	#-f|--fetch      If a signature is done by an unkown OpenPGP keys, get it from your favorite keyserver.
 
@@ -116,10 +116,10 @@ fi
 echo
 
 function extract {
-	local line pline bound="$1" i=0
+	local line pline bound="$1" i=0 len
 	shift
 
-	read line
+	IFS= read line
 	((i++))
 	if [ "$line" != "--$bound$x0d" ] ; then
 		echo "$line" | hexdump -C
@@ -128,42 +128,53 @@ function extract {
 		return 250;
 	fi
 
-	while [ "$1" ] && read line ; do
+	while [ "$1" ] && IFS= read line ; do
 		((i++))
 		if [ "$line" == "$x0d" -o -z "$line" ] ; then
 			echo "Error: line $i: found an empty line instead of an expected header"
 			return 250;
 		fi
+		unset len
 		# display headers
 		echo $line
-		while read line ; do
+		while IFS= read line ; do
 			((i++))
+			 [[ "${line,,}" =~ ^content-length:.([0-9]+).* ]] && len="${BASH_REMATCH[1]}" # && echo "$len" | hexdump -C
 			[ "$line" == "$x0d" -o -z "$line" ] && break
 			echo "$line"
 		done
 		# copy content
 		echo
-		read pline || break
-		((i++))
-		if [ "$pline" == "--$bound$x0d" -o  "$pline" == "--${bound}--$x0d" ] ; then
-			echo "Warning: no data in this part."
-			echo -n > "$1"
+		if ((len)) ; then 
+			head -c "$len" > "$1"
+			(( i+=$(cat "$1" | wc -l) ))
+			#read -N "$len" ; echo "$REPLY" > "$1"
 			shift
+			read pline
+			read line
 		else
-			while read line ; do
-				((i++))
-				if [[ "$line" == "--$bound$x0d" ||  "$line" == "--${bound}--$x0d" ]] &&  [[ "${pline: -1}" == "$x0d" ]] ; then
-					echo -n "${pline:: -1}" >> "$1"
-					stat -c "%s bytes -> %n" "$1" 
-					shift
-					break
-				else
-					echo "$pline" >> "$1"
-				fi
-				pline="$line"
-			done
+			IFS= read pline || break
+			((i++))
+			if [ "$pline" == "--$bound$x0d" -o  "$pline" == "--${bound}--$x0d" ] ; then
+				echo "Warning: no data in this part."
+				echo -n > "$1"
+				shift
+			else
+				while IFS= read line ; do
+					((i++))
+					if [[ "$line" == "--$bound$x0d" ||  "$line" == "--${bound}--$x0d" ]] &&  [[ "${pline: -1}" == "$x0d" ]] ; then
+						echo -n "${pline:: -1}" >> "$1"
+						stat -c "%s bytes -> %n" "$1"
+						echo
+						shift
+						break
+					else
+						echo "$pline" >> "$1"
+					fi
+					pline="$line"
+				done
+			fi
 		fi
-		echo
 	done
 
 	if [ "$line" == "--${bound}--$x0d" ] && [ -z "$1" ] ; then
