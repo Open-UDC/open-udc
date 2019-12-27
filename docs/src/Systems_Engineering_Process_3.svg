@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.0"
+   width="599"
+   height="333"
+   id="svg2">
+  <defs
+     id="defs5">
+    <linearGradient
+       id="linearGradient3173">
+      <stop
+         id="stop3175"
+         style="stop-color:#fee0b3;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3177"
+         style="stop-color:#f9e8d0;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3163">
+      <stop
+         id="stop3165"
+         style="stop-color:#f9e8d0;stop-opacity:1"
+         offset="0" />
+      <stop
+         id="stop3167"
+         style="stop-color:#a4a5cc;stop-opacity:1"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       x1="316.60938"
+       y1="275.84375"
+       x2="316.60938"
+       y2="11.59375"
+       id="linearGradient3169"
+       xlink:href="#linearGradient3163"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0081339,0,0,1.0081339,-3.5884864,-2.3043228)" />
+    <linearGradient
+       x1="266.1647"
+       y1="-56.765099"
+       x2="484.58636"
+       y2="-56.765099"
+       id="linearGradient3179"
+       xlink:href="#linearGradient3173"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-13.755287,118.98772)" />
+    <linearGradient
+       x1="316.60938"
+       y1="275.84375"
+       x2="316.60938"
+       y2="11.59375"
+       id="linearGradient4896"
+       xlink:href="#linearGradient3163"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0081339,0,0,1.0081339,-3.5884864,-2.3043228)" />
+    <linearGradient
+       x1="266.1647"
+       y1="-56.765099"
+       x2="484.58636"
+       y2="-56.765099"
+       id="linearGradient4898"
+       xlink:href="#linearGradient3173"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-13.755287,118.98772)" />
+  </defs>
+  <g
+     transform="translate(0,5.3975365)"
+     id="g4848">
+    <path
+       d="M 75.234974,9.3837294 L 209.37979,275.78311 L 421.84401,275.78311 L 555.95732,9.3837294 L 411.13258,9.3837294 L 315.6119,199.13343 L 220.09121,9.3837294 L 75.234974,9.3837294 z"
+       id="path2384"
+       style="fill:url(#linearGradient4896);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6.58364582;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1" />
+    <g
+       id="g3347">
+      <path
+         d="M 278.20197,9.3837294 L 252.40942,62.580846 L 278.20197,115.06151 L 303.63628,114.70328 L 295.03876,98.941168 L 358.44543,98.941168 L 403.78476,25.340646 L 296.31583,25.340646 L 303.63628,9.3837294 L 278.20197,9.3837294 z"
+         id="path3171"
+         style="opacity:1;fill:url(#linearGradient4898);fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:3;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+      <text
+         x="319.55704"
+         y="52.187462"
+         id="text3181"
+         xml:space="preserve"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:#32579a;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans Bold"><tspan
+           x="319.55704"
+           y="52.187462"
+           id="tspan3183">Verification</tspan><tspan
+           x="319.55704"
+           y="68.187462"
+           id="tspan3345">and</tspan><tspan
+           x="319.55704"
+           y="84.187462"
+           id="tspan3185">Validation</tspan></text>
+    </g>
+    <text
+       x="49.37077"
+       y="99.05439"
+       id="text3187"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="49.37077"
+         y="99.05439"
+         id="tspan3189"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Risk</tspan><tspan
+         x="49.37077"
+         y="115.05439"
+         id="tspan3191"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Analysis</tspan></text>
+    <text
+       x="167.11589"
+       y="42.716396"
+       id="text3195"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="167.11589"
+         y="42.716396"
+         id="tspan3199"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Concept of</tspan><tspan
+         x="167.11589"
+         y="58.716396"
+         id="tspan3203"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Operations</tspan></text>
+    <text
+       x="199.00778"
+       y="102.57315"
+       id="text3205"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="199.00778"
+         y="102.57315"
+         id="tspan3209"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Requirements</tspan><tspan
+         x="199.00778"
+         y="118.57315"
+         id="tspan3213"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">and</tspan><tspan
+         x="199.00778"
+         y="134.57315"
+         id="tspan3215"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Architecture</tspan></text>
+    <text
+       x="229.21817"
+       y="184.92868"
+       id="text3217"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="229.21817"
+         y="184.92868"
+         id="tspan3223"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Detailed</tspan><tspan
+         x="229.21817"
+         y="200.92868"
+         id="tspan3230"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Design</tspan></text>
+    <text
+       x="393.69998"
+       y="180"
+       id="text3232"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="393.69998"
+         y="180"
+         id="tspan3236"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Unit and</tspan><tspan
+         x="393.69998"
+         y="196"
+         id="tspan3240"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Integration</tspan><tspan
+         x="393.69998"
+         y="212"
+         id="tspan3242"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Tests</tspan></text>
+    <text
+       x="422.70837"
+       y="99.902863"
+       id="text3244"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="422.70837"
+         y="99.902863"
+         id="tspan3250"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">System</tspan><tspan
+         x="422.70837"
+         y="115.90286"
+         id="tspan3257"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Tests and</tspan><tspan
+         x="422.70837"
+         y="131.90286"
+         id="tspan3259"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Evaluation</tspan></text>
+    <text
+       x="459.39578"
+       y="31.111753"
+       id="text3261"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="459.39578"
+         y="31.111753"
+         id="tspan3267"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Operation</tspan><tspan
+         x="459.39578"
+         y="47.111755"
+         id="tspan3274"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">and</tspan><tspan
+         x="459.39578"
+         y="63.111755"
+         id="tspan3276"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Maintenance</tspan></text>
+    <text
+       x="541.86652"
+       y="183.35413"
+       id="text3278"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="541.86652"
+         y="183.35413"
+         id="tspan3284"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Risk</tspan><tspan
+         x="541.86652"
+         y="199.35413"
+         id="tspan3291"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Control</tspan><tspan
+         x="541.86652"
+         y="215.35413"
+         id="tspan3293"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Measures</tspan></text>
+    <g
+       transform="translate(-8.0018602,20.931481)"
+       id="g3320">
+      <text
+         x="324.11368"
+         y="228.86873"
+         id="text3316"
+         xml:space="preserve"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#4a4d88;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+           x="324.11368"
+           y="228.86873"
+           id="tspan3318"
+           style="font-size:24px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:#4a4d88;fill-opacity:1;font-family:Sans;-inkscape-font-specification:Sans Bold">Implementation</tspan></text>
+      <text
+         x="322.77765"
+         y="227.53265"
+         id="text3295"
+         xml:space="preserve"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#f5c360;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+           x="322.77765"
+           y="227.53265"
+           id="tspan3301"
+           style="font-size:24px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;fill:#f5c360;fill-opacity:1;font-family:Sans;-inkscape-font-specification:Sans Bold">Implementation</tspan></text>
+    </g>
+    <text
+       x="358"
+       y="272"
+       id="text3326"
+       xml:space="preserve"
+       style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Sans;-inkscape-font-specification:Sans"><tspan
+         x="358"
+         y="272"
+         id="tspan3332"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:center;line-height:100%;writing-mode:lr-tb;text-anchor:middle;font-family:Sans;-inkscape-font-specification:Sans Bold">Code Review</tspan></text>
+    <path
+       d="M 85.655647,77.817149 L 185.79718,276.84056 M 176.12323,271.79116 L 185.80196,276.85497 L 187.35868,266.93259"
+       id="path3339"
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+    <path
+       d="M 477.44417,217.09062 L 577.5857,18.067209 M 567.91175,23.116609 L 577.59048,18.052799 L 579.1472,27.975179"
+       id="path3341"
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
+  </g>
+</svg>
