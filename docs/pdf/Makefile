@@ -15,7 +15,7 @@ $(PNG):
 
 $(PDF):
 	pandoc -N --default-image-extension=png -F ../src/graphviz.py \
-		--latex-engine=xelatex --template=OpenUDCtemplate.latex \
+		--pdf-engine=xelatex --template=OpenUDCtemplate.latex \
 		-o '$@' '../src/$(subst .pdf,.md,$@)'
 
 clean:
