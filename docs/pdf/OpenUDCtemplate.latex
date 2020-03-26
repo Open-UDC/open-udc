@@ -87,14 +87,14 @@
 	\fancyfoot[C]
 	{
 		\begin{picture}(0,0)
-			\put(-297,-40){\includegraphics[width=21.2cm,keepaspectratio]{FooterImg.png}}
+			\put(-330,-30){\includegraphics[width=1.1\paperwidth]{FooterImg.png}}
 		\end{picture}
 		\begin{picture}(0,0)
-			\put(-285,10){
+			\put(-294,0){
 				\color{UDCGray}{
-				\begin{tabularx}{1.09\linewidth}{p{1.07\linewidth}}\hline
-					\multicolumn{1}{c}{\textsc{\bf {\footnotesize COPYRIGHT}}}\\[-2mm]
-					\tiny{The information contained in this document is proprietary to OpenUDC authors (cf. git's commits). The reserved or reversed rights has not been yet really specified... Be gentlemen and don't quote, or reproduce it without notifying us.}
+				\begin{tabularx}{.94\paperwidth}{p{0.9\paperwidth}}
+					\hline
+					\footnotesize\center{Copyright: The information contained in this document is proprietary to OpenUDC authors (cf. git's commits).\\The reserved or reversed rights has not been yet really specified... Be gentlemen and don't quote, or reproduce it without notifying us.}
 				\end{tabularx}
 				}
 			}
@@ -106,6 +106,11 @@
 
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
+
+$if(sectionbreak)$
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{$sectionbreak$}
+$endif$
 
 %======== Original template ========
 $if(fontfamily)$
@@ -328,8 +333,8 @@ $endif$
 
 $for(include-before)$
 $include-before$
-
 $endfor$
+
 $if(toc)$
 {
 $if(colorlinks)$
