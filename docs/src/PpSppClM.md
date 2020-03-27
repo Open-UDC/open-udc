@@ -105,7 +105,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 |Binance Coin (BNB)|€11.34|€1.76B|€263.16M|155.54M BNB | [ICO + Magic](https://www.binance.com/resources/ico/Binance_WhitePaper_en.pdf)|
 |Tezos (XTZ)|€1.59|€1.12B|€127.32M|704.90M XTZ| [??](https://tezos.com/static/white_paper-2dc8c02267a8fb86bd67a108199441bf.pdf)|
 
-*À la date du 25 mars 2020, cf. [coinmarketcap.com](https://coinmarketcap.com/fr/)*
+*À la date du 25 mars 2020, cf. [coinmarketcap.com](https://coinmarketcap.com/)*
 
 ---
 
@@ -113,7 +113,8 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ### Avantages
 
-* Décentralisé
+* Validation complètement décentralisé (P2P)
+* Authentification décentralisé (toile de confiance)
 * Creation monétaire possiblement symétrique dans l'espace et dans le temps
 * Communauté active
 
@@ -128,13 +129,87 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ## Objectifs
 
-* Décentralisé
-* Fiabilité & solidité
-* Simplicité (DRY KISS)
+Etablir un standard :
+
+* Complètement décentralisé
+* Fiable & solide
+* Si possible interoperable
+* Le plus simple possible (DRY KISS)
 * Création monétaire basé sur les individus, entièrement symétrique
 * Adressable pour une utilisation courante à l'ensemble de la population mondiale
-* Pouvoir se substituer à toutes monnaies à cours légaux
+* Pouvant se substituer à toutes monnaies à cours légaux
 
 ## 1er challenge : Authentification des individus
 
+### [Passeports biométriques](https://en.wikipedia.org/wiki/Biometric_passport)
+
+* Largement déployés et utilisés
+* Documentation technique et terminaux de lecture relativement confidentiels
+* Centralisé : type LDAP, [~250 master keys](https://www.icao.int/Security/FAL/PKD/Pages/icao-master-list.aspx)
+* Peut-il évoluer, comment ?
+* PKI incomplète : pas de clés privées\*, juste des données personelles signées
+
+*\* Cet absence pourrait être comblé [grâce à GnuPG](https://wiki.gnupg.org/LDAPKeyserver)*
+
+### [WebAuthn](https://en.wikipedia.org/wiki/WebAuthn)
+
+* Très récent : 4 March 2019
+* Jetons cryptographiques déjà commercialisés
+* Seulement un standard d'authentification web
+* PKI, comment récuperer les clés publiques de confiance : non spécifié
+* Peut-il évoluer, comment ?
+
+### [toile de confiance](https://en.wikipedia.org/wiki/Web_of_trust) [OpenPGP](https://www.openpgp.org/)
+
+* Authentification décentralisé
+* Éprouvé et évolutif
+* Largement déployé et utilisé
+* Jetons cryptographiques USB ou NFC (ex: [YubiKey](https://www.yubico.com/), [Nitrokey](https://www.nitrokey.com/))
+* Plusieurs utilisations possibles : authentification, signature, chiffrement
+* Standard ouvert, implementations libres (ex: [GnuPG](https://gnupg.org/))
+* Supporte de nombreux algorithmes de hachage et de cryptographie
+* Problèmes avec les serveurs de clés prédement déployes : trop permissifs et trop transparents
+* Certificats evolutif indexés par leur fingerprint (20 octets).
+
+## Utilisation d\'OpenPGP
+
+### certificat
+
+Y mettre des informations permettant d'identifier chacun de manière unique : nom, prénom, date de naissance et lieu de naissance.
+Le format de ces information est spécifié par l'udid2.
+
+Notons que dans un certificat OpenPGP, on peut éventuellement stocker sa photo d'identité ou ses données biométriques
+
+### toile de confiance
+
+Les "key signing party" sont trop contraignantes et compliqués pour la plupart.
+
+Heureusement, aujourd'hui tout le monde possède désormais un smartphone, dont les applications peuvent acceder à tous nos contacts.
+
+La validation des certificats d'autrui peut donc se faire aisément via une application comme [OpenKeychain](https://www.openkeychain.org/) (à améliorer pour qu'elle réponde aux contraintes OpenUDC)
+
+### stockage des certificats (serveurs de clés)
+
+Ces serveurs de stockage étaient le maillon faible de l'écosystème OpenPGP. Trop permissive, la génération précédente (SKS key servers) n'ont pas vraiment survécue à une attaque triviale (Envoi massif de fausses informations). De plus ces serveurs étaient trop transparents au vu de la [RGPD](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation).
+
+De nouveaux serveurs de clés sont actuellement en développement, il faudrait sans doute en developper également pour les besoins spécifiques OpenUDC.
+
+## Le protocole OpenUDC
+
+### fiches de création monétaire
+
+Blocs d'informations chainés (blockchain) dont la validation se fait par des preuves d'identité (proof-of-identity) établies au travers de la toile de confiance. Ceux ci comprennent :
+
+* la version du protocole, afin de pouvoir le faire évoler
+* le differentiels des clés (fingerprint) addressables, ainsi que celui de leur type
+* la quantité de nouvelle monnaie alouée à chacune des clés identifiées (par leur type) comme étant unique pour un unique individu considéré comme vivant (actif et non déclaré mort)
+
+Ces blocks d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire.
+
+Cette gouvernance peut-être :
+
+* manuelle : un type de clé est dédié pour designer les "administrateurs" qui pourront créer le prochain bloc.
+* automatique : tout est entierement calculé à partir de paramètres pré-établis et des données de la toile de confiance
+
+### transactions
 
