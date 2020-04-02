@@ -1,4 +1,4 @@
-read first "docs/OpenUDC_exchange_formats.draft.txt" and keep it under your hand.
+read first "docs/rfc/OpenUDC_exchange_formats.draft.txt" and keep it under your hand.
 
 ludd's boot:
 

@@ -18,6 +18,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ## Sociologie, Economie
 
+* Charles Fourier (1772-1837)
 * Louis Even (1885 - 1974)
 * Maurice Allais (1911 - 2010)
 * ... et bien d'autres.
@@ -78,9 +79,9 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ## Inconvenients
 
-* Preuve de travail
-* Complètement étranger à la notion d'individus
 * Creation monétaire complètement assymetrique
+* Complètement étranger à la notion d'individus
+* Preuve de travail
 * Limitations particulièrement contraignantes (block/jour & transactions/block)
 * Non utilisable comme moyen de paiment global
 * Relativement anonyme
@@ -116,7 +117,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 * Validation complètement décentralisé (P2P)
 * Authentification décentralisé (toile de confiance)
 * Creation monétaire possiblement symétrique dans l'espace et dans le temps
-* Communauté active
+* Communautées [développeurs](https://duniter.org/fr/contribuer/) et [utilisateurs](https://www.gchange.fr/) actives
 
 ### Inconvenients
 
@@ -138,6 +139,7 @@ Etablir un standard :
 * Création monétaire basé sur les individus, entièrement symétrique
 * Adressable pour une utilisation courante à l'ensemble de la population mondiale
 * Pouvant se substituer à toutes monnaies à cours légaux
+* Ne necessitant pas d'infrastructure couteuse, noeud pouvant tourner sur des [Raspberry Pi](https://www.raspberrypi.org/products/raspberry-pi-4-case/) ou autres [FreedomBox](https://freedombox.org/#get).
 
 ## 1er challenge : Authentification des individus
 
@@ -176,7 +178,7 @@ Etablir un standard :
 ### certificat
 
 Y mettre des informations permettant d'identifier chacun de manière unique : nom, prénom, date de naissance et lieu de naissance.
-Le format de ces information est spécifié par l'udid2.
+Le format de ces information est spécifié par l'[udid2](https://github.com/Open-UDC/open-udc/blob/master/docs/rfc/OpenUDC_Authentication_Mechanisms.draft.txt).
 
 Notons que dans un certificat OpenPGP, on peut éventuellement stocker sa photo d'identité ou ses données biométriques
 
@@ -196,7 +198,7 @@ De nouveaux serveurs de clés sont actuellement en développement, il faudrait s
 
 ## Le protocole OpenUDC
 
-### fiches de création monétaire
+### [fiches de création monétaire](https://github.com/Open-UDC/open-udc/blob/master/docs/rfc/OpenUDC_exchange_formats.draft.txt)
 
 Blocs d'informations chainés (blockchain) dont la validation se fait par des preuves d'identité (proof-of-identity) établies au travers de la toile de confiance. Ceux ci comprennent :
 
@@ -212,4 +214,6 @@ Cette gouvernance peut-être :
 * automatique : tout est entierement calculé à partir de paramètres pré-établis et des données de la toile de confiance
 
 ### transactions
+
+## crowdfunding plan
 

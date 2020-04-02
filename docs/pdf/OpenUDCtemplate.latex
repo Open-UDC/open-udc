@@ -87,12 +87,12 @@
 	\fancyfoot[C]
 	{
 		\begin{picture}(0,0)
-			\put(-330,-30){\includegraphics[width=1.1\paperwidth]{FooterImg.png}}
+			\put(-310,-30){\includegraphics[width=1.2\paperwidth]{FooterImg.png}}
 		\end{picture}
 		\begin{picture}(0,0)
 			\put(-294,0){
 				\color{UDCGray}{
-				\begin{tabularx}{.94\paperwidth}{p{0.9\paperwidth}}
+				\begin{tabularx}{.92\paperwidth}{p{0.9\paperwidth}}
 					\hline
 					\footnotesize\center{Copyright: The information contained in this document is proprietary to OpenUDC authors (cf. git's commits).\\The reserved or reversed rights has not been yet really specified... Be gentlemen and don't quote, or reproduce it without notifying us.}
 				\end{tabularx}
