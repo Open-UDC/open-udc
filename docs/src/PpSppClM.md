@@ -121,12 +121,12 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ### Inconvenients
 
-* Limitations contraigantes (max ~100k individus pour une utilisation courante)
+* Limitations contraignantes (max ~100k individus pour une utilisation courante)
 * Preuve de travail
 * Fiabilité et solidité à prouver
-* Peu d'interopablité avec d'autres technologies existantes
+* Peu d'interoperablité avec d'autres technologies existantes
 
-# OpenUDC
+# [OpenUDC](https://openudc.org)
 
 ## Objectifs
 
@@ -139,7 +139,7 @@ Etablir un standard :
 * Création monétaire basé sur les individus, entièrement symétrique
 * Adressable pour une utilisation courante à l'ensemble de la population mondiale
 * Pouvant se substituer à toutes monnaies à cours légaux
-* Ne necessitant pas d'infrastructure couteuse, noeud pouvant tourner sur des [Raspberry Pi](https://www.raspberrypi.org/products/raspberry-pi-4-case/) ou autres [FreedomBox](https://freedombox.org/#get).
+* Ne necessitant pas d'infrastructure couteuse, nœuds pouvant tourner sur des [Raspberry Pi](https://www.raspberrypi.org/products/raspberry-pi-4-case/) ou autres [FreedomBox](https://freedombox.org/#get).
 
 ## 1er challenge : Authentification des individus
 
@@ -184,15 +184,15 @@ Notons que dans un certificat OpenPGP, on peut éventuellement stocker sa photo 
 
 ### toile de confiance
 
-Les "key signing party" sont trop contraignantes et compliqués pour la plupart.
+Les "key signing party" sont trop contraignantes et compliquées pour la plupart.
 
-Heureusement, aujourd'hui tout le monde possède désormais un smartphone, dont les applications peuvent acceder à tous nos contacts.
+Heureusement, aujourd'hui tout le monde possède désormais un smartphone, dont les applications peuvent acceder à la plupart de nos contacts.
 
 La validation des certificats d'autrui peut donc se faire aisément via une application comme [OpenKeychain](https://www.openkeychain.org/) (à améliorer pour qu'elle réponde aux contraintes OpenUDC)
 
 ### stockage des certificats (serveurs de clés)
 
-Ces serveurs de stockage étaient le maillon faible de l'écosystème OpenPGP. Trop permissive, la génération précédente (SKS key servers) n'ont pas vraiment survécue à une attaque triviale (Envoi massif de fausses informations). De plus ces serveurs étaient trop transparents au vu de la [RGPD](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation).
+Ces serveurs de stockage étaient le maillon faible de l'écosystème OpenPGP. Trop permissive, la génération précédente (SKS key servers) n'a pas vraiment survécue à une attaque triviale (Envoi massif de fausses informations). De plus ces serveurs étaient trop transparents au vu de la [RGPD](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation).
 
 De nouveaux serveurs de clés sont actuellement en développement, il faudrait sans doute en developper également pour les besoins spécifiques OpenUDC.
 
@@ -206,7 +206,7 @@ Blocs d'informations chainés (blockchain) dont la validation se fait par des pr
 * le differentiels des clés (fingerprint) addressables, ainsi que celui de leur type
 * la quantité de nouvelle monnaie alouée à chacune des clés identifiées (par leur type) comme étant unique pour un unique individu considéré comme vivant (actif et non déclaré mort)
 
-Ces blocks d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire.
+Ces blocs d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire.
 
 Cette gouvernance peut-être :
 
