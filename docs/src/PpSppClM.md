@@ -1,5 +1,5 @@
 ---
-title: PLAN PAS SECRET pour NE PAS CONTROLER le MONDE
+title: PLAN PAS SECRET pour NE PAS CONTRÔLER le MONDE
 subtitle:
 author: "Jbar"
 docref: NSPtNCtW
@@ -16,7 +16,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 # Inspirateurs et Contributeurs
 
-## Sociologie, Economie
+## Sociologie, Économie
 
 * Charles Fourier (1772-1837)
 * Louis Even (1885 - 1974)
@@ -29,13 +29,13 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 * Kurt Gödel (1906 - 1978)
 * ... et quelques autres.
 
-## Pionners de l'informatique
+## Pionniers de l'informatique
 
 * Alan Turing (1912 - 1954)
 * Dennis Ritchie (1941 - 2011)
 * ... et quelques autres.
 
-## Batîsseurs de la noosphère numérique
+## Bâtisseurs de la noosphère numérique
 
 * Philip Zimmermann (1954 -)
 * Werner Koch (1961 -)
@@ -63,7 +63,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 * Internet
 * Smartphones
-* Dématerialisation des échanges
+* Dématérialisation des échanges
 * Globalisation
 
 # Première solution : bitcoin
@@ -77,13 +77,13 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 * Relativement anonyme
 
 
-## Inconvenients
+## Inconvénients
 
-* Creation monétaire complètement assymetrique
+* Création monétaire complètement asymétrique
 * Complètement étranger à la notion d'individus
 * Preuve de travail
 * Limitations particulièrement contraignantes (block/jour & transactions/block)
-* Non utilisable comme moyen de paiment global
+* Non utilisable comme moyen de paiement global
 * Relativement anonyme
 
 ![taille de la blockchain bitcoin](bitcoin_blockchain_size){.center}
@@ -93,7 +93,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ## Etherum, XRP, etc.
 
-|Nom|Prix|Market Cap|Volume 24h|Quantité crée|Creation monétaire|
+|Nom|Prix|Market Cap|Volume 24h|Quantité crée|Création monétaire|
 |---|---|---|---|---|---|
 |Bitcoin (BTC)|€6 136.87|€112.22B|€40.46B|18.29M BTC| minage POW|
 |Ethereum (ETH)|€125.24|€13.81B|€12.13B|110.25M ETH | minage POW/POS|
@@ -116,30 +116,30 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 * Validation complètement décentralisé (P2P)
 * Authentification décentralisé (toile de confiance)
-* Creation monétaire possiblement symétrique dans l'espace et dans le temps
-* Communautées [développeurs](https://duniter.org/fr/contribuer/) et [utilisateurs](https://www.gchange.fr/) actives
+* Création monétaire possiblement symétrique dans l'espace et dans le temps
+* Communautés [développeurs](https://duniter.org/fr/contribuer/) et [utilisateurs](https://www.gchange.fr/) actives
 
-### Inconvenients
+### Inconvénients
 
 * Limitations contraignantes (max ~100k individus pour une utilisation courante)
 * Preuve de travail
 * Fiabilité et solidité à prouver
-* Peu d'interoperablité avec d'autres technologies existantes
+* Peu d'interopérabilité avec d'autres technologies existantes
 
 # [OpenUDC](https://openudc.org)
 
 ## Objectifs
 
-Etablir un standard :
+Établir un standard :
 
 * Complètement décentralisé
 * Fiable & solide
-* Si possible interoperable
+* Si possible interopérable
 * Le plus simple possible (DRY KISS)
 * Création monétaire basé sur les individus, entièrement symétrique
 * Adressable pour une utilisation courante à l'ensemble de la population mondiale
 * Pouvant se substituer à toutes monnaies à cours légaux
-* Ne necessitant pas d'infrastructure couteuse, nœuds pouvant tourner sur des [Raspberry Pi](https://www.raspberrypi.org/products/raspberry-pi-4-case/) ou autres [FreedomBox](https://freedombox.org/#get).
+* Ne nécessitant pas d'infrastructure couteuse, nœuds pouvant tourner sur des [Raspberry Pi](https://www.raspberrypi.org/products/raspberry-pi-4-case/) ou autres [FreedomBox](https://freedombox.org/#get).
 
 ## 1er challenge : Authentification des individus
 
@@ -149,16 +149,16 @@ Etablir un standard :
 * Documentation technique et terminaux de lecture relativement confidentiels
 * Centralisé : type LDAP, [~250 master keys](https://www.icao.int/Security/FAL/PKD/Pages/icao-master-list.aspx)
 * Peut-il évoluer, comment ?
-* PKI incomplète : pas de clés privées\*, juste des données personelles signées
+* PKI incomplète : pas de clés privées\*, juste des données personnelles signées
 
 *\* Cet absence pourrait être comblé [grâce à GnuPG](https://wiki.gnupg.org/LDAPKeyserver)*
 
 ### [WebAuthn](https://en.wikipedia.org/wiki/WebAuthn)
 
-* Très récent : 4 March 2019
+* Très récent : 4 Mars 2019
 * Jetons cryptographiques déjà commercialisés
 * Seulement un standard d'authentification web
-* PKI, comment récuperer les clés publiques de confiance : non spécifié
+* PKI, comment récupérer les clés publiques de confiance : non spécifié
 * Peut-il évoluer, comment ?
 
 ### [toile de confiance](https://en.wikipedia.org/wiki/Web_of_trust) [OpenPGP](https://www.openpgp.org/)
@@ -168,10 +168,10 @@ Etablir un standard :
 * Largement déployé et utilisé
 * Jetons cryptographiques USB ou NFC (ex: [YubiKey](https://www.yubico.com/), [Nitrokey](https://www.nitrokey.com/))
 * Plusieurs utilisations possibles : authentification, signature, chiffrement
-* Standard ouvert, implementations libres (ex: [GnuPG](https://gnupg.org/))
+* Standard ouvert, implémentations libres (ex: [GnuPG](https://gnupg.org/))
 * Supporte de nombreux algorithmes de hachage et de cryptographie
-* Problèmes avec les serveurs de clés prédement déployes : trop permissifs et trop transparents
-* Certificats evolutif indexés par leur fingerprint (20 octets).
+* Problèmes avec les serveurs de clés précédemment déployés : trop permissifs et trop transparents
+* Certificats évolutifs indexés par leur fingerprint (20 octets).
 
 ## Utilisation d\'OpenPGP
 
@@ -186,7 +186,7 @@ Notons que dans un certificat OpenPGP, on peut éventuellement stocker sa photo 
 
 Les "key signing party" sont trop contraignantes et compliquées pour la plupart.
 
-Heureusement, aujourd'hui tout le monde possède désormais un smartphone, dont les applications peuvent acceder à la plupart de nos contacts.
+Heureusement, aujourd'hui tout le monde possède désormais un smartphone, dont les applications peuvent accéder à la plupart de nos contacts.
 
 La validation des certificats d'autrui peut donc se faire aisément via une application comme [OpenKeychain](https://www.openkeychain.org/) (à améliorer pour qu'elle réponde aux contraintes OpenUDC)
 
@@ -194,7 +194,7 @@ La validation des certificats d'autrui peut donc se faire aisément via une appl
 
 Ces serveurs de stockage étaient le maillon faible de l'écosystème OpenPGP. Trop permissive, la génération précédente (SKS key servers) n'a pas vraiment survécue à une attaque triviale (Envoi massif de fausses informations). De plus ces serveurs étaient trop transparents au vu de la [RGPD](https://en.wikipedia.org/wiki/General_Data_Protection_Regulation).
 
-De nouveaux serveurs de clés sont actuellement en développement, il faudrait sans doute en developper également pour les besoins spécifiques OpenUDC.
+De nouveaux serveurs de clés sont actuellement en développement, il faudrait sans doute en développer également pour les besoins spécifiques OpenUDC.
 
 ## Le protocole OpenUDC
 
@@ -202,16 +202,16 @@ De nouveaux serveurs de clés sont actuellement en développement, il faudrait s
 
 Blocs d'informations chainés (blockchain) dont la validation se fait par des preuves d'identité (proof-of-identity) établies au travers de la toile de confiance. Ceux ci comprennent :
 
-* la version du protocole, afin de pouvoir le faire évoler
-* le differentiels des clés (fingerprint) addressables, ainsi que celui de leur type
-* la quantité de nouvelle monnaie alouée à chacune des clés identifiées (par leur type) comme étant unique pour un unique individu considéré comme vivant (actif et non déclaré mort)
+* la version du protocole, afin de pouvoir le faire évoluer
+* le différentiel des clés (fingerprint) addressables, ainsi que celui de leur type
+* la quantité de nouvelle monnaie allouée à chacune des clés identifiées (par leur type) comme étant unique pour un unique individu considéré comme vivant (actif et non déclaré mort)
 
 Ces blocs d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire.
 
 Cette gouvernance peut-être :
 
 * manuelle : un type de clé est dédié pour designer les "administrateurs" qui pourront créer le prochain bloc.
-* automatique : tout est entierement calculé à partir de paramètres pré-établis et des données de la toile de confiance
+* automatique : tout est entièrement calculé à partir de paramètres pré établis et des données de la toile de confiance
 
 ### transactions
 
