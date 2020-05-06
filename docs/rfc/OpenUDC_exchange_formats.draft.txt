@@ -79,7 +79,6 @@ Request for Comments:                                      Open-UDC Team
 
 http[s]://Node[:port]/...
 |-- pks/
-|   |-- add
 |   `-- lookup
 |-- udc/
 |   |-- update
@@ -89,18 +88,20 @@ http[s]://Node[:port]/...
 |       |-- grains/
 |       |   `-- [PARAMETERS_NUM]/
 |       |       `-- [VALUE]/
-|       |               |-- [SERIAL_NUM].tgz
+|       |               |-- [currency_code]_[VALUE]_[PARAMETERS_NUM]_[SERIAL_NUM].tgz
 |       |               `-- [SERIAL_NUM]/
 |       |                   |-- 1
 |       |                   |-- ...
 |       |                   `-- [GRAIN_BLOCK_NUM]
 |       |-- params/
 |       |   |-- synthesis
-|       |   |-- 1
+|       |   |-- [currency_code]_params.tgz
+|       |   |-- 1/
 |       |   |-- ...
 |       |   `-- [PARAMETERS_BLOCK_NUM]/
 |       |       |-- [PARAMETERS_NUM].sheet
-|       |       |-- [PARAMETERS_NUM].fprs
+|       |       |-- [PARAMETERS_NUM]_[FPR].sig
+|       |       |-- ...
 |       |       `-- [PARAMETERS_NUM]_[FPR].sig
 |       `-- peer/
 |           |-- self
@@ -158,6 +159,7 @@ if [VERSION_FORMAT] == p1 then block data contain :
 [MINIMAL NUMBER OF VOTER's SIGNATURES for next parameters update]
 [minimal birth time of grains's block chain]
 [minimal average time (in seconds) between 2 signatures in grain block chain]
+[KEYSERVER_URL]
 [list of FINGERPRINTS changing category]
 
 Example:
@@ -168,6 +170,7 @@ adc83b19e793491b1c6ea0fd8b46cd9f32e592fc
 3
 1588553132
 43200
+hkps://keys.openudc.org
 FD289C703E2E54C8BBED7CD08BAA38841BA5F17B:14
 05AA4007A3428EBE6BF3B751D403380F6656CBEC:14
 6089A78D77BC6C7A1A2EC7F097E9443A0AA85FA4:3
