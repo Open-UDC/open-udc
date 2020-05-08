@@ -253,13 +253,14 @@ continue the grain block chain, that is just forbidden.
 
 If this case happen and last [PARAMETERS_VERSION_FORMAT] == p1, nodes MUST:
 - report the incident (with the guilty key, format no yet specified)
-- choose the grain with the longest block chain
-- if it remains forks of the same lengths, choose the fork with the lower
-  timestamps inside last signature.
+- store at least two erroneous block and no longer accept any block in this
+  blockchain.
+
+That means the grain is no more useable, as if it was destroyed.
 
 Incidents SHOULD be monitored. Depending on their severity or occurrence,
-diverse sanctions may be defined. From nothing to suspension or even
-imprisonment. Remember: "Proof of Identity".
+diverse sanctions may be defined. From nothing to suspension or blacklist.
+Remember: "Proof of Identity".
 
 5.2.2= Anonymisation =
 
