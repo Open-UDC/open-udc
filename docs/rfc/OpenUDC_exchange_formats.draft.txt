@@ -151,15 +151,16 @@ http[s]://Node[:port]/...
 
    First data of a parameter block determine the format of data in the block
 
-if [VERSION_FORMAT] == p1 then block data contain :
+if [PARAMETERS_VERSION_FORMAT] == p1 then block data contain :
 
 [HASH of previous parameters block]
 [grains FACTORS]
 [CATEGORIES which may initiate grain block]
-[MINIMAL NUMBER OF VOTER's SIGNATURES for next parameters update]
+[MINIMAL NUMBER OF VOTER's SIGNATURES to build next parameters block]
 [minimal birth time of grains's block chain]
 [minimal average time (in seconds) between 2 signatures in grain block chain]
-[KEYSERVER_URL]
+[NEWKEYFILE_URLS]
+[NEWKEYFILE_SHA256]
 [list of FINGERPRINTS changing category]
 
 Example:
@@ -170,7 +171,8 @@ adc83b19e793491b1c6ea0fd8b46cd9f32e592fc
 3
 1588553132
 43200
-hkps://keys.openudc.org
+http://keys.openudc.org/uni/params/3
+be688838ca8686e5c90689bf2ab585cef1137c999b48c70b92f67a5c34dc15697b5d11c982ed6d71be1e1e7f7b4e0733884aa97c3f7a339a8ed03577cf74be09
 FD289C703E2E54C8BBED7CD08BAA38841BA5F17B:14
 05AA4007A3428EBE6BF3B751D403380F6656CBEC:14
 6089A78D77BC6C7A1A2EC7F097E9443A0AA85FA4:3
@@ -200,20 +202,69 @@ Then all keys in categories 14 and 15 (since the beginning of the block chain) a
 
   Each grain is also a block chain.
 
-   First data of a grain block determine the format of data in the block
+  First data of a grain block determine the format of data in the block
 
-if [VERSION_FORMAT] == g1 then block data contain :
 
-[HASH of previous grain block]
+if [GRAIN_VERSION_FORMAT] == g0 then block data is the first one of the grain
+block chain, and its data are :
+
+[currency_code]_[VALUE]_[PARAMETERS_NUM]_[SERIAL_NUM]
+[SHA256 of parameter block number PARAMETERS_NUM]
 [FINGERPRINT DESTINATION]
 [RESERVED SHORT SPACE FREELY USABLE]
 
+Example: according to the parameters block number 2, key
+20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD, may initialize the 1407th grain of
+value 128. The key owner decide to give this grain to the key
+D1C503D4C49419D6DEA8A4B948AC16647DEA20F1. So the first block in this new grain
+is generated like this :
 
-Example:
-g1
-adc83b19e793491b1c6ea0fd8b46cd9f32e592fc
+$ echo -"g0
+uni_128_2_1407
+29532725339c191acbc1d65b349a39f9db4d547c8440c326dcfd9057bb11c64a
+D1C503D4C49419D6DEA8A4B948AC16647DEA20F1
+init to my pocket account" | gpg --sign -u "20D11AC53DAE0E19DFEEE1465D2662E0F300EBAD!" > 0
+
+
+if [GRAIN_VERSION_FORMAT] == g1 then block data contain :
+
+[SHA256 of previous grain block]
+[FINGERPRINT DESTINATION]
+[RESERVED SHORT SPACE FREELY USABLE]
+
+Example, the same grain is now given to the owner of the key
+5FDA8373344F3868D24D8ED280B1DF4F7FE6695D:
+
+$ cat 0 | sha256sum
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+
+$ echo "g1
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
 5FDA8373344F3868D24D8ED280B1DF4F7FE6695D
-Thanks
+Thanks for the pie" | gpg --sign -u "D1C503D4C49419D6DEA8A4B948AC16647DEA20F1!" > 1
+
+
+5.2.1= double spending consensus =
+
+"giving is giving, taking back is stealing"
+
+Nothing prevent a key owner to create 2 different block when it's its turn to
+continue the grain block chain, that is just forbidden.
+
+If this case happen and last [PARAMETERS_VERSION_FORMAT] == p1, nodes MUST:
+- report the incident (with the guilty key, format no yet specified)
+- choose the grain with the longest block chain
+- if it remains forks of the same lengths, choose the fork with the lower
+  timestamps inside last signature.
+
+Incidents SHOULD be monitored. Depending on their severity or occurrence,
+diverse sanctions may be defined. From nothing to suspension or even
+imprisonment. Remember: "Proof of Identity".
+
+5.2.2= Anonymisation =
+
+Anonymisation is not defined by the protocol. But the protocol don't prevent
+implementing "mixer" to reach this goal.
 
 5.3= MIME types (a priori deprecated) =
 
