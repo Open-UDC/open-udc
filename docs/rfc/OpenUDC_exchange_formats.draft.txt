@@ -89,6 +89,7 @@ http[s]://Node[:port]/...
 |       |   `-- [PARAMETERS_NUM]/
 |       |       `-- [VALUE]/
 |       |               |-- [currency_code]_[VALUE]_[PARAMETERS_NUM]_[SERIAL_NUM].tgz
+|       |               |-- [currency_code]_[VALUE]_[PARAMETERS_NUM]_[SERIAL_NUM]_invalid.tgz
 |       |               `-- [SERIAL_NUM]/
 |       |                   |-- 1
 |       |                   |-- ...
@@ -115,8 +116,8 @@ http[s]://Node[:port]/...
 
   pks/ see draft about keyservers
 
-  udc/update is used to POST new block into serveur. They MUST contain at least
-  2 parameters:
+  udc/update is used to POST new block into serveur. They query string  MUST
+  contain at least 2 parameters:
     * ccode: currency code
     * btype: block type
 
@@ -248,19 +249,26 @@ Thanks for the pie" | gpg --sign -u "D1C503D4C49419D6DEA8A4B948AC16647DEA20F1!" 
 
 "giving is giving, taking back is stealing"
 
-Nothing prevent a key owner to create 2 different block when it's its turn to
-continue the grain block chain, that is just forbidden.
+Nothing prevent a key owner to create 2 different block once its key is present
+in the grain block chain, that is just forbidden.
 
 If this case happen and last [PARAMETERS_VERSION_FORMAT] == p1, nodes MUST:
-- report the incident (with the guilty key, format no yet specified)
-- store at least two erroneous block and no longer accept any block in this
-  blockchain.
+- mark the key incident (which is disclosed through udc/[currency_code]/keys
+  interface.
+- then node managing that grain will automatically vote for their preferred
+  fork[^1].
+- if the vote can't determine a preferred fork, the fork which, in its first
+  block, benefit to the youngest key with the highest fingerprint MUST be
+  selected.
 
-That means the grain is no more useable, as if it was destroyed.
+Because vote is expensive, such incidents SHOULD not happen and MUST be
+monitored. Depending on their severity or occurrence, diverse sanctions may be
+defined. From nothing to suspension or blacklisting, the key or even all the
+keys of the owner.
 
-Incidents SHOULD be monitored. Depending on their severity or occurrence,
-diverse sanctions may be defined. From nothing to suspension or blacklist.
-Remember: "Proof of Identity".
+[^1]:Remember: The system is based on "Proof of Identity". Each node are
+identified as belonging to a living human, and each human node administrator
+may monitor block chains only once.
 
 5.2.2= Anonymisation =
 
