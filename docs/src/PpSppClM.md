@@ -203,17 +203,50 @@ De nouveaux serveurs de clés sont actuellement en développement, il faudrait s
 Blocs d'informations chainés (blockchain) dont la validation se fait par des preuves d'identité (proof-of-identity) établies au travers de la toile de confiance. Ceux ci comprennent :
 
 * la version du protocole, afin de pouvoir le faire évoluer
-* le différentiel des clés (fingerprint) addressables, ainsi que celui de leur type
+* le différentiel des clés (fingerprint) adressables, ainsi que celui de leur type
 * la quantité de nouvelle monnaie allouée à chacune des clés identifiées (par leur type) comme étant unique pour un unique individu considéré comme vivant (actif et non déclaré mort)
 
-Ces blocs d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire.
-
-Cette gouvernance peut-être :
+Ces blocs d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire. Cette gouvernance peut-être :
 
 * manuelle : un type de clé est dédié pour designer les "administrateurs" qui pourront créer le prochain bloc.
 * automatique : tout est entièrement calculé à partir de paramètres pré établis et des données de la toile de confiance
 
 ### transactions
+
+L'ensemble de la masse monétaire est repartie en quantités de valeur
+indivisible, appelés grains. Comparables à des pièces et billets, chacun de ces
+grains sont eux-mêmes des chaines de blocs ultra légères.
+
+Chacune de ces chaines pouvant être maintenues indépendamment, le protocole
+OpenUDC ne démontre, contrairement à la plupart des autres solutions, quasiment
+aucune limite d'utilisateurs journaliers.
+
+### validations
+
+La chaine de blocs de paramètres tout comme celle des grains sont maintenus par
+des nœuds, qui se contente d'enregistrer les nouveaux blocs valides et de
+stocker et servir les chaines complètes.
+
+Chaque nœud est lui même authentifié comme appartenant à un humain, et un humain
+ne peut intégrer au réseau qu'un seul nœud pour chaque grain.
+
+### double dépense
+
+Lorsque qu'un fork de grain est détecté:
+* l'incident est reporté et stocké.
+* la clé à l'origine du fork est marqué comme corrompu jusqu'à nouvel ordre,
+  comparable à un blocage de compte.
+* les nœuds réalisent entre eux une procédure autonome de vote pour déterminer
+  quel fork choisir.
+
+Lors du prochain bloc de paramètres la situation devra être éclairci, et le
+marquage pourra être effacé ou confirmé.
+
+Suivant la gravité de l'incident, si il y a volonté de nuire par exemple, le
+bloc de paramètre pourra sanctionner davantage : jusqu'au rejet de plusieurs
+comptes, ou à l'exclusion de plusieurs individus.
+
+Souvenez vous : "Preuve d'Identité".
 
 ## crowdfunding plan
 
