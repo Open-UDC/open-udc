@@ -291,6 +291,6 @@ s'engage sur une règle plutôt déflationniste pendant une période donnée (di
  Une règle "déflationniste" devra être bien inférieure aux 9%/an calculé par la
 TRM (en fonction de l'espérance de vie, cf.: http://openudc.org/faq_en.php)
 
- Enfin, dans un souci d'égalité, un plafonnement par personne pourrait être mis
+ Enfin, dans un souci d'égalité, un plafonnement par personne devrait être mis
 en place.
 
