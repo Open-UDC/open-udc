@@ -1,6 +1,6 @@
 ---
-title: PLAN PAS SECRET pour NE PAS CONTRÔLER le MONDE
-subtitle:
+title: OpenUDC
+subtitle: Protocoles d'authentification et système monétaire universels
 author: "Jbar"
 docref: NSPtNCtW
 lang: fr-FR
@@ -25,8 +25,8 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 
 ## Science fondamental
 
+* Giordano Bruno (1548-1600) & Galileo Galilei (1564-1642)
 * Albert Einstein (1879 - 1955)
-* Kurt Gödel (1906 - 1978)
 * ... et quelques autres.
 
 ## Pionniers de l'informatique
@@ -62,7 +62,7 @@ sectionbreak: '\vspace*{\fill} \clearpage \vspace*{\fill}'
 #  Environnement
 
 * Internet
-* Smartphones
+* Ordiphones
 * Dématérialisation des échanges
 * Globalisation
 
@@ -186,7 +186,7 @@ Notons que dans un certificat OpenPGP, on peut éventuellement stocker sa photo 
 
 Les "key signing party" sont trop contraignantes et compliquées pour la plupart.
 
-Heureusement, aujourd'hui tout le monde possède désormais un smartphone, dont les applications peuvent accéder à la plupart de nos contacts.
+Heureusement, aujourd'hui tout le monde possède désormais un ordiphone, dont les applications peuvent accéder à la plupart de nos contacts.
 
 La validation des certificats d'autrui peut donc se faire aisément via une application comme [OpenKeychain](https://www.openkeychain.org/) (à améliorer pour qu'elle réponde aux contraintes OpenUDC)
 
@@ -198,7 +198,7 @@ De nouveaux serveurs de clés sont actuellement en développement, il faudrait s
 
 ## Le protocole OpenUDC
 
-### [fiches de création monétaire](https://github.com/Open-UDC/open-udc/blob/master/docs/rfc/OpenUDC_exchange_formats.draft.txt)
+### [bloc de paramètres (& creation monétaire)](https://github.com/Open-UDC/open-udc/blob/master/docs/rfc/OpenUDC_exchange_formats.draft.txt)
 
 Blocs d'informations chainés (blockchain) dont la validation se fait par des preuves d'identité (proof-of-identity) établies au travers de la toile de confiance. Ceux ci comprennent :
 
@@ -206,7 +206,7 @@ Blocs d'informations chainés (blockchain) dont la validation se fait par des pr
 * le différentiel des clés (fingerprint) adressables, ainsi que celui de leur type
 * la quantité de nouvelle monnaie allouée à chacune des clés identifiées (par leur type) comme étant unique pour un unique individu considéré comme vivant (actif et non déclaré mort)
 
-Ces blocs d'informations sont établis en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire. Cette gouvernance peut-être :
+Les informations contenues dans ces blocs sont établies en fonction de l'évolution de la toile de confiance et des choix de gouvernance monétaire. Cette gouvernance peut-être :
 
 * manuelle : un type de clé est dédié pour designer les "administrateurs" qui pourront créer le prochain bloc.
 * automatique : tout est entièrement calculé à partir de paramètres pré établis et des données de la toile de confiance
@@ -224,15 +224,16 @@ aucune limite d'utilisateurs journaliers.
 ### validations
 
 La chaine de blocs de paramètres tout comme celle des grains sont maintenus par
-des nœuds, qui se contente d'enregistrer les nouveaux blocs valides et de
+des nœuds, qui se contentent d'enregistrer les nouveaux blocs valides et de
 stocker et servir les chaines complètes.
 
-Chaque nœud est lui même authentifié comme appartenant à un humain, et un humain
+Chaque nœud est lui même authentifié comme appartenant à un humain, et chaque humain
 ne peut intégrer au réseau qu'un seul nœud pour chaque grain.
 
 ### double dépense
 
 Lorsque qu'un fork de grain est détecté:
+
 * l'incident est reporté et stocké.
 * la clé à l'origine du fork est marqué comme corrompu jusqu'à nouvel ordre,
   comparable à un blocage de compte.
@@ -248,5 +249,48 @@ comptes, ou à l'exclusion de plusieurs individus.
 
 Souvenez vous : "Preuve d'Identité".
 
-## crowdfunding plan
+## plan de financement
+
+ Il nous faut encore un certain effort, cad du financement traditionnel, afin de
+passer à l'étape suivante du financement participatif et de la transition
+monétaire.
+
+ Le financement participatif permettra d'établir et de partager la masse
+monétaire initiale, qui déterminera la création monétaire par dividende
+universel (= micro pourcentage de la masse monétaire précédente).
+
+ Contre une participation dans une monnaie donné, sera crée pour chaque donateur
+une quantité correspondante de cryptomonnaie, et fournit une quantité définie de
+biens et services.
+
+ Une fois la(les) campagne(s) de crowndfunding terminée(s) nous aurons une masse
+monétaire initiale.
+
+ Par exemple (en Euros):
+
+ *    64 € -> 64 uc + T-shirt
+ *   256 € -> 256 uc + Polo
+ *  1024 € -> 1024 uc + T-shirt + Polo + 2 tocken sécurisé
+ *  4096 € -> 4096 uc + $ans + quelque chose en plus
+ *  8000 € -> 8192 uc + ...
+ * 15500 € ou 15800 € -> 16384 uc + ...
+ * 30000 € ou 31000 € -> 32768 uc + ...
+ * 50000 € ou 60000 € -> 65536 uc + ...
+
+ Faire des remises plus importantes pour les grosses participations risque à la
+fois d'être juteux, mais de franchir l'innaceptable-inéquitable : "les riches
+(en €) sont encore privilégiés"..., "Pay-To-Win"...  C'est pourquoi que préfère
+la remise de 2.34% entre 4096 et 8192, puis 3.56% puis 5.4% puis 8.45% au max.
+
+ Enfin faire le maximum pour gagner la confiance des donateurs
+
+ Point important pour satisfaire les gros donateurs (i.e. les spéculateurs) : on
+s'engage sur une règle plutôt déflationniste pendant une période donnée (disons
+4 ans) après le lancement de cette monnaie.
+
+ Une règle "déflationniste" devra être bien inférieure aux 9%/an calculé par la
+TRM (en fonction de l'espérance de vie, cf.: http://openudc.org/faq_en.php)
+
+ Enfin, dans un souci d'égalité, un plafonnement par personne pourrait être mis
+en place.
 
