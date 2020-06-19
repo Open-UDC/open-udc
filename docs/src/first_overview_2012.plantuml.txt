@@ -1,0 +1,38 @@
+@startuml
+cloud {
+
+  node "Alice's node" as A {
+    [Full Key Server] as KS
+    [Parameters Block Chain] as AP
+    [Grains Block Chains] as AG
+    [Network Topology]
+    note bottom of KS #Orange
+        Contain WOT
+    end note
+  }
+  node "Bernard's node" as B {
+  }
+  node "Charlie's node" as C {
+  }
+  node "Dave's node" as D {
+  }
+  node "Franck's node" as F {
+  }
+
+  A == B
+  C == A
+  C == B
+  D == B
+  D == C
+  F == D
+  F == C
+  
+}
+
+actor alice as aa
+actor bob as bb
+
+alice --> bob : "1: Payment"
+bob --> AG : "2: Registration"
+A --> bob : "3: Confirmation"
+@enduml
