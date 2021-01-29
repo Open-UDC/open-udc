@@ -18,13 +18,12 @@ Request for Comments:                                      Open-UDC Team
  2. Conventions Used in This Document ...............................
  3. Using OpenPGP certificates ......................................
  4. Human Authentication ............................................
-    4.1 OpenPGP Human certificat ....................................
+    4.1 OpenPGP Human certificate ...................................
     4.2 Proof of identity ...........................................
     4.3 Implicit living trust level .................................
     4.4 Explicit living trust level .................................
     4.5 Proof of life ...............................................
- 5. Bot Authentication .............................................
- 6. Pool Authentication .............................................
+ 5. Bot Authentication ..............................................
 
 1.== Introduction ==
 
@@ -51,9 +50,9 @@ Request for Comments:                                      Open-UDC Team
 
   An OpenUDC certificate is an OpenPGP certificate on which the comment
   field of one of its uids begins with the special string know as
-  "udid2".
+  "udid3".
 
-  As the OpenUDC characterization only uses uid in an OpenPGP certifcate
+  As the OpenUDC characterization only uses uid in an OpenPGP certificate
   it is more accurate to speak about OpenUDC uid (inside an OpenPGP
   certificate) instead of OpenUDC certificate.
 
@@ -68,18 +67,18 @@ Request for Comments:                                      Open-UDC Team
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
-  OpenUDC specifies the 3 following headers field in uid comment :
+  OpenUDC specifies the 4 following headers field in uid comment :
 
     - "udid1"
         Was used for Human Authentication, now deprecated.
     - "udid2"
+        Was used for Human Authentication, partially deprecated.
+    - "udid3"
         Used for Human Authentication.
     - "ubot1"
-        Used for Bot (ie. Node) Authentication.
-    - "upoo1"
-        Used for Pool Authentication.
+        Used for Bot (Node, etc.) Authentication.
 
-  The charaters after the last recognized field in the string SHOULD be
+  The characters after the last recognized field in the string SHOULD be
   ignored and MAY use other charset (UTF-8...). They MAY be used to add
   information in a non-universal language.
 
@@ -96,9 +95,9 @@ Request for Comments:                                      Open-UDC Team
 
 3.3= Exporting =
 
-    Certificates MUST be exported to some well-known sks key servers.
+    Certificates MUST be exported to some well-known key servers.
 
-    Sks servers MAY be enhanced to register only OpenUDC certificates,
+    Key servers MAY be enhanced to register only OpenUDC certificates,
     and to unregister automatically OpenUDC certificates which are not
     validated periodically by some other certificate.
 
@@ -120,11 +119,8 @@ Request for Comments:                                      Open-UDC Team
 
     This strings look like :
 
-    udid2;c;BRUCKER;JEAN-JACQUES;1980-12-05;e+45.43+004.43;0;
+    udid3;0zlnH75j_xEZzVOMeUyC1A;e+48.83+002.33;
 
-    or :
-
-    udid2;h;0b42ec04074e9b4138f5fdd524335f8fc2f9900f;0;
 
 4.1.1. Universal Digital IDentity string version 1.
 
@@ -133,12 +129,12 @@ Request for Comments:                                      Open-UDC Team
 
     1- The last names of the individual, separated by a comma.
 
-    2- The fornames of the individual, separated by a comma.
+    2- The forenames of the individual, separated by a comma.
 
     3- The date of birth, as the number of seconds since
        00:00:00 UTC on Thursday, 1 January 1970.
        For people born before this date, the string will indicate a
-       negative number prefixed with a charater '-'.
+       negative number prefixed with a character '-'.
        If the hour of birth is unknown, it SHOULD be fixed at
        12:00:00 UTC.
 
@@ -156,7 +152,7 @@ Request for Comments:                                      Open-UDC Team
        Accepted range for latitude is [-90.00;+90.00].
        Accepted range for longitude is [-179.999999;+180.00].
 
-       Second subfield is optionnal and may be use to define
+       Second subfield is optional and may be use to define
        non-terrestrial birth.
 
     Note: The version 1 is deprecated and should not be used anymore.
@@ -164,7 +160,7 @@ Request for Comments:                                      Open-UDC Team
 4.1.2. Universal Digital IDentity string version 2.
 
     The "udid2;" header MUST be followed by a one-char field which
-    define if the birth datas are in clear or hashed :
+    define if the birth data are in clear or hashed :
     - 'c' char means the data are not hashed.
     - 'h' char means the data are hashed.
 
@@ -222,7 +218,7 @@ Request for Comments:                                      Open-UDC Team
        indicate.
 
     5- A number which may increase in the case of more than one
-       child born with the same last name and first name at the
+       person born with the same last name and first name at the
        same place at the same date.
        This number should therefore be equal to 0 for almost every
        one.
@@ -235,13 +231,12 @@ Request for Comments:                                      Open-UDC Team
     2- A number which may increase in the case of more than one
        child born with the same last name and first name at the
        same place at the same date, or if SHA1 collision.
-       (2^63 operations are needed to meet an SHA1 collision, and
-       there is today less than 2^33 humans on earth...)
+       (Note: there is today less than 2^33 humans on earth...)
        Therefore this number should be equal to 0 for almost every
        one.
 
   Example: if a individual is registered as
-         - first names: François-Xavier-Robert,Lucien
+         - first names: François-Xavier-Robert, Lucien
          - last name: DE CLÉREL-DE-TOCQUEVILLE
          - birth date: 14 July 1989
          - birthplace: Paris 15
@@ -261,11 +256,70 @@ Request for Comments:                                      Open-UDC Team
      uni2ascii tool may help.
      (http://billposer.org/Software/uni2ascii.html)
 
+4.1.3. Universal Digital IDentity string version 3.
+
+    As hashing also birthplace coordinates introduce fuzziness or complexity
+    (need to use and maintain a signed array of coordinates). The hashed
+    udid2 turned out to be dangerous and unusable.
+
+    But obfuscating birth names and birth date was still desirable on some
+    context. Then we introduced udid3 to replace udid2.
+
+    The "udid3;" MUST be followed by 2 fields:
+
+
+    1- The base64url encoded md5sum of the string composed by the fields "1;2;3"
+       of the udid2 clear version (with the two ';' delimiters), without the
+       last two padding characters "=".
+
+    2- The location of birth. As long as individuals are born on
+       Earth, it should be prefixed by a 'e' (lower case) character.
+       Then following is defined as terrestrial coordinates.
+
+       The first number MUST be the latitude and MUST be a 4 digits
+       number : 2 before the decimal point and 2 after, prefixed by
+       '+' if in the Northern hemispheres, and prefixed by '-' if in
+       the Southern hemispheres.
+       The second number MUST be the longitude and MUST be a 5 digits
+       number : 3 before the decimal point and 2 after, prefixed by
+       by '+' in the east from the Greenwich meridian, and by '-' in
+       the west from the Greenwich meridian.
+
+       Accepted range for latitude is [-90.00;+90.00].
+       Accepted range for longitude is [-179.99;+180.00].
+
+       Contrary to udid2, udid3 accept fuzziness in this coordinates.
+       It even MUST use such fuzziness to distinguish people born with the same
+       last name and first name at the same place at the same date, or in case
+       of md5sum collision (need 2^64 random input to have a 50% chance of collision).
+
+
+
+  Example: if a individual is registered as
+         - first names: François-Xavier-Robert, Lucien
+         - last name: DE CLÉREL-DE-TOCQUEVILLE
+         - birth date: 14 July 1989
+         - birthplace: Paris 15
+
+   Then his clear udid2 is:
+
+   udid2;c;TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14;e+48.84+002.30;0;
+
+   And his udid3 is:
+
+   udid3;QLLqMQQFIWLBabaZU-QKfg;e+48.84+002.30;
+
+   Note1: using bash on almost all GNU/Linux systems, the first may be
+   calculated like this:
+   echo -n "TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14" | md5sum | xxd -r -p | basenc --base64url
+
+
+
 4.2= Proof of identity =
 
     The identity is trusted by using the OpenPGP web of trust. This
     means that signing an OpenUDC uid is something to consider
-    seriously and implies checkig the ID of the individuals to sign.
+    seriously and implies checking the ID of the individuals to sign.
 
     If a cheat is discovered, eg.:
      - signing a person which doesn't exist.
@@ -299,20 +353,20 @@ Request for Comments:                                      Open-UDC Team
         _dead@-=YYYY-mm-dd
         _birth@-=YYYY-mm-dd
         _death@-=YYYY-mm-dd
-    
+
     Where the '-' character may be replaced by a string with any
     characters except the character '@' and the character '='. This
     string may be used to indicate a place and so may contain, for
     example, a name or a coordinate.
 
     And where "YYYY-mm-dd" is a date, as specified by the ISO-8601, which
-    indicates when the signatorie have checked the identity and the life
+    indicates when the signatory have checked the identity and the life
     of the certificate's owner.
 
     The "_OBJECT_vouch@..." notations imply the "_alive@..." notation:
     It means that the person designated by the signed udid2 is alive
-    AND that signator vouch for him in the OBJECT context.
-    "OBJECT" SHOULD so be rennamed to a particular currency, or any
+    AND that signatory vouch for him in the OBJECT context.
+    "OBJECT" SHOULD so be renamed to a particular currency, or any
     other specific context which may need vouching.
 
     The "_birth@..." and "_death@..." notations are reserved for
@@ -348,13 +402,13 @@ Request for Comments:                                      Open-UDC Team
   build and use tools to improve their productivity and comfort.
 
   Today science, mechanics and computer progress make the tools more
-  complex and independent. Humans may programm such tools to take
+  complex and independent. Humans may program such tools to take
   important decisions and make important actions.
 
   This news tools are named robots or simply bots.
 
   In OpenUDC networks there are bots to validate transactions. But
-  bots may be programmed to do nasty things, or to lie. 
+  bots may be programmed to do nasty things, or to lie.
 
   To prevent that, each bot is authenticated as a human's minion:
 
@@ -376,10 +430,4 @@ Request for Comments:                                      Open-UDC Team
   Note: take care that private key(s) of bots are often not protected
   by a passphrase.
 
-6.== Pool Authentication ==
 
-    As long as a single network will be enough to trade efficiently in
-    a given web of trust, splitting the network into different pools
-    will not be mandatory.
-
-    (Today, 31 may 2011) Pool specification may wait.
