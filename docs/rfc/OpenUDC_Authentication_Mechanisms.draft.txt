@@ -265,28 +265,28 @@ Request for Comments:                                      Open-UDC Team
     But obfuscating birth names and birth date was still desirable on some
     context. Then we introduced udid3 to replace udid2.
 
-    The "udid3;" MUST be followed by 2 fields:
+    The "udid3;" MUST be followed by a field which is the concatenation of:
 
 
-    1- The base64url encoded md5sum of the string composed by the fields "1;2;3"
-       of the udid2 clear version (with the two ';' delimiters), without the
-       last two padding characters "=".
+    1- The 22 characters of the base64url encoded md5sum of the string composed
+       by the fields "1;2;3" of the udid2 clear version (with the two ';'
+       delimiters), without the last two padding characters "=".
 
-    2- The location of birth. As long as individuals are born on
-       Earth, it should be prefixed by a 'e' (lower case) character.
+    2- 14 characters to indicate location of birth. As long as individuals are
+       born on Earth, the first character MUST be an 'e' (lower case) character.
        Then following is defined as terrestrial coordinates.
 
        The first number MUST be the latitude and MUST be a 4 digits
        number : 2 before the decimal point and 2 after, prefixed by
-       '+' if in the Northern hemispheres, and prefixed by '-' if in
+       '_' if in the Northern hemispheres, and prefixed by '-' if in
        the Southern hemispheres.
        The second number MUST be the longitude and MUST be a 5 digits
        number : 3 before the decimal point and 2 after, prefixed by
-       by '+' in the east from the Greenwich meridian, and by '-' in
+       by '_' in the east from the Greenwich meridian, and by '-' in
        the west from the Greenwich meridian.
 
-       Accepted range for latitude is [-90.00;+90.00].
-       Accepted range for longitude is [-179.99;+180.00].
+       Accepted range for latitude is [-90.00;90.00].
+       Accepted range for longitude is [-179.99;180.00].
 
        Contrary to udid2, udid3 accept fuzziness in this coordinates.
        It even MUST use such fuzziness to distinguish people born with the same
@@ -307,7 +307,7 @@ Request for Comments:                                      Open-UDC Team
 
    And his udid3 is:
 
-   udid3;QLLqMQQFIWLBabaZU-QKfg;e+48.84+002.30;
+   udid3;QLLqMQQFIWLBabaZU-QKfge_48.84_002.30;
 
    Note1: using bash on almost all GNU/Linux systems, the first may be
    calculated like this:
@@ -419,7 +419,7 @@ Request for Comments:                                      Open-UDC Team
   e.g.: the OpenPGP certificate of François-Xavier-Robert's bot MUST
   have this string in the comment field of one of its uid:
 
-  ubot1;udid2;h;85bbb64915ae7f2cdbe54618453b3ed107f1f242;0;
+  ubot1;udid3;QLLqMQQFIWLBabaZU-QKfge_48.84_002.30;
 
   And this OpenPGP uid MUST be signed by the human master to prove
   they recognized this minion.
