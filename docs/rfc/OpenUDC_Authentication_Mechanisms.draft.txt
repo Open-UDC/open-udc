@@ -277,16 +277,18 @@ Request for Comments:                                      Open-UDC Team
        Then following is defined as terrestrial coordinates.
 
        The first number MUST be the latitude and MUST be a 4 digits
-       number : 2 before the decimal point and 2 after, prefixed by
-       '_' if in the Northern hemispheres, and prefixed by '-' if in
-       the Southern hemispheres.
-       The second number MUST be the longitude and MUST be a 5 digits
-       number : 3 before the decimal point and 2 after, prefixed by
-       by '_' in the east from the Greenwich meridian, and by '-' in
-       the west from the Greenwich meridian.
+       number : 2 before the decimal point and 2 after. If value is positive
+       (Northern hemisphere) it MUST be prefixed by '_' (which replace '+' for
+       URL compatility). If value is negative (Southern hemisphere) it MUST be
+       prefixed by '-'.
 
-       Accepted range for latitude is [-90.00;90.00].
-       Accepted range for longitude is [-179.99;180.00].
+       The second number MUST be the longitude and MUST be a 5 digits
+       number : 3 before the decimal point and 2 after, prefixed by '_' for
+       positive values (east from the Greenwich meridian), and by '-' for
+       negative values (west from the Greenwich meridian).
+
+       Accepted range for latitude is [-90.00;+90.00].
+       Accepted range for longitude is [-179.99;+180.00].
 
        Contrary to udid2, udid3 accept fuzziness in this coordinates.
        It even MUST use such fuzziness to distinguish people born with the same
@@ -307,10 +309,10 @@ Request for Comments:                                      Open-UDC Team
 
    And his udid3 is:
 
-   udid3;QLLqMQQFIWLBabaZU-QKfge_48.84_002.30;
+   udid3;QLLqMQQFIWLBabaZU-QKfge_48.84_002.30
 
-   Note1: using bash on almost all GNU/Linux systems, the first may be
-   calculated like this:
+   Note1: using bash on almost all GNU/Linux systems, the first 22 characters
+   may be calculated like this:
    echo -n "TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14" | md5sum | xxd -r -p | basenc --base64url
 
 
