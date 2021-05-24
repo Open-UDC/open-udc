@@ -316,6 +316,106 @@ Request for Comments:                                      Open-UDC Team
    echo -n "TOCQUEVILLE;FRANCOIS-XAVIER-ROBE;1989-07-14" | md5sum | xxd -r -p | basenc --base64url
 
 
+4.1.4. Universal Digital IDentity string version 4.
+
+    In the current world International Civil Aviation Organization, did also make
+    a great effort to standardize human identification: the ICAO Document 9303
+    (endorsed by the International Organization for Standardization and the
+    International Electrotechnical Commission as ISO/IEC 7501-1) specify a
+    machine-readable passport (MRP) with a standardized machine-readable zone (MRZ).
+
+    To benefit the massive usage of this standardization, we have had to introduce
+    udid4 to replace udid3 and udid2.
+
+    Obfuscating has still many advantage: It allows conformity with the
+    (flawed/sloppy) General Data Protection Regulation (GDPR). But also may avoid
+    some discrimination based on last names or first names. Etc.
+
+    Like the Universal Digital IDentity string version 3, "udid4;" MUST be
+    followed by a field which is the concatenation of:
+
+    1- The 22 characters of a base64url encoded md5sum, without the last two
+       padding characters "=". But the data hashed there differs from the
+       Universal Digital IDentity string version 3.
+
+    2- 14 characters to indicate location of birth. Exactly like those of the
+       Universal Digital IDentity string version 3, described above.
+
+
+    The data which are hashed to build the first 22 characters following "udid4;"
+    is a concatenation of 4 fields, separated by a less-than sign '<'.
+
+    1- The last surname at birth. Followed by an extra '<'.
+
+    2- The first given name at birth.
+
+    3- The second given name at birth.
+
+    4- The date of birth.
+
+     Inside fields 1, 2 and 3: only the 26 upper case [A-Z] US-ASCII characters are allowed.
+     That means it have to be transposed in a standardized way to this US-ASCII characters.
+     Field 3 (second given name) may be empty, field 1 and 2 MUST contain at least one [A-Z] character.
+     Fields 1, 2 and 3 MUST not exceed 40 characters. If it reach the 40-chars limit, extra characters MUST be ignored.
+
+     Field 4 (date of birth) MUST be formatted as specified by the ISO-8601, in the extended form: "YYYY-mm-dd".
+
+
+
+  Example1: if a individual is registered as
+         - first names: François-Xavier-Robert, Lucien
+         - last name: DE CLÉREL-DE-TOCQUEVILLE
+         - birth date: 14 July 1989
+         - birthplace: Paris 15
+
+   Then the name part of the MRZ of his passport may be:
+   "TOCQUEVILLE<<FRANCOIS<XAVIER<ROBERT<LUC"
+
+   The data to be hashed is:
+   "TOCQUEVILLE<<FRANCOIS<XAVIER<1989-07-14"
+
+   And his udid4 would be:
+
+   udid4;vb6UZTMKsllgoH760pc0xwe_48.84_002.30
+
+
+  Example2: if a individual is registered as birth as
+         - given names: Federica
+         - surname: ROSSINI DEL MONTE PIU LUNGO DI QUARANTA
+         - birth date: O8 December 1968
+
+   Then the name part of the MRZ of his passport may be:
+   "ROSSINI<DEL<MONTE<PIU<LUNGO<DI<QUARA<<F"
+
+   But the data to be hashed would be:
+   "QUARANTA<<FEDERICA<<1968-12-08"
+
+
+
+---
+
+   Note1: using bash on almost all GNU/Linux systems, the first 22 characters
+   may be calculated like this:
+   echo -n "TOCQUEVILLE<<FRANCOIS<XAVIER<1989-07-14" | md5sum | xxd -r -p | basenc --base64url
+
+   Note2: The simplest way to extract names from a MRZ is to grep "[A-Z]\+<<[A-Z]\+<[A-Z]*<"
+
+   Notes3:
+
+     Birth certificates or passports pose many (human) issues:
+        * Fake documents
+        * Issuer errors or inconsistencies
+        * names changed since
+        * ... etc.
+     So Universal Digital IDentity string won't be sufficient or reliable to identify each individuals only once.
+     The concept of Web Of Trust, defined for example by OpenPGP, is a powerful solution to complete this objective.
+     But the Web Of Trust use to be also insufficient, as there often lacks of information : "trust for what ?".
+     Moreover Web Of Trust grows slowly, too slowly.
+
+     Then the faster way to reach the objective: "reliably identify everyone,
+     only once", is to combine "Universal Digital IDentity", "Web Of Trust" and
+     "Biometric informations" for a while.
+
 
 4.2= Proof of identity =
 
@@ -328,7 +428,7 @@ Request for Comments:                                      Open-UDC Team
      - signing an udid which point to somebody else.
      - signing an udid2 which doesn't match the standard described in
        this document ([RFCXXXX]).
-    the signatories will be held accountable and may be prosecuted.
+    the signatories may be held accountable and suffer consequences.
 
 4.3= Implicit living trust level =
 
