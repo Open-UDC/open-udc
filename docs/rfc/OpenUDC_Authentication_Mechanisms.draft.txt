@@ -356,7 +356,7 @@ Request for Comments:                                      Open-UDC Team
      Inside fields 1, 2 and 3: only the 26 upper case [A-Z] US-ASCII characters are allowed.
      That means it have to be transposed in a standardized way to this US-ASCII characters.
      Field 3 (second given name) may be empty, field 1 and 2 MUST contain at least one [A-Z] character.
-     Fields 1, 2 and 3 MUST not exceed 40 characters. If it reach the 40-chars limit, extra characters MUST be ignored.
+     Fields 1, 2 and 3 MUST not exceed 32 characters. If it reach the 32-chars limit, extra characters MUST be ignored.
 
      Field 4 (date of birth) MUST be formatted as specified by the ISO-8601, in the extended form: "YYYY-mm-dd".
 
@@ -396,9 +396,9 @@ Request for Comments:                                      Open-UDC Team
 
    Note1: using bash on almost all GNU/Linux systems, the first 22 characters
    may be calculated like this:
-   echo -n "TOCQUEVILLE<<FRANCOIS<XAVIER<1989-07-14" | md5sum | xxd -r -p | basenc --base64url
+   echo -n "TOCQUEVILLE<<FRANCOIS<XAVIER<1989-07-14" | md5sum | xxd -r -p | basenc --base64url | sed 's/==$//'
 
-   Note2: The simplest way to extract names from a MRZ is to grep "[A-Z]\+<<[A-Z]\+<[A-Z]*<"
+   Note2: The simplest way to extract names from a MRZ is to grep "[A-Z]\{1,32\}<<[A-Z]\{1,32\}<[A-Z]\{0,32\}<"
 
    Notes3:
 
