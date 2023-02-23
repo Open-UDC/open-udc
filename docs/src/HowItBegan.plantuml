@@ -1,0 +1,29 @@
+@startuml
+
+@startgantt
+
+title
+ Reshape money to shape humanity (of peace and love)
+ How the Monnaie Libre began
+end title
+
+Project starts the 2009-09-15
+projectscale monthly zoom 2
+
+[The world is sinking into mercantilism. How can we move forward again towards more "Liberty, Equality, Fraternity"?] lasts 0 days
+
+[Money seems to rule the world] lasts 15 days
+[How money comes from ?] lasts 120 days and starts after [Money seems to rule the world]'s end
+[start of creationmonetaire.info] happens 2009-10-12 and ends 2011-04-01
+ 
+[Discover and study bitcoin implementation] lasts 150 days and starts 90 days after [Money seems to rule the world]'s end
+
+[OpenUDC] starts 2010-12-13 and ends 2011-04-01 and is colored in GreenYellow/Green
+[How to build decentralized Currencies enabling Universal Dividend ?] lasts 240 days and ends at [OpenUDC]'s start
+
+[FOSDEM 2011] lasts 3 days and starts 2011-02-03
+["Monnaie Libre"] starts after [FOSDEM 2011]'s end and ends 2011-04-01 and is colored in Coral/Green
+
+@endgantt
+@enduml
+
