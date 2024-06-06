@@ -57,7 +57,7 @@ Request for Comments:                                      Open-UDC Team
   certificate) instead of OpenUDC certificate.
 
   The special string recognized by OpenUDC implementations is a sum of
-  fields which MUST be separated by a semicolon ';'.
+  fields which MUST be separated by a semicolon ';' or an equal sign '='.
 
   The string MUST use only US-ASCII charset (without the semicolon which
   is reserved for separation of fields).
@@ -70,13 +70,15 @@ Request for Comments:                                      Open-UDC Team
   OpenUDC specifies the 4 following headers field in uid comment :
 
     - "udid1"
-        Was used for Human Authentication, now deprecated.
+        Was used for Human Authentication, deprecated.
     - "udid2"
-        Was used for Human Authentication, partially deprecated.
+        Was used for Human Authentication, deprecated.
     - "udid3"
+        Was used for Human Authentication, deprecated.
+    - "udid4"
         Used for Human Authentication.
     - "ubot1"
-        Used for Bot (Node, etc.) Authentication.
+        Used for non-human Authentication, eg: bot, organization, etc.
 
   The characters after the last recognized field in the string SHOULD be
   ignored and MAY use other charset (UTF-8...). They MAY be used to add
@@ -331,7 +333,7 @@ Request for Comments:                                      Open-UDC Team
     (flawed/sloppy) General Data Protection Regulation (GDPR). But also may avoid
     some discrimination based on last names or first names. Etc.
 
-    Like the Universal Digital IDentity string version 3, "udid4;" MUST be
+    Like the Universal Digital IDentity string version 3, "udid4=" MUST be
     followed by a field which is the concatenation of:
 
     1- The 22 characters of a base64url encoded md5sum, without the last two
@@ -342,7 +344,7 @@ Request for Comments:                                      Open-UDC Team
        Universal Digital IDentity string version 3, described above.
 
 
-    The data which are hashed to build the first 22 characters following "udid4;"
+    The data which are hashed to build the first 22 characters following "udid4="
     is a concatenation of 4 fields, separated by a less-than sign '<'.
 
     1- The last surname at birth. Followed by an extra '<'.
@@ -374,9 +376,9 @@ Request for Comments:                                      Open-UDC Team
    The data to be hashed is:
    "TOCQUEVILLE<<FRANCOIS<XAVIER<1989-07-14"
 
-   And his udid4 would be:
+   And his Universal Digital IDentity would be:
 
-   udid4;vb6UZTMKsllgoH760pc0xwe_48.84_002.30
+   udid4=vb6UZTMKsllgoH760pc0xwe_48.84_002.30
 
 
   Example2: if a individual is registered as birth as
@@ -498,30 +500,31 @@ Request for Comments:                                      Open-UDC Team
     noticed as such), then investigation ("Cui prodest scelus is
     fecit"), prosecution, etc., may follow.
 
-5.== Bot Authentication ==
+5.== Authentication of other entities ==
 
   Only humans may be trusted and held responsible. But humans like to
-  build and use tools to improve their productivity and comfort.
+  build and use tools or organizations to improve their productivity and
+  comfort.
 
-  Today science, mechanics and computer progress make the tools more
-  complex and independent. Humans may program such tools to take
-  important decisions and make important actions.
+  Today, data inflation in the fields of science and law make the tools
+  or organizations more complex and interdependent. Humans may program such
+  tools (eg: bots), or manage such organizations, to take important
+  decisions and make important actions.
 
-  This news tools are named robots or simply bots.
+  For example, in OpenUDC networks there are bots to validate transactions.
+  But bots may be programmed to do nasty things, like hiding informations
+  or lying.
 
-  In OpenUDC networks there are bots to validate transactions. But
-  bots may be programmed to do nasty things, or to lie.
+  To prevent that, each non-human entity is authenticated as a human's minion:
 
-  To prevent that, each bot is authenticated as a human's minion:
-
-  Each bots have their own OpenPGP certificate, and one of the uid
+  Each non-human entity have their own OpenPGP certificate, and some of the uid
   comment field MUST begin with the special string "ubot1;" ,
-  followed immediately by the full udid2 of its master.
+  followed immediately by the full udid of one of its master.
 
   e.g.: the OpenPGP certificate of François-Xavier-Robert's bot MUST
   have this string in the comment field of one of its uid:
 
-  ubot1;udid3;QLLqMQQFIWLBabaZU-QKfge_48.84_002.30;
+  ubot1=udid4=vb6UZTMKsllgoH760pc0xwe_48.84_002.30;
 
   And this OpenPGP uid MUST be signed by the human master to prove
   they recognized this minion.
