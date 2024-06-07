@@ -67,7 +67,7 @@ Request for Comments:                                      Open-UDC Team
   First field (a.k.a. header field) indicate the meaning and the number
   of its following fields.
 
-  OpenUDC specifies the 4 following headers field in uid comment :
+  OpenUDC specifies the following headers for OpenPGP uid comment field:
 
     - "udid1"
         Was used for Human Authentication, deprecated.
@@ -78,6 +78,8 @@ Request for Comments:                                      Open-UDC Team
     - "udid4"
         Used for Human Authentication.
     - "ubot1"
+        Was used for non-human Authentication, deprecated.
+    - "nhid2"
         Used for non-human Authentication, eg: bot, organization, etc.
 
   The characters after the last recognized field in the string SHOULD be
@@ -428,7 +430,7 @@ Request for Comments:                                      Open-UDC Team
     If a cheat is discovered, eg.:
      - signing a person which doesn't exist.
      - signing an udid which point to somebody else.
-     - signing an udid2 which doesn't match the standard described in
+     - signing an udid which doesn't match the standard described in
        this document ([RFCXXXX]).
     the signatories may be held accountable and suffer consequences.
 
@@ -517,14 +519,19 @@ Request for Comments:                                      Open-UDC Team
 
   To prevent that, each non-human entity is authenticated as a human's minion:
 
-  Each non-human entity have their own OpenPGP certificate, and some of the uid
-  comment field MUST begin with the special string "ubot1;" ,
-  followed immediately by the full udid of one of its master.
+  Each non-human entity have their own OpenPGP certificate, and all its masters,
+  identified by their full udid (eg: udid4=...), MUST be indicated inside the
+  uids of the OpenPGP certificate.
+
+5.1= Non-human IDentity string version 1=
+
+  Some of the OpenPGP uid comment field MUST begin with the special string
+  "ubot1;" followed immediately by the full udid of one of its master.
 
   e.g.: the OpenPGP certificate of François-Xavier-Robert's bot MUST
   have this string in the comment field of one of its uid:
 
-  ubot1=udid4=vb6UZTMKsllgoH760pc0xwe_48.84_002.30;
+  ubot1;udid4=vb6UZTMKsllgoH760pc0xwe_48.84_002.30;
 
   And this OpenPGP uid MUST be signed by the human master to prove
   they recognized this minion.
@@ -532,7 +539,43 @@ Request for Comments:                                      Open-UDC Team
   The bot certificate SHOULD design a key of their human master as
   revocation key.
 
-  Note: take care that private key(s) of bots are often not protected
-  by a passphrase.
+5.2= Non-human Identity string version 2=
+
+  Each entity can be uniquely identified by a specific date and a precise
+  place of birth.
+
+  Then we define a string of 28 characters to uniquely identify any non-human
+  entity:
+   - 6 characters for the header : 'nhid2='
+   - 8 characters for the date of birth as specified by the ISO-8601,
+        in the form: "YYYYmmdd".
+   - 14 characters for the location of birth. Exactly like those of the
+        Universal Digital IDentity string version 3, described above.
+
+  For example, an organization that would be officially born on April 03, 2023,
+  near Gap in France; can be identified by the string :
+
+  nhid2=20230403e_44.52_006.02
+
+  And as only humans can be held responsible, OpenPGP certificates of non-human
+  entities MUST contains responsable identities ly humans may be hold
+
+  And since only humans can be held responsible, certificates must contain
+  the identities of those responsible.
+
+  This is done by simply concatenating the fixed-size strings "nhid2=..."
+  and "udid4=..." inside OpenPGP uids of OpenPGP certificate.
+
+  For example, if the organization identified by "nhid2=20230403e_44.52_006.02"
+  is managed by François-Xavier-Robert DE CLÉREL-DE-TOCQUEVILLE, and Frederica
+  ROSSINI DEL MONTE PIU LUNGO DI QUARANTA, the OpenPGP certificate MUST contain
+  at least 2 uid were comment fields equal, respectively:
+
+  nhid2=20230403e_44.52_006.02udid4=vb6UZTMKsllgoH760pc0xwe_48.84_002.30
+
+  nhid2=20230403e_44.52_006.02udid4=H1BuGXz-aAeH1lZp2YIGVQe_41.89_012.51
 
 
+
+
+ 
